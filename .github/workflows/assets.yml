@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       asset_type:
-        description: 'Asset to build (all, kernel, rootfs, dmg)'
+        description: Asset to build
         required: false
-        default: 'all'
+        default: all
         type: choice
         options:
           - all
@@ -26,8 +26,6 @@ jobs:
           mkdir -p assets
           curl -L -o assets/vmlinux \
             https://github.com/cloud-hypervisor/cloud-hypervisor/releases/download/v31.0/arch-arm64-vmlinux
-
-          # Verify
           file assets/vmlinux
           ls -lh assets/vmlinux
 
@@ -50,43 +48,22 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install debootstrap
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y debootstrap qemu-user-static binfmt-support
+        run: sudo apt-get update && sudo apt-get install -y debootstrap qemu-user-static binfmt-support
 
       - name: Build Ubuntu 24.04 rootfs
         run: |
           mkdir -p /tmp/ubuntu-build
-
-          sudo debootstrap \
-            --arch arm64 \
-            --variant minbase \
+          sudo debootstrap --arch arm64 --variant minbase \
             --include=openssh-server,systemd,curl,wget,build-essential,python3,ca-certificates \
-            noble \
-            /tmp/ubuntu-build \
-            http://ports.ubuntu.com/ubuntu-ports/
-
-          # Configure SSH
+            noble /tmp/ubuntu-build http://ports.ubuntu.com/ubuntu-ports/
           sudo bash -c 'echo "root:tinybridge" | chpasswd -R /tmp/ubuntu-build'
           sudo bash -c 'echo "PermitRootLogin yes" >> /tmp/ubuntu-build/etc/ssh/sshd_config'
           sudo bash -c 'echo "PubkeyAuthentication yes" >> /tmp/ubuntu-build/etc/ssh/sshd_config'
-
-          # Create fstab
-          sudo bash -c 'cat > /tmp/ubuntu-build/etc/fstab << EOF
-/dev/vda1 / ext4 defaults 0 1
-proc /proc proc defaults 0 0
-sysfs /sys sysfs defaults 0 0
-tmpfs /dev/shm tmpfs defaults 0 0
-devpts /dev/pts devpts defaults 0 0
-EOF'
-
-          # Minimal systemd config for faster boot
-          sudo bash -c 'mkdir -p /tmp/ubuntu-build/etc/systemd/system.conf.d'
-          sudo bash -c 'cat > /tmp/ubuntu-build/etc/systemd/system.conf.d/99-minimal-boot.conf << EOF
-[Manager]
-DefaultTimeoutStartSec=10s
-DefaultTimeoutStopSec=5s
-EOF'
+          echo "/dev/vda1 / ext4 defaults 0 1" | sudo tee /tmp/ubuntu-build/etc/fstab
+          echo "proc /proc proc defaults 0 0" | sudo tee -a /tmp/ubuntu-build/etc/fstab
+          echo "sysfs /sys sysfs defaults 0 0" | sudo tee -a /tmp/ubuntu-build/etc/fstab
+          echo "tmpfs /dev/shm tmpfs defaults 0 0" | sudo tee -a /tmp/ubuntu-build/etc/fstab
+          echo "devpts /dev/pts devpts defaults 0 0" | sudo tee -a /tmp/ubuntu-build/etc/fstab
 
       - name: Compress rootfs
         run: |
@@ -95,7 +72,6 @@ EOF'
           sudo tar -czf ubuntu-24.04-rootfs.tar.gz -C ubuntu-build .
           sudo chown $USER ubuntu-24.04-rootfs.tar.gz
           mv ubuntu-24.04-rootfs.tar.gz $GITHUB_WORKSPACE/assets/
-
           ls -lh $GITHUB_WORKSPACE/assets/ubuntu-24.04-rootfs.tar.gz
 
       - name: Verify rootfs structure
@@ -115,137 +91,17 @@ EOF'
           name: rootfs
           path: assets/ubuntu-24.04-rootfs*
 
-  build-dmg:
-    if: github.event.inputs.asset_type == 'all' || github.event.inputs.asset_type == 'dmg'
-    runs-on: macos-15
-    needs: [build-kernel, build-rootfs]
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Download kernel artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: kernel
-          path: assets
-
-      - name: Download rootfs artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: rootfs
-          path: assets
-
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: aarch64-apple-darwin,x86_64-apple-darwin
-
-      - uses: Swatinem/rust-cache@v2
-
-      - name: Build Swift library
-        run: |
-          swift build -c release --package-path swift --product TinyBridgeVZBridge
-          mkdir -p target/swift-libs
-          cp swift/.build/release/libTinyBridgeVZBridge.dylib target/swift-libs/
-
-      - name: Build Rust binaries (release)
-        run: |
-          cargo build --release --target aarch64-apple-darwin -p tinybridge-cli
-          cargo build --release --target aarch64-apple-darwin -p tinybridge-daemon
-
-      - name: Create app bundle
-        run: |
-          mkdir -p TinyBridge.app/Contents/{MacOS,Frameworks,Resources}
-
-          # Copy binaries
-          cp target/aarch64-apple-darwin/release/tinybridge TinyBridge.app/Contents/MacOS/
-          cp target/aarch64-apple-darwin/release/tinybridged TinyBridge.app/Contents/MacOS/
-          cp target/swift-libs/libTinyBridgeVZBridge.dylib TinyBridge.app/Contents/Frameworks/
-
-          # Copy resources (create minimal if not present)
-          mkdir -p packaging
-          if [ ! -f packaging/AppIcon.icns ]; then
-            echo "Icon placeholder" > TinyBridge.app/Contents/Resources/AppIcon.icns
-          else
-            cp packaging/AppIcon.icns TinyBridge.app/Contents/Resources/
-          fi
-
-          cp packaging/Info.plist TinyBridge.app/Contents/ || \
-            echo '<?xml version="1.0" encoding="UTF-8"?><plist><dict></dict></plist>' > TinyBridge.app/Contents/Info.plist
-
-      - name: Code sign app bundle
-        run: |
-          codesign --deep --force --sign - TinyBridge.app
-          codesign -v TinyBridge.app
-
-      - name: Create .dmg
-        run: |
-          hdiutil create -volname "TinyBridge" \
-            -srcfolder TinyBridge.app \
-            -ov -format UDRW \
-            TinyBridge-temp.dmg
-
-          hdiutil convert TinyBridge-temp.dmg \
-            -format UDZO \
-            -o TinyBridge.dmg
-
-          rm TinyBridge-temp.dmg
-          ls -lh TinyBridge.dmg
-
-      - name: Upload DMG artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: dmg
-          path: TinyBridge.dmg
-
   verify-assets:
     if: always()
-    needs: [build-kernel, build-rootfs, build-dmg]
+    needs: [build-kernel, build-rootfs]
     runs-on: ubuntu-latest
     steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v3
 
       - name: Verify artifacts
         run: |
-          echo "=== Kernel ==="
-          ls -lh kernel/ || echo "Kernel not built"
-
-          echo "=== Rootfs ==="
-          ls -lh rootfs/ || echo "Rootfs not built"
-
-          echo "=== DMG ==="
-          ls -lh dmg/ || echo "DMG not built"
+          echo "=== Kernel ===" && ls -lh kernel/ || echo "Kernel artifact missing"
+          echo "=== Rootfs ===" && ls -lh rootfs/ || echo "Rootfs artifact missing"
 
       - name: Generate summary
-        run: |
-          cat > ASSETS_BUILD_SUMMARY.md << 'EOF'
-          # Asset Build Summary
-
-          ## Kernel
-          - Cloud-Hypervisor arm64 kernel (6.6 LTS)
-          - Optimized for macOS VZ Framework
-          - Minimal module set for VirtioFS + networking
-
-          ## Rootfs
-          - Ubuntu 24.04 (noble) minimal
-          - SSH enabled, build tools included
-          - Python 3 + curl/wget for development
-
-          ## .dmg
-          - Code-signed installer package
-          - Ready for notarization
-          - Includes Swift bridge library
-
-          ## Next Steps
-          1. Download artifacts from workflow
-          2. Place kernel at ~/.tinybridge/assets/vmlinux
-          3. Place rootfs at ~/.tinybridge/assets/ubuntu-24.04-rootfs.tar.gz
-          4. Extract .dmg and install on macOS 14+
-          5. Run benchmarks: ./scripts/run-benchmarks.sh
-          EOF
-          cat ASSETS_BUILD_SUMMARY.md
-
-      - name: Upload build summary
-        uses: actions/upload-artifact@v3
-        with:
-          name: summary
-          path: ASSETS_BUILD_SUMMARY.md
+        run: echo "Assets built successfully. Download from Actions artifacts."
