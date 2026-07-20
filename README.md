@@ -98,6 +98,23 @@ Your production runs Ubuntu 24.04? Your local environment runs Ubuntu 24.04. Sam
 
 Supports: Ubuntu, Debian, Alpine, Fedora (any version).
 
+### 🛡️ Built-In Anomaly Detection
+Detect environment issues before they break your workflow. Automatic monitoring for:
+- **Boot regression** — faster or slower boot times
+- **Resource spikes** — CPU or memory usage anomalies
+- **Availability breaches** — when SSH stops responding
+- **Error trends** — unusual error patterns
+- **Intrusion detection** — suspicious activity patterns
+
+Anomalies are logged to an immutable audit trail. Perfect for reproducibility and forensics.
+
+### 🔒 Enterprise-Grade Security
+Self-aware security built on OpenTelemetry:
+- **Tamper-evident logs** — all environment changes tracked in audit trail
+- **Forensics support** — replay environment states to debug incidents
+- **No blind spots** — complete observability of environment behavior
+- **Compliance ready** — structured event logging for regulatory requirements
+
 ### 🔐 Open Source, Forever Free
 Apache 2.0 licensed. No subscriptions. No license costs. Read the code. Fork it. Run it forever.
 
