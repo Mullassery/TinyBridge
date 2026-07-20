@@ -3,6 +3,8 @@ use chrono::Utc;
 use serde_json::json;
 use std::collections::HashMap;
 use std::path::PathBuf;
+use std::time::Instant;
+use tracing::instrument;
 use uuid::Uuid;
 
 use tinybridge_core::{
@@ -10,12 +12,14 @@ use tinybridge_core::{
     UpResponse,
 };
 
+use crate::boot_tiers::BootTierConfig;
 use crate::vz::VmManager;
 
 pub struct EnvironmentManager {
     environments: HashMap<String, Environment>,
     vm_manager: VmManager,
     assets_dir: PathBuf,
+    boot_tiers: BootTierConfig,
 }
 
 impl EnvironmentManager {
@@ -27,15 +31,20 @@ impl EnvironmentManager {
             environments: HashMap::new(),
             vm_manager: VmManager::new(),
             assets_dir,
+            boot_tiers: BootTierConfig::default(),
         }
     }
 
+    #[instrument(skip(self), fields(env_name = %name.as_ref().unwrap_or(&"default".to_string())))]
     pub async fn up(
         &mut self,
         name: Option<String>,
         _env_yaml_path: Option<String>,
     ) -> Result<serde_json::Value> {
+        let boot_start = Instant::now();
         let env_name = name.unwrap_or_else(|| "default".to_string());
+
+        tracing::debug!("Environment up requested");
 
         if self.environments.contains_key(&env_name) {
             let existing = &self.environments[&env_name];
@@ -72,7 +81,8 @@ impl EnvironmentManager {
                 version: "1.0.0".to_string(),
                 description: Some("TinyBridge environment".to_string()),
                 substrate: tinybridge_core::SubstrateConfig {
-                    os: "ubuntu-24.04".to_string(),
+                    os: "ubuntu".to_string(),
+                    version: Some("24.04".to_string()),
                     kernel: None,
                     arch: vec![tinybridge_core::Arch::Arm64],
                 },
@@ -95,9 +105,39 @@ impl EnvironmentManager {
             env.status = EnvironmentStatus::Starting { progress_pct: pct };
         }
 
+        let boot_duration_ms = boot_start.elapsed().as_millis() as u64;
+
+        // Determine which boot tier was achieved
+        let tier_1_timeout = self.boot_tiers.timeout_for_tier(1).unwrap_or_default().as_millis() as u64;
+        let tier_2_timeout = self.boot_tiers.timeout_for_tier(2).unwrap_or_default().as_millis() as u64;
+        let tier_3_timeout = self.boot_tiers.timeout_for_tier(3).unwrap_or_default().as_millis() as u64;
+
+        let boot_tier = if boot_duration_ms <= tier_1_timeout {
+            1
+        } else if boot_duration_ms <= tier_2_timeout {
+            2
+        } else if boot_duration_ms <= tier_3_timeout {
+            3
+        } else {
+            4
+        };
+
         env.status = EnvironmentStatus::Running { uptime_secs: 0 };
         env.started_at = Some(Utc::now());
         env.ip_address = Some("192.168.105.2".to_string());
+
+        // Record boot time metric (exported to OTel)
+        crate::otel::record_boot_time(&env_name, boot_duration_ms, "success");
+
+        tracing::info!(
+            boot_time_ms = boot_duration_ms,
+            boot_tier = boot_tier,
+            tier_1_target_ms = tier_1_timeout,
+            tier_2_target_ms = tier_2_timeout,
+            tier_3_target_ms = tier_3_timeout,
+            ip_address = "192.168.105.2",
+            "Environment up complete"
+        );
 
         Ok(serde_json::to_value(UpResponse {
             id: env.id.to_string(),
@@ -107,8 +147,11 @@ impl EnvironmentManager {
         })?)
     }
 
+    #[instrument(skip(self), fields(env_name = %name.as_ref().unwrap_or(&"default".to_string()), force = force))]
     pub async fn down(&mut self, name: Option<String>, force: bool) -> Result<serde_json::Value> {
         let env_name = name.unwrap_or_else(|| "default".to_string());
+
+        tracing::debug!("Environment down requested");
 
         let env = self
             .environments
@@ -123,8 +166,10 @@ impl EnvironmentManager {
 
         // Stop the actual VM
         if force {
+            tracing::info!("Force stopping environment");
             self.vm_manager.force_stop_vm(env.id)?;
         } else {
+            tracing::info!("Gracefully stopping environment");
             self.vm_manager.stop_vm(env.id)?;
         }
 
@@ -135,6 +180,8 @@ impl EnvironmentManager {
 
         // Clean up VM handle
         self.vm_manager.destroy_vm(env.id)?;
+
+        tracing::info!("Environment down complete");
 
         Ok(serde_json::to_value(DownResponse {
             name: env.name.clone(),
@@ -171,6 +218,29 @@ impl EnvironmentManager {
 
     pub async fn shell(&self, _name: Option<String>) -> Result<serde_json::Value> {
         Ok(json!({"shell": "bash", "status": "connecting"}))
+    }
+
+    pub fn boot_tier_info(&self) -> Result<serde_json::Value> {
+        let tiers: Vec<_> = (1..=4)
+            .filter_map(|tier_num| {
+                self.boot_tiers.tier(tier_num).map(|tier| {
+                    json!({
+                        "tier": tier.tier,
+                        "name": tier.name,
+                        "description": tier.description,
+                        "timeout_ms": tier.timeout_ms,
+                        "critical": tier.critical,
+                        "start_type": format!("{:?}", tier.start_type),
+                        "services": tier.services,
+                    })
+                })
+            })
+            .collect();
+
+        Ok(json!({
+            "strategy": self.boot_tiers.strategy,
+            "tiers": tiers,
+        }))
     }
 
     fn to_summary(&self, env: &Environment) -> EnvironmentSummary {

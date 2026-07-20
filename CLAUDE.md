@@ -7,14 +7,14 @@
 **Owner:** Georgi Mammen Mullassery
 **License:** Apache 2.0
 **Repository:** Private (Mullassery/tinybridge on GitHub)
-**Status:** Phase 1 (In development) — macOS version shipping first, Windows/Linux in Phase 2
+**Status:** Phase 1 (In development) — macOS version shipping first
 
 ## Vision
 
-Replace Docker Desktop, OrbStack, and Lima as the preferred Linux development substrate. Initially for macOS (Phase 1-4), expanding to Windows/Linux (Phase 2+) with native performance on each platform.
+Replace Docker Desktop and Lima as the preferred Linux development substrate on macOS. Architected for performance, simplicity, and developer joy.
 
 ### Key Differentiators
-- **Open source** (vs. OrbStack's closed proprietary)
+- **Open source** (Apache 2.0, full transparency)
 - **Environment-as-Code** (declarative YAML, git-versioned)
 - **ROS 2 native** (DDS multicast networking works out of the box)
 - **Transparent CUDA routing** (routes to remote GPU automatically)
@@ -22,31 +22,24 @@ Replace Docker Desktop, OrbStack, and Lima as the preferred Linux development su
 - **Hardware passthrough** (curated USB/serial/camera support)
 
 ### Competitive Positioning
-- vs. OrbStack: Open source, cheaper, robotics-native, GPU roadmap
-- vs. Docker Desktop: Free, lighter, macOS-optimized, better DX
-- vs. Lima: GUI, batteries-included, ecosystem-rich
+- vs. Docker Desktop: Free, lighter, macOS-optimized, open source, better DX
+- vs. Lima: GUI, batteries-included, ecosystem-rich, easier onboarding
 
 ## Technology Stack
 
-### Dual-Platform Strategy: Rust-Maximized
+### Technology Stack: macOS
 
-**Philosophy:** Rust for all platforms (performance, safety). Platform-specific UIs only where native integration needed (Swift on macOS).
+**Philosophy:** Rust for performance and safety. Swift for native system integration.
 
-**macOS (Phase 1-4):**
+**macOS:**
 - **Daemon + CLI:** Rust + tokio
 - **UI:** Swift + SwiftUI (menu bar app, native system integration)
 - **VM Backend:** Apple VZ Framework via C FFI (~500 lines; unavoidable for system APIs)
 - **VM Substrate:** Minimal Linux kernel, VirtioFS, Rosetta 2
 
-**Windows/Linux (Phase 2+):**
-- **Daemon + CLI:** Rust + tokio (same core as macOS)
-- **UI:** Headless CLI + optional Tauri/egui desktop app
-- **VM Backend:** QEMU or KVM native bindings (pure Rust via rust-qemu or libvirt crates)
-- **VM Substrate:** Standard Linux minimal kernel, virtio, KVM support
-
 ### No C++. Period.
 
-Minimize C entirely. macOS uses a thin FFI header for VZ Framework (unavoidable system API access, same pattern as Lima/Podman). Windows/Linux uses pure Rust VM bindings where available.
+Minimize C entirely. macOS uses a thin FFI header for VZ Framework (unavoidable system API access, same pattern as Lima/Podman).
 
 ### Build System
 - **Rust:** Cargo workspace, universal binary (arm64 + x86_64 via Rosetta)
@@ -66,16 +59,7 @@ Tier 2 (Linux Substrate via Apple VZ Framework)  ← for Linux-only workloads
 Tier 3 (Remote Linux with GPU)  ← for CUDA/training
 ```
 
-**High-level (Windows/Linux):**
-```
-Tier 1 (Native Windows/Linux amd64)  ← default, zero overhead
-    ↓
-Tier 2 (Containerized Linux via QEMU/KVM)  ← for isolated workloads
-    ↓
-Tier 3 (Remote Linux with GPU)  ← for CUDA/training
-```
-
-Routing is **transparent** — developers never specify a tier or OS. The platform decides based on workload + host OS.
+Routing is **transparent** — developers never specify a tier. The platform decides based on workload capabilities.
 
 ## Implementation Phases
 
@@ -89,14 +73,6 @@ Routing is **transparent** — developers never specify a tier or OS. The platfo
 | 4 | Weeks 19-24 | Remote GPU routing | v1.1: AI/ML workflows complete |
 | 5 | Weeks 25-34 | GPU bridge + plugins | v2.0: macOS feature-complete |
 
-### Windows/Linux (Phase 2+): Parallel development starts Week 7
-
-| Phase | Duration | Goal | Deliverable |
-|-------|----------|------|-------------|
-| 2+ | Weeks 7-12 | QEMU/KVM Rust backend + CLI | Beta: Windows/Linux CLI working |
-| 3+ | Weeks 13-18 | Hardware + DDS networking | v1.0: Windows/Linux feature-parity |
-| 4+ | Weeks 19-24 | Remote GPU routing | v1.1: Cross-platform GPU support |
-| 5+ | Weeks 25-34 | Optional TUI/egui app | v2.0: Full feature parity |
 
 ## Code Style & Conventions
 
@@ -200,13 +176,13 @@ cargo test --test integration_tests -- --include-ignored
 
 ## Critical Decisions
 
-1. **Rust for core (all platforms)** — Fastest, safest; single compilation model across macOS/Windows/Linux
-2. **Apple VZ on macOS, QEMU/KVM on Windows/Linux** — Native VM backend per platform, not cross-platform abstraction
-3. **Swift UI on macOS only** — System integration (camera, USB, menu bar) worth the effort; headless CLI sufficient elsewhere
-4. **Minimal Linux kernel** — Only curated modules needed for robotics/AI; fast boot
-5. **VirtioFS over SSHFS** — >90% native I/O performance on macOS; virtiofs on Linux
-6. **Homebrew (macOS) + MSI/scoop/snap (Windows/Linux)** — Platform-native installers
-7. **DDS-aware networking** — No workarounds for ROS 2; multicast passes through on all platforms
+1. **Rust for core** — Fastest, safest; single compilation model for all architectures
+2. **Apple VZ on macOS** — Native VM backend via system framework; optimized performance
+3. **Swift UI on macOS** — System integration (camera, USB, menu bar) native to OS
+4. **Minimal Linux kernel** — Only curated modules needed for robotics/AI; optimized for fast boot
+5. **VirtioFS over SSHFS** — >90% native I/O performance on macOS
+6. **Homebrew distribution** — Native macOS package manager installation
+7. **DDS-aware networking** — No workarounds for ROS 2; multicast passes through
 8. **Parallel environments** — CoW snapshots enable AI agent workflows
 
 ## Integration with Existing Portfolio
@@ -221,9 +197,7 @@ These are plugins/templates, not hard dependencies.
 ## Distribution
 
 **macOS (Phase 1-4):** Homebrew only (see `docs/HOMEBREW.md`)  
-**macOS (Phase 5+):** Optional Mac App Store tier  
-**Windows (Phase 2+):** MSI + Scoop/Chocolatey  
-**Linux (Phase 2+):** snap + APT/RPM packages
+**macOS (Phase 5+):** Optional Mac App Store tier
 
 ## Known Limitations & Future Work
 
@@ -232,14 +206,9 @@ These are plugins/templates, not hard dependencies.
 - No devcontainers support yet (Phase 2)
 - No TUI alternative to Swift app (Phase 5+)
 
-### Current (Phase 2+ Windows/Linux)
-- CLI-only initially (Phase 2); Tauri/egui desktop app in Phase 5+
-- QEMU/KVM performance not as optimized as Apple VZ (Phase 3+)
 
 ### Future Roadmap
-- **macOS Phase 5:** Vulkan-to-Metal GPU bridge (VirtioGPU Venus + MoltenVK), Metal Compute forwarding (MLX/PyTorch-MPS)
-- **Windows/Linux Phase 2+:** QEMU/KVM optimizations, optional Tauri desktop app
-- **All platforms Phase 5+:** WASM plugin architecture, devcontainers support
+- **Phase 5:** Vulkan-to-Metal GPU bridge (VirtioGPU Venus + MoltenVK), Metal Compute forwarding (MLX/PyTorch-MPS), WASM plugin architecture
 
 ## Troubleshooting
 

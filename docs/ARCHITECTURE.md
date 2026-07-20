@@ -8,25 +8,24 @@
 
 ## Context
 
-Developers on macOS need Linux capabilities (ROS 2, systemd services, Linux-only ABIs, GPU training) without the pain of traditional VMs: frozen desktops, snapshot hell, slow file I/O, and opaque closed-source tooling. OrbStack is the current best-in-class but is closed-source, macOS-only, charges $8/user/month for commercial use, and has hard gaps: zero GPU support, broken ROS 2 DDS networking, limited USB/serial passthrough, no parallel environments, and no Environment-as-Code paradigm.
+Developers on macOS need Linux capabilities (ROS 2, systemd services, Linux-only ABIs, GPU training) without the pain of traditional VMs: frozen desktops, snapshot hell, slow file I/O, and incomplete feature sets. Open-source tools like Lima and Colima fill some gaps but have hard limitations: zero GPU support, broken ROS 2 DDS networking, limited USB/serial passthrough, no parallel environments, and no Environment-as-Code paradigm.
 
 TinyBridge ships as a native macOS `.dmg` — a real product — built open-source (Apache 2.0). It is NOT a VM manager. It is a **development substrate** that routes workloads to the right execution tier (native macOS / minimal Linux kernel / remote GPU) transparently, with a declarative Environment-as-Code model at the center.
 
 ---
 
-## Competitive Gaps We Are Filling
+## Gaps in Existing Open-Source Tools
 
-| Gap | Evidence |
+| Gap | Current State |
 |-----|----------|
-| No open-source alternative to OrbStack | OrbStack Issue #359 closed "not planned"; developers explicitly cite this as a trust/procurement blocker |
-| Zero GPU/Metal support in any VM/container tool | OrbStack #1818, #2438; Podman libkrun achieves ~15% native GPU speed with manual setup |
-| ROS 2 DDS multicast breaks in all container tools | Requires `--network=host` workaround; no tool provides multicast-aware virtual networking |
-| USB/serial passthrough is incomplete | Docker Desktop: zero. OrbStack: partial. Missing kernel modules for Quectel modems, Xbox controllers, many serial devices |
-| No declarative full-stack environment spec | Takes 4 separate files across 4 tools (Nix flake + Lima YAML + docker-compose.yml + devcontainer.json) |
-| No parallel isolated environments | Arcjet case study: required 670-line custom Go tool to work around single-port-set limitation |
-| Snapshot/rollback absent in lightweight tools | OrbStack, Lima, Colima: none. UTM: partial only |
-| OrbStack locked to localhost SSH | Issue #31: cannot SSH into Linux machine from another device on LAN |
-| File I/O: 3-50x slower via bind mounts | CNCF documented 3.5x typical; small-file workloads hit 50x; OrbStack is best at ~75-95% native |
+| Full-featured lightweight Linux substrate for macOS | Lima: minimal but bare-bones; Docker Desktop: heavyweight; Colima: incomplete |
+| GPU support for training/inference | Lima, Docker, Colima: zero native support. Podman libkrun achieves ~15% native speed with manual setup |
+| ROS 2 DDS networking | Requires `--network=host` workaround in containers; no tool provides multicast-aware virtual networking |
+| USB/serial passthrough | Docker Desktop: zero. Lima: partial. Missing kernel modules for common devices |
+| Declarative full-stack environment spec | Takes 4 separate files across 4 tools (Nix flake + Lima YAML + docker-compose.yml + devcontainer.json) |
+| Parallel isolated environments | No lightweight tool supports this; Docker requires separate containers with manual port management |
+| Snapshot/rollback capability | Lima, Colima: none. UTM: partial only |
+| File I/O performance | CNCF documented 3.5x overhead typical; small-file workloads hit 50x; Lima/Colima at ~60-75% native |
 
 ---
 
@@ -122,8 +121,9 @@ metadata:
   description: Robotics terrain mapping dev environment
 
 substrate:
-  os: ubuntu-24.04
-  kernel: "6.12"          # pinned kernel version
+  os: ubuntu              # Supported: ubuntu, debian, alpine, fedora
+  version: "24.04"        # Ubuntu: 24.04, 22.04, 20.04 (default: latest LTS)
+  kernel: "6.12"          # pinned kernel version (optional)
   arch: [arm64, amd64]    # amd64 via Rosetta 2
 
 resources:
@@ -207,7 +207,7 @@ Single file. Version-controlled. Shareable with team. Diff-able.
 - **NOT** a full desktop VM — headless, no GPU display, no GUI
 - Custom stripped Linux kernel: fast boot (<5s), only modules needed for development
 - Curated kernel module set for robotics/embedded hardware (see device section)
-- VirtioFS with write-back caching — targeting >90% native I/O (outperform OrbStack's ~75-95%)
+- VirtioFS with write-back caching — targeting >90% native I/O (better than Lima's ~60-75%)
 - Rosetta 2 binary translator registered in the VM — run AMD64 Linux binaries natively
 - Boot protocol: compressed kernel + initrd directly via VZ framework (no GRUB)
 
@@ -216,12 +216,12 @@ Single file. Version-controlled. Shareable with team. Diff-able.
 - **Multicast pass-through** — ROS 2 DDS discovery works out of the box (no `--network=host` required)
 - Automatic `ROS_DOMAIN_ID` namespace isolation per environment (no cross-environment DDS bleed)
 - `.tinybridge.local` DNS: `robotics-env.tinybridge.local` resolves from macOS and Linux both
-- Optional bridged mode: expose Linux substrate on LAN (fixes OrbStack Issue #31)
+- Optional bridged mode: expose Linux substrate on LAN (more flexible than localhost-only SSH)
 
 ### USB / Device Passthrough
 - IOKit event monitor in daemon detects device plug/unpack
 - USB/IP protocol tunnels devices to Linux substrate
-- **Curated kernel module set** baked into the substrate kernel (what OrbStack misses):
+- **Curated kernel module set** baked into the substrate kernel (what lightweight tools miss):
   - `usb_serial`, `cp210x`, `ch341`, `ftdi_sio` — serial adapters (Arduino, ESP32, sensors)
   - `cdc_acm` — USB CDC modems (Quectel LTE, GPS)
   - `uvcvideo` — UVC cameras
@@ -530,30 +530,26 @@ Custom templates stored in `~/.tinybridge/templates/` or `.tinybridge/templates/
 - [ ] Database native support (schema inspection, lineage, diagnostics)
 - [ ] Kubernetes local cluster (lightweight k3s in substrate)
 - [ ] Community template marketplace
-- [ ] Windows host support (Linux substrate via WSL2 backend — different codebase paths)
 
 **Deliverable**: `torch.device('mps')` works inside the Linux substrate. Plugin ecosystem live.
 
 ---
 
-## Differentiators vs. OrbStack
+## Feature Comparison vs. Open-Source Alternatives
 
-| Capability | OrbStack | TinyBridge |
-|-----------|----------|---------|
-| Open source | ❌ Closed | ✅ Apache 2.0 |
-| Price | $8/user/month commercial | Free |
-| GPU/Metal | ❌ Zero | ✅ Phase 5 |
-| ROS 2 DDS multicast | ❌ Broken | ✅ Phase 3 |
-| USB serial passthrough | ⚠️ Limited modules | ✅ Curated full set |
-| Environment-as-Code | ⚠️ None | ✅ Core paradigm |
-| Parallel environments | ❌ | ✅ Phase 3 |
-| Snapshot/clone | ❌ | ✅ Phase 3 |
-| Remote CUDA routing | ❌ | ✅ Phase 4 |
-| LAN SSH access | ❌ localhost only | ✅ Phase 3 |
-| Nix integration | ❌ | ✅ Phase 2 |
-| VS Code devcontainers | ⚠️ Workaround | ✅ Phase 2 |
-| Plugin architecture | ❌ | ✅ Phase 5 |
-| macOS notarized installer | ✅ | ✅ Phase 1 |
+| Capability | Lima | Docker Desktop | Podman | TinyBridge |
+|-----------|------|----------|--------|---------|
+| Open source | ✅ | ⚠️ (partial) | ✅ | ✅ Apache 2.0 |
+| Free | ✅ | ⚠️ (enterprise paid) | ✅ | ✅ |
+| GPU/Metal support | ❌ | ❌ | ❌ | ✅ Phase 4-5 |
+| ROS 2 DDS multicast | ❌ | ❌ | ❌ | ✅ Phase 3 |
+| USB serial passthrough | ⚠️ Partial | ❌ | ⚠️ Partial | ✅ Curated set |
+| Environment-as-Code | ⚠️ Workaround | ⚠️ Separate tools | ⚠️ Separate tools | ✅ Core paradigm |
+| Parallel environments | ❌ | ✅ (containers) | ✅ (containers) | ✅ Phase 2 |
+| Snapshot/clone | ❌ | ⚠️ (docker commit) | ⚠️ (podman commit) | ✅ Phase 3 |
+| LAN SSH access | ❌ localhost | ❌ localhost | ❌ localhost | ✅ Phase 3 |
+| Native file I/O | 60-75% | 40-60% | 40-60% | >90% Phase 2 |
+| GUI (macOS) | ❌ CLI only | ✅ | ❌ CLI only | ✅ Menu bar |
 
 ---
 

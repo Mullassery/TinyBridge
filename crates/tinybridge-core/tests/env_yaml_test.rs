@@ -234,6 +234,47 @@ resources:
 }
 
 #[test]
+fn test_distro_with_version() {
+    let yaml = r#"
+apiVersion: tinybridge/v1
+kind: Environment
+metadata:
+  name: debian-env
+  version: "1.0.0"
+substrate:
+  os: debian
+  version: "12"
+resources:
+  cpu: 4
+  memory: 8GB
+  disk: 50GB
+"#;
+    let env: EnvYaml = serde_yaml::from_str(yaml).expect("should parse debian with version");
+    assert_eq!(env.substrate.os, "debian");
+    assert_eq!(env.substrate.version, Some("12".to_string()));
+}
+
+#[test]
+fn test_distro_without_version_uses_default() {
+    let yaml = r#"
+apiVersion: tinybridge/v1
+kind: Environment
+metadata:
+  name: ubuntu-default
+  version: "1.0.0"
+substrate:
+  os: ubuntu
+resources:
+  cpu: 4
+  memory: 8GB
+  disk: 50GB
+"#;
+    let env: EnvYaml = serde_yaml::from_str(yaml).expect("should parse ubuntu without explicit version");
+    assert_eq!(env.substrate.os, "ubuntu");
+    assert_eq!(env.substrate.version, None); // None means use default/latest
+}
+
+#[test]
 fn test_sample_asset_file() {
     let content = include_str!("../../../assets/sample-env.yaml");
     let env: EnvYaml = serde_yaml::from_str(content).expect("sample-env.yaml should parse");

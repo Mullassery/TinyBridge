@@ -19,13 +19,13 @@ Developers on macOS face a painful trilemma:
 - ❌ Cannot run ROS 2, systemd services, Linux-only Docker images, Linux-only Lidar drivers
 - ❌ Python environments fragment across native + container contexts
 
-### Option 2: Docker Desktop / OrbStack / VMware
+### Option 2: Container Tools (Docker Desktop, Lima, Podman)
 - ✅ Full Linux capability
-- ❌ VM overhead: memory allocated upfront, frozen desktops under load, 15-50s first-container latency
-- ❌ Snapshots break over time; no environment versioning
+- ❌ VM overhead: memory allocated upfront, frozen desktops under load, first-access latency
+- ❌ No environment versioning; configuration scattered across multiple files
 - ❌ 3-50x slower file I/O for small-file workloads (npm install, pip install, terraform)
-- ❌ Closed-source lock-in (OrbStack) or expensive licensing (Docker Desktop $21/user/month)
-- ❌ Zero GPU support — AI/ML workflows stuck on CPU or forced to cloud
+- ❌ Licensing friction (Docker Desktop commercial use requires license)
+- ❌ Zero GPU support in Lima/Podman — AI/ML workflows stuck on CPU or forced to cloud
 - ❌ ROS 2 DDS multicast breaks; requires `--network=host` workaround
 
 ### Option 3: Cloud Development
@@ -212,7 +212,7 @@ Actionable, not just warnings.
 
 ### 7. Parallel Environments
 
-Enable AI agent workflows that OrbStack cannot support:
+Enable AI agent workflows that existing tools cannot support:
 
 ```bash
 tinybridge env clone agent-1 agent-2 agent-3
@@ -263,9 +263,9 @@ Today: Postgres, Kafka, Spark running locally consume RAM constantly. File I/O t
 With TinyBridge: Services auto-managed. VirtioFS >90% native I/O. Schema validation via StatGuardian contracts. `tinybridge doctor` catches data lineage issues before they hit production.
 
 ### For Platform Engineers
-Today: Standardizing on Docker Desktop costs $21/user/month per enterprise employee. OrbStack is faster but macOS-only, locking out Linux/Windows developers. Lima is powerful but requires Ansible expertise.
+Today: Standardizing on Docker Desktop for enterprises. Lima is open-source but requires significant expertise. Lack of integrated tools for macOS development.
 
-With TinyBridge: Free, open-source, cross-platform (Phase 5 adds Linux/Windows). Declarative environments. Kubernetes templates. CI/CD parity.
+With TinyBridge: Free, open-source, macOS-native. Declarative environments. Kubernetes templates. CI/CD parity.
 
 ---
 
@@ -285,25 +285,20 @@ The user experience is **indistinguishable from a native macOS app** — not "an
 
 ## Competitive Positioning
 
-### vs. OrbStack
-- OrbStack: Proprietary, $8/user/month, macOS-only, zero GPU, no Environment-as-Code, ROS 2 broken
-- **TinyBridge:** Open-source free, cross-platform (Phase 5), GPU Phase 5, Environment-as-Code core, ROS 2 native
-
-TinyBridge wins on **trust, extensibility, robotics/AI integration, and cost.**
-
-OrbStack will always have better GUI polish initially, but TinyBridge's **architectural foundations** (declarative environments, transparent execution routing, open-source plugin system) create defensible moats.
-
 ### vs. Docker Desktop
-- Docker: Cross-platform, GUI polish, but $21/user/month enterprise, resource hog, slow file I/O
-- **TinyBridge:** Free, optimized for macOS, >90% native I/O, declarative environments
+- Docker: Cross-platform, but requires commercial license, resource-heavy, slow file I/O
+- **TinyBridge:** Free, open-source, optimized for macOS, >90% native I/O, declarative environments
 
 TinyBridge wins on **cost, performance, and developer experience.**
 
 ### vs. Lima
-- Lima: Powerful, open-source, but no GUI, requires Ansible expertise, no ecosystem
-- **TinyBridge:** Open-source, has GUI, batteries-included (templates, AI diagnostics, device management), community ecosystem
+- Lima: Powerful, open-source, lightweight, but no GUI, requires Ansible expertise, minimal ecosystem
+- **TinyBridge:** Open-source, has native macOS GUI, batteries-included (templates, diagnostics, device management), community ecosystem, ROS 2 native
 
-TinyBridge wins on **accessibility and ecosystem.**
+TinyBridge wins on **accessibility, robotics-native support, and developer ergonomics.**
+
+### Why Open Source Matters
+The Linux development substrate should be auditable, extensible, and community-driven. TinyBridge is built in the open, ships with source code, and welcomes community contributions. No closed vendor lock-in. No proprietary limitations.
 
 ---
 
@@ -344,8 +339,7 @@ TinyBridge wins on **accessibility and ecosystem.**
 - Security auditing + compliance exports
 - Database native support (lineage, schema validation)
 - Community template marketplace
-- Windows/Linux host support
-- **Ship v2.0:** Universal substrate
+- **Ship v2.0:** macOS feature-complete
 
 ---
 
@@ -362,11 +356,11 @@ TinyBridge wins on **accessibility and ecosystem.**
 
 ## Why Now?
 
-1. **OrbStack reached maturity** (v2.2.1, 40+ releases in 18 months) but has **architectural limits**: no open-source option, no GPU, no Environment-as-Code
-2. **Apple Silicon adoption complete** — Virtualization.framework is mature
+1. **Existing tools mature but limited** — Docker Desktop requires licensing, Lima is bare-bones, no tool supports GPU routing or ROS 2 DDS properly
+2. **Apple Silicon adoption complete** — Virtualization.framework is stable and performant
 3. **AI/robotics exploding** — demand for GPU routing + ROS 2 DDS is real and growing
-4. **Community fatigue with closed-source** — Docker licensing, OrbStack pricing, VMware opacity drive demand for open alternative
-5. **Declarative infrastructure trend** — Nix, Devbox, mise, Devcontainers mindshare ripe for TinyBridge's Environment-as-Code
+4. **Community demand for open alternatives** — Docker licensing friction, closed-source tooling limits, VMware opacity drive demand for transparent open option
+5. **Declarative infrastructure mindset** — Nix, Devbox, mise, Devcontainers growing adoption shows shift toward infrastructure-as-code
 
 TinyBridge arrives at **exactly the right moment** to establish a new category: **The open-source macOS development substrate.**
 

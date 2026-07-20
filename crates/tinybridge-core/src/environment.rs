@@ -27,6 +27,8 @@ pub struct EnvMetadata {
 pub struct SubstrateConfig {
     pub os: String,
     #[serde(default)]
+    pub version: Option<String>,
+    #[serde(default)]
     pub kernel: Option<String>,
     #[serde(default = "default_arch")]
     pub arch: Vec<Arch>,

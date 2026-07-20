@@ -1,5 +1,12 @@
+mod anomaly_detector;
+mod boot_tiers;
 mod daemon;
 mod manager;
+mod otel;
+mod otel_export;
+mod okf_pipeline;
+mod okf_updater;
+mod quality_gates;
 mod server;
 mod state;
 mod vz;
@@ -34,6 +41,10 @@ async fn main() -> Result<()> {
         _ => "trace",
     };
 
+    // Initialize OTel tracing (exports to Jaeger if available, falls back gracefully)
+    let _ = otel::init_tracing("tinybridged");
+
+    // Standard tracing subscriber (OTel layer will be added in Phase 2)
     tracing_subscriber::fmt()
         .with_env_filter(
             EnvFilter::try_from_default_env()

@@ -24,3 +24,7 @@ uuid               = { workspace = true, features = ["v4"] }
 chrono             = { workspace = true }
 futures            = { workspace = true }
 dirs               = { workspace = true }
+# OTel dependencies for Phase 2 (deferred for now to keep Phase 1 minimal)
+# opentelemetry      = { version = "0.22", features = ["trace", "metrics"] }
+# opentelemetry-jaeger = { version = "0.21", features = ["rt-tokio"] }
+# tracing-opentelemetry = "0.22"
