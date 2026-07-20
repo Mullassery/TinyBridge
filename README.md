@@ -70,6 +70,29 @@ tinybridge up database
 # All three running simultaneously
 ```
 
+### 📈 Scales Naturally From Dev to Team
+Start with a single environment on your Mac. When your team grows, scaling is built-in:
+
+```bash
+# Single developer: define your env.yaml locally
+tinybridge up myproject
+
+# Team scale: commit env.yaml to git
+git add env.yaml
+git push
+
+# Your teammates: identical environments instantly
+git pull
+tinybridge up myproject
+
+# Organization scale: templates for common stacks
+tinybridge create --template backend  # Python + Postgres
+tinybridge create --template ml       # PyTorch + Jupyter
+tinybridge create --template robotics # ROS 2 + tools
+```
+
+Because environments are declarative YAML files in git, sharing, templating, and scaling from personal to team/org deployments requires no additional infrastructure.
+
 ### 🎯 Match Production Exactly
 Your production runs Ubuntu 24.04? Your local environment runs Ubuntu 24.04. Same OS, same tools, same behavior. No "works on my Mac" surprises.
 
