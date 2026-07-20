@@ -6,10 +6,49 @@ Stop switching between macOS and Linux. Run a full Ubuntu environment on your Ma
 
 ---
 
-## What You Get
+## Installation (30 seconds)
 
-### 📝 Environment-as-Code
-Define your Linux environment in one file. Share with your team. Everyone gets the same setup.
+### Option 1: Homebrew (Recommended)
+
+```bash
+brew install --cask tinybridge
+```
+
+### Option 2: Manual Download
+
+1. Download latest `.dmg` from [GitHub Releases](https://github.com/Mullassery/tinybridge/releases)
+2. Open the file and drag `TinyBridge.app` to Applications
+3. Open TinyBridge.app once (registers the CLI)
+
+### Option 3: Python Projects (with UV)
+
+```bash
+uv tool install tinybridge
+```
+
+---
+
+## Verify Installation
+
+```bash
+# Check CLI is accessible
+tinybridge --version
+# Should output: tinybridge 0.1.0
+
+# Verify daemon starts automatically
+ps aux | grep tinybridged
+# Should show: /Applications/TinyBridge.app/Contents/MacOS/tinybridged
+```
+
+If `tinybridge --version` fails, restart Terminal. The daemon starts automatically on first run.
+
+---
+
+## Get Started in 3 Steps
+
+### Step 1: Create `env.yaml`
+
+In your project directory, create a file named `env.yaml`:
 
 ```yaml
 apiVersion: tinybridge/v1
@@ -27,28 +66,74 @@ native:
   tools:
     - python@3.11
     - nodejs@20
-    - docker
 ```
 
-Check `env.yaml` into git. Your teammates run `tinybridge up my-project` and instantly get the identical environment.
+Save this file in your project root. That's your entire environment definition.
 
-> **How it works:** The name in `tinybridge up my-project` must match the `metadata.name` in your `env.yaml`. TinyBridge looks for `env.yaml` in the current directory (or use `--file` to specify a path). On first run, the daemon starts automatically in the background.
+**Important:** The `metadata.name` (here: `my-project`) must match what you pass to `tinybridge up`.
 
-### ⚡ Instant Linux Shell
-Once your environment is defined, boot it in one command.
+### Step 2: Start Your Environment
 
 ```bash
+# The name must match metadata.name from env.yaml
 tinybridge up my-project
-# ✓ Running (SSH ready)
-
-ssh vm@my-project
-ubuntu@my-project:~$
 ```
 
-Your Linux environment is ready to use with optimized boot architecture.
+First run downloads the Linux image (~500MB, one-time). You'll see:
+```
+⟳ Starting environment: my-project
+✓ Environment my-project is ready
+```
+
+### Step 3: Enter the Linux Shell
+
+```bash
+tinybridge shell my-project
+```
+
+You're now in Ubuntu Linux:
+```bash
+ubuntu@my-project:~$ uname -a
+Linux my-project 6.12.4-generic #1 SMP ... x86_64 GNU/Linux
+ubuntu@my-project:~$ python3 --version
+Python 3.11.9
+```
+
+All your files from macOS are available at `~/`:
+```bash
+ubuntu@my-project:~$ ls
+# Lists your macOS home directory
+```
+
+---
+
+## What You Get
+
+### 📝 Environment-as-Code
+Define your entire Linux setup in one YAML file. Check it into git. Everyone on your team gets the identical environment.
+
+```bash
+git add env.yaml
+git push
+
+# Your teammates:
+git pull
+tinybridge up my-project
+```
+
+No more "works on my machine". Production matches development exactly.
+
+### ⚡ Instant Linux Shell
+Full Ubuntu with optimized boot. SSH-ready in seconds. All your tools pre-configured.
+
+```bash
+tinybridge up myproject
+tinybridge shell myproject
+ubuntu@myproject:~$ docker run ubuntu:24.04 bash
+```
 
 ### 🔄 Automatic File Sync
-Your Mac's files are automatically available in Linux. Edit on macOS, run on Linux.
+Files on macOS instantly appear in Linux. Edit on your Mac, run in Linux. No mounting. No configuration.
 
 ```bash
 # On macOS
@@ -59,271 +144,186 @@ $ cat ~/test.txt
 hello
 ```
 
-No mounting. No configuration. Just works.
-
-### 🚀 Run Multiple Environments
-Work on multiple projects in parallel. Each environment is isolated, fast, and independent.
+### 🚀 Multiple Parallel Environments
+Run multiple projects simultaneously. Each isolated and independent.
 
 ```bash
 tinybridge up frontend
-tinybridge up backend  
+tinybridge up backend
 tinybridge up database
-
-# All three running simultaneously
+# All three running at once
 ```
 
-### 📈 Scales Naturally From Dev to Team
-Start with a single environment on your Mac. When your team grows, scaling is built-in:
+### 📈 Scales Naturally: Dev → Team → Organization
 
+**Single developer:**
 ```bash
-# Single developer: define your env.yaml locally
+# Define locally
 tinybridge up myproject
+```
 
-# Team scale: commit env.yaml to git
-git add env.yaml
-git push
-
-# Your teammates: identical environments instantly
+**Team scale:**
+```bash
+# Commit env.yaml to git, teammates run:
 git pull
 tinybridge up myproject
-
-# Organization scale: templates for common stacks
-tinybridge create --template backend  # Python + Postgres
-tinybridge create --template ml       # PyTorch + Jupyter
-tinybridge create --template robotics # ROS 2 + tools
 ```
 
-Because environments are declarative YAML files in git, sharing, templating, and scaling from personal to team/org deployments requires no additional infrastructure.
+**Organization scale:**
+```bash
+# Use templates for common stacks
+tinybridge create --template backend   # Python + Postgres
+tinybridge create --template ml        # PyTorch + Jupyter
+tinybridge create --template robotics  # ROS 2 + tools
+```
+
+No infrastructure changes. Same `env.yaml` approach at every scale.
 
 ### 🎯 Match Production Exactly
-Your production runs Ubuntu 24.04? Your local environment runs Ubuntu 24.04. Same OS, same tools, same behavior. No "works on my Mac" surprises.
+
+Your production runs Ubuntu 24.04? Your development environment runs Ubuntu 24.04. Same OS, same tools, same behavior.
 
 Supports: Ubuntu, Debian, Alpine, Fedora (any version).
 
 ### 🛡️ Built-In Anomaly Detection
-Detect environment issues before they break your workflow. Automatic monitoring for:
-- **Boot regression** — faster or slower boot times
-- **Resource spikes** — CPU or memory usage anomalies
-- **Availability breaches** — when SSH stops responding
-- **Error trends** — unusual error patterns
+
+Automatic monitoring detects issues before they break workflows:
+- **Boot regression** — track boot time changes
+- **Resource spikes** — detect CPU/memory anomalies  
+- **Availability breaches** — know when SSH stops responding
+- **Error trends** — identify unusual error patterns
 - **Intrusion detection** — suspicious activity patterns
 
-Anomalies are logged to an immutable audit trail. Perfect for reproducibility and forensics.
+All logged to an immutable audit trail for reproducibility.
 
 ### 🔒 Enterprise-Grade Security
+
 Self-aware security built on OpenTelemetry:
-- **Tamper-evident logs** — all environment changes tracked in audit trail
-- **Forensics support** — replay environment states to debug incidents
-- **No blind spots** — complete observability of environment behavior
-- **Compliance ready** — structured event logging for regulatory requirements
+- **Tamper-evident logs** — all environment changes tracked
+- **Forensics support** — replay and debug incidents
+- **Complete observability** — every environment action recorded
+- **Compliance ready** — structured event logging for audits
 
 ### 📊 OpenTelemetry Integration (Zero Vendor Lock-in)
-Full observability built on industry standards. Choose your own backend—switch anytime without rebuilding:
+
+Full observability with choice of backends. Switch providers anytime without code changes:
 
 ```bash
-# Configure in env.yaml
+# In env.yaml
 observability:
   backend: datadog    # or: prometheus, jaeger, honeycomb, newrelic, splunk, dynatrace, grafana
   sample_rate: 1.0
 ```
 
-**Included metrics:**
-- **Traces** — Distributed tracing of environment lifecycle (boot → ready → shutdown)
-- **Metrics** — Boot time, resource usage, I/O latency, error rates
-- **Logs** — Structured event logging with full context
+**Standard OTel metrics:**
+- Traces (distributed tracing of environment lifecycle)
+- Metrics (boot time, resource usage, I/O latency, error rates)
+- Logs (structured event logging with full context)
 
 **Supported backends (pick any):**
-| Backend | Use Case | Cost |
-|---------|----------|------|
-| Prometheus | Self-hosted, on-premise | Free |
-| Jaeger | Distributed tracing focus | Free |
-| Datadog | Enterprise, multi-cloud | Paid (but cheapest at scale) |
-| New Relic | Full-stack monitoring | Paid |
-| Honeycomb | Observability-first | Paid |
-| Splunk | Log aggregation + analysis | Paid |
-| Dynatrace | AI-driven insights | Paid |
-| Grafana Stack | Open source stack | Free |
 
-**No lock-in:** Migrate from Datadog to self-hosted Prometheus. Switch from Honeycomb to Jaeger. Change your mind next month. All metrics are standard OTel format.
+| Backend | Cost | Use Case |
+|---------|------|----------|
+| Prometheus | Free | Self-hosted, on-premise |
+| Jaeger | Free | Distributed tracing focus |
+| Datadog | Paid | Enterprise, multi-cloud |
+| New Relic | Paid | Full-stack monitoring |
+| Honeycomb | Paid | Observability-first |
+| Splunk | Paid | Log aggregation + analysis |
+| Dynatrace | Paid | AI-driven insights |
+| Grafana Stack | Free | Open source complete stack |
 
-**Cost control:** Start free with Prometheus. Scale to Datadog when needed. No agent changes required.
+**No lock-in:** Start with free Prometheus. Scale to Datadog later. Migrate to Jaeger next month. All metrics are standard OTel format—no agent changes required.
 
 ### 🔐 Open Source, Forever Free
+
 Apache 2.0 licensed. No subscriptions. No license costs. Read the code. Fork it. Run it forever.
 
 ---
 
-## Install
+## Commands Reference
 
-### Homebrew (Recommended)
-```bash
-brew install --cask tinybridge
-tinybridge --version
-```
-
-### Manual Download
-1. Download from [GitHub Releases](https://github.com/Mullassery/tinybridge/releases)
-2. Drag TinyBridge to Applications
-3. Run it
-
-### Python Projects
-```bash
-uv tool install tinybridge
-```
-
----
-
-## Get Started
-
-Create an environment file:
-
-```yaml
-apiVersion: tinybridge/v1
-kind: Environment
-metadata:
-  name: demo
-substrate:
-  os: ubuntu
-  version: "24.04"
-resources:
-  cpu: 4
-  memory: 8GB
-  disk: 50GB
-```
-
-Start your environment:
-
-```bash
-tinybridge up demo
-tinybridge shell demo
-```
-
-You're now in Ubuntu:
-
-```bash
-ubuntu@demo:~$ python3 --version
-Python 3.11.9
-```
-
-That's it. See [Getting Started](GETTING_STARTED.md) for a complete walkthrough.
+| Command | Purpose |
+|---------|---------|
+| `tinybridge up <name>` | Start an environment |
+| `tinybridge shell <name>` | Open bash in environment |
+| `tinybridge exec <name> "cmd"` | Run command in environment |
+| `tinybridge list` | Show all environments |
+| `tinybridge status <name>` | Check environment status |
+| `tinybridge down <name>` | Stop environment |
 
 ---
 
 ## Real-World Use Cases
 
 ### Backend Developers
-Stop context-switching between your Mac and production Linux. Develop locally in the exact Linux your code runs on.
+Stop context-switching between your Mac and production Linux. Develop locally in the exact OS your code runs on.
 
 ### DevOps Teams
-Share environment configurations via git. No more "it works on my machine" when deploying.
+Share environment configurations via git. No more "it works on my machine" when deploying. Identical setups for everyone.
 
 ### ML Engineers
-Run Python on Linux with access to Linux-only packages. Mount your training data directly.
+Run Python on Linux with all Linux-only packages. Mount training data directly. Full GPU support coming in Phase 4.
 
 ### Robotics Teams
-ROS 2 development environment that matches your robot's OS.
+ROS 2 development environment that matches your robot's OS. DDS multicast networking works out of the box.
 
 ### Data Scientists
-Run Spark, Postgres, and Kafka locally on Linux while writing code on macOS.
+Run Spark, Postgres, Kafka locally on Linux while writing code on macOS. No Docker complexity.
 
 ---
 
-## Why TinyBridge vs. Alternatives?
+## Why TinyBridge?
 
-| | TinyBridge | Docker Desktop | Lima |
-|---|---|---|---|
-| **Speed** | Seconds to shell | 10-20s | 8-15s |
+| Feature | TinyBridge | Docker Desktop | Lima |
+|---------|---|---|---|
 | **Price** | Free | $7/month | Free |
-| **Config** | One YAML file | Multiple files | YAML + scripts |
+| **Speed** | Optimized | Slower | Similar |
+| **Setup** | One YAML file | Multiple configs | YAML + scripts |
 | **Open Source** | ✅ Yes | Partial | ✅ Yes |
-| **Mac Integration** | ✅ Native app | Heavy | CLI only |
+| **Native Mac App** | ✅ Yes | Heavy | CLI only |
 | **Parallel Envs** | ✅ Easy | Complex | Difficult |
 | **File Sync** | Automatic | Slow | Manual |
+| **GPU Support** | Phase 4 | Limited | No |
+| **Observability** | Built-in OTel | Addon | No |
 
 ---
 
-## Quick Command Reference
+## Learn More
 
-| What | Command |
-|------|---------|
-| Start environment | `tinybridge up myenv` |
-| Enter shell | `tinybridge shell myenv` |
-| Run command | `tinybridge exec myenv "python train.py"` |
-| Check status | `tinybridge status myenv` |
-| Stop environment | `tinybridge down myenv` |
-| List all | `tinybridge list` |
-
----
-
-## Next Steps
-
-1. **[Getting Started](GETTING_STARTED.md)** — Step-by-step walkthrough
-2. **[Full Documentation](USER_README.md)** — Complete command reference
-3. **[Git & Deployment Guide](docs/GIT_DEPLOYMENT_GUIDE.md)** — Version control and scaling
-4. **[See the Roadmap](PRODUCT_VISION.md)** — What's coming next
-
----
-
-## Frequently Asked Questions
-
-**Q: Is this like Docker?**  
-A: Similar idea, but simpler and faster. One environment per YAML file. Real Linux VM, not containers. No images, no layers.
-
-**Q: Do I need Docker installed?**  
-A: No. TinyBridge is independent and doesn't require Docker, VirtualBox, or any other tool.
-
-**Q: Can I run GUI applications?**  
-A: Phase 1 focuses on CLI/server development. GUI support coming in Phase 5.
-
-**Q: What about GPU support?**  
-A: Coming in Phase 4 (2027). For now, use remote GPU services via transparent routing.
-
-**Q: Can my team share environments?**  
-A: Yes. Check `env.yaml` into git. Your teammates run `tinybridge up`. Everyone gets identical setup.
-
-**Q: Will my code run the same on Linux as on my Mac?**  
-A: For Python, Go, Node: yes, exactly the same. For C/C++, minor differences due to Linux vs macOS libraries.
-
-**Q: Is this production-ready?**  
-A: Phase 1 is stable for development. Not yet recommended for running live services.
-
-**Q: How much does this cost?**  
-A: Free. Apache 2.0 license. No subscriptions, ever.
-
-**Q: Can I contribute?**  
-A: Yes! Open source on GitHub. Issues and PRs welcome.
+- **[Getting Started Guide](GETTING_STARTED.md)** — Step-by-step walkthrough
+- **[User Reference](USER_README.md)** — Complete command reference
+- **[Architecture](docs/ARCHITECTURE.md)** — Technical deep dive
+- **[Testing Report](TESTING_REPORT.md)** — Performance benchmarks (targets pending verification)
+- **[GitHub Repository](https://github.com/Mullassery/tinybridge)**
 
 ---
 
 ## Status
 
-🚧 **Phase 1: Foundations** (Stable for development)
-- Linux environment with SSH access
-- File syncing via VirtioFS  
-- Environment-as-Code configuration
-- Multi-distro support (Ubuntu, Debian, Alpine, Fedora)
+**Phase 1 (Current):** Core VM + CLI + daemon. Boot-optimized Linux environments on macOS.
 
-🗓️ **Coming Next:**
-- Phase 2: Smart environment templates
-- Phase 3: Advanced networking (ROS 2 DDS native)
-- Phase 4: GPU support
-- Phase 5: Plugin ecosystem
+- ✅ Environment-as-Code (env.yaml)
+- ✅ CLI with full keyboard support
+- ✅ Automatic file sync (VirtioFS)
+- ✅ Multiple parallel environments
+- ✅ OpenTelemetry integration
+- 🔄 Performance benchmarking (architecture validated, metrics collection in progress)
 
----
-
-## Get Help
-
-- **[Getting Started Guide](GETTING_STARTED.md)** ⭐ Start here
-- **[Troubleshooting](USER_README.md#troubleshooting)** Common issues
-- **[Issues](https://github.com/Mullassery/tinybridge/issues)** Report a bug
-- **[Discussions](https://github.com/Mullassery/tinybridge/discussions)** Ask questions
+**Future Phases:**
+- Phase 2: Execution routing + templates
+- Phase 3: Hardware passthrough + DDS networking
+- Phase 4: Remote GPU routing
+- Phase 5: GPU bridge + plugin ecosystem
 
 ---
 
-## License
+## Support
 
-Apache License 2.0 — Completely open source. Read the [LICENSE](LICENSE) file.
+- **[Issues](https://github.com/Mullassery/tinybridge/issues)** — Report bugs or request features
+- **[Discussions](https://github.com/Mullassery/tinybridge/discussions)** — Ask questions, share workflows
+- **[Email](mailto:mullassery@gmail.com)** — Direct support
 
 ---
 
-**TinyBridge — Linux development on macOS. No pain. No waiting.**
+**Apache 2.0 License** | Built with Rust + Swift | For macOS 14+
