@@ -98,35 +98,36 @@ Routing is **transparent** — developers never specify a tier. The platform dec
 
 ## Key Interfaces & Modules
 
-### devforge-core (Rust)
-- Shared types: `Environment`, `Workload`, `ExecutionTier`
-- YAML schema parsing
+### tinybridge-core (Rust)
+- Shared types: `Environment`, `EnvironmentStatus`, `SubstrateConfig`
+- YAML schema parsing (`env.yaml`)
+- IPC protocol types (JSON-RPC 2.0)
 - Configuration types
 
-### devforge-daemon (Rust)
+### tinybridge-daemon (Rust)
 - Environment lifecycle (up/down/status)
 - Execution router state machine
-- Unix socket gRPC server
+- Unix socket JSON-RPC server
 - Device manager (IOKit bridge calls)
 
-### devforge-cli (Rust)
+### tinybridge-cli (Rust)
 - CLI binary (`tinybridge` command)
-- Calls daemon via gRPC
-- User-facing output formatting
+- Calls daemon via Unix socket + JSON-RPC
+- User-facing output formatting (tables, status badges)
 
-### devforge-vz (Rust)
+### tinybridge-vz (Rust)
 - Safe wrapper around C FFI bindings
 - VM lifecycle (boot, shutdown, snapshot)
 - VirtioFS mounting
 - Rosetta 2 configuration
 
-### DevForgeApp (Swift)
+### TinyBridgeApp (Swift)
 - Menu bar app
 - Environment list view
 - Preferences UI
 - System extension launcher
 
-### DevForgeVZBridge (Swift)
+### TinyBridgeVZBridge (Swift)
 - Wrapper around Virtualization.framework
 - Exports minimal C header for Rust FFI
 - ~500 lines total
@@ -210,12 +211,12 @@ These are plugins/templates, not hard dependencies.
 **"VM won't boot"**
 - Check Apple Virtualization.framework availability (macOS 14+)
 - Verify disk space (Linux substrate needs 50GB sparse)
-- Check logs: `devforgd` should have started
+- Check logs: `tinybridged` should have started
 
 **"Slow file I/O"**
 - Verify VirtioFS mounted (should be >90% native speed)
 - Check for heavy I/O tasks (npm install, etc.)
-- Profile with: `time devforge exec "find . | wc -l"`
+- Profile with: `time tinybridge exec "find . | wc -l"`
 
 **"ROS 2 DDS not discovering"**
 - Verify multicast-aware networking enabled in env.yaml

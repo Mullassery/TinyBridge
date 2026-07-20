@@ -4,7 +4,7 @@
 
 ## Preamble
 
-DevForge is an open-source macOS application that reimagines the Linux development experience. It bridges the gap between native macOS performance and the capability of full Linux environments, without the pain of traditional virtual machines.
+TinyBridge is an open-source macOS application that reimagines the Linux development experience. It bridges the gap between native macOS performance and the capability of full Linux environments, without the pain of traditional virtual machines.
 
 The product is **shipping**: `.dmg` installers, Homebrew cask, Developer ID signed + notarized, production-grade from day one. Not a side project. Not a framework. A **real developer product**.
 
@@ -35,13 +35,13 @@ Developers on macOS face a painful trilemma:
 - ❌ Vendor lock-in (Codespaces, Coder, Gitpod)
 - ❌ Network failures kill productivity
 
-**The Product:** DevForge solves this by making Linux feel **native** on macOS. Developers never "enter a VM." They work in a single cohesive environment where macOS and Linux workloads coexist transparently, with intelligent routing deciding whether to run locally (fast) or remotely (GPU).
+**The Product:** TinyBridge solves this by making Linux feel **native** on macOS. Developers never "enter a VM." They work in a single cohesive environment where macOS and Linux workloads coexist transparently, with intelligent routing deciding whether to run locally (fast) or remotely (GPU).
 
 ---
 
 ## The Vision
 
-DevForge is the **primary development substrate** for engineers building:
+TinyBridge is the **primary development substrate** for engineers building:
 - **Robotics systems** (ROS 2, sensor hardware, Gazebo simulation)
 - **AI/ML pipelines** (local inference, cloud training)
 - **Data platforms** (Postgres, Kafka, Spark, data lineage)
@@ -60,10 +60,10 @@ The product is:
 
 ### 1. Environment-as-Code
 
-A single `.devforge/env.yaml` file defines the entire development environment:
+A single `.tinybridge/env.yaml` file defines the entire development environment:
 
 ```yaml
-apiVersion: devforge/v1
+apiVersion: tinybridge/v1
 kind: Environment
 
 metadata:
@@ -102,7 +102,7 @@ This replaces the current Nix flake + Lima YAML + docker-compose.yml + devcontai
 ### 2. Transparent Execution Routing
 
 ```
-developer types:  devforge exec python train.py
+developer types:  tinybridge exec python train.py
 
 ↓ execution router decides:
 
@@ -129,13 +129,13 @@ developer types:  devforge exec python train.py
 #### Multi-Environment DDS Discovery
 - ROS 2 DDS multicast works out of the box (no `--network=host` workaround)
 - Environments auto-assigned `ROS_DOMAIN_ID` (no inter-environment DDS bleed)
-- `.devforge.local` domains resolve from macOS and Linux both
-- `robot-1.devforge.local` accessible from talker in `robot-2` environment
+- `.tinybridge.local` domains resolve from macOS and Linux both
+- `robot-1.tinybridge.local` accessible from talker in `robot-2` environment
 
 #### Hardware Passthrough
-- `devforge devices` — auto-discovers cameras, Lidar, serial devices, USB adapters
+- `tinybridge devices` — auto-discovers cameras, Lidar, serial devices, USB adapters
 - Curated kernel module set: serial adapters (CP210x, CH341, FTDI), modems (Quectel), USB WiFi (RTL8x), SDR (RTL-SDR, HackRF), robotics (xpad, joydev)
-- `devforge devices attach lidar:0` — Lidar available in substrate with zero latency
+- `tinybridge devices attach lidar:0` — Lidar available in substrate with zero latency
 - Camera access: AVFoundation → v4l2 virtual device (seamless passthrough)
 
 #### Simulation Integration
@@ -148,18 +148,18 @@ developer types:  devforge exec python train.py
 #### Local Inference (Fast Path)
 ```bash
 # native MLX on macOS
-devforge exec python -c "import mlx.core as mx; x = mx.random.normal((100, 100))"
+tinybridge exec python -c "import mlx.core as mx; x = mx.random.normal((100, 100))"
 → runs natively with Metal acceleration (fastest)
 
 # containerized PyTorch
-devforge exec python -c "import torch; x = torch.randn(100, 100)"
+tinybridge exec python -c "import torch; x = torch.randn(100, 100)"
 → routes to Linux substrate (Tier 2) for Linux-specific PyTorch
   → Metal passthrough (Phase 5) for GPU acceleration
 ```
 
 #### Training Workflows (Cloud)
 ```bash
-devforge exec python train.py --epoch=100 --batch=32
+tinybridge exec python train.py --epoch=100 --batch=32
 
 → detects torch.cuda import
 → auto-routes to RunPod A100 ($0.53/hour)
@@ -179,7 +179,7 @@ Pre-configured services in `data` template:
 - DuckDB (embedded OLAP)
 - Iceberg + Nessie (open table formats)
 
-`devforge doctor` auto-detects:
+`tinybridge doctor` auto-detects:
 - Missing Python dependencies
 - Postgres connectivity issues
 - Kafka broker health
@@ -188,21 +188,21 @@ Pre-configured services in `data` template:
 
 ### 6. Diagnostic Intelligence
 
-`devforge doctor` — AI-powered health check:
+`tinybridge doctor` — AI-powered health check:
 
 ```
-$ devforge doctor
+$ tinybridge doctor
 
 ✓ Linux substrate running (kernel 6.12.4, arm64 + amd64 via Rosetta)
 ✓ VirtioFS mounted (/Users/georgi → /home/georgi, 94% native I/O)
 ✓ DDS multicast active (3 ROS 2 nodes discovered, domain 42)
 ✓ Postgres accepting connections (10 active connections, 0 deadlocks)
 ⚠ Quectel modem at /dev/ttyUSB1 not attached
-  → run: devforge devices attach ttyUSB1
+  → run: tinybridge devices attach ttyUSB1
 
 ✗ Remote GPU not configured
-  → run: devforge remote add runpod --key $RUNPOD_KEY
-  → run: devforge remote test torch.cuda
+  → run: tinybridge remote add runpod --key $RUNPOD_KEY
+  → run: tinybridge remote test torch.cuda
 
 ✓ 38 Python 3.11 packages installed
   → 0 security vulnerabilities (checked 2 minutes ago)
@@ -215,7 +215,7 @@ Actionable, not just warnings.
 Enable AI agent workflows that OrbStack cannot support:
 
 ```bash
-devforge env clone agent-1 agent-2 agent-3
+tinybridge env clone agent-1 agent-2 agent-3
 
 # each gets:
 # - isolated Linux substrate
@@ -232,9 +232,9 @@ Enables:
 ### 8. Instant Snapshots & Rollback
 
 ```bash
-devforge env snapshot checkpoint-v1
+tinybridge env snapshot checkpoint-v1
 # make breaking changes...
-devforge env rollback checkpoint-v1
+tinybridge env rollback checkpoint-v1
 # back to checkpoint in <3 seconds (CoW disk images)
 ```
 
@@ -250,33 +250,33 @@ Enables:
 ### For Roboticists
 Today: Spend 2 hours debugging why their Docker ROS 2 setup cannot discover nodes. Multi-container networking, DDS multicast, USB device passthrough all require manual configuration.
 
-With DevForge: `devforge create --template robotics`, 2 minutes later: multiple robots discovering each other via DDS, Gazebo running, Foxglove streaming sensor data, hardware attached. `devforge doctor` detects missing firmware and suggests fixes.
+With TinyBridge: `tinybridge create --template robotics`, 2 minutes later: multiple robots discovering each other via DDS, Gazebo running, Foxglove streaming sensor data, hardware attached. `tinybridge doctor` detects missing firmware and suggests fixes.
 
 ### For AI Engineers
 Today: Develop locally in CPU-only containers, push to cloud for GPU training, deal with code sync issues, wait for results, pull them back. Context-switching hell.
 
-With DevForge: `devforge exec python train.py` runs locally with Metal acceleration (Phase 5). If CUDA is needed, auto-routes to RunPod. Same entry point, transparent routing.
+With TinyBridge: `tinybridge exec python train.py` runs locally with Metal acceleration (Phase 5). If CUDA is needed, auto-routes to RunPod. Same entry point, transparent routing.
 
 ### For Data Engineers
 Today: Postgres, Kafka, Spark running locally consume RAM constantly. File I/O through Docker bind mounts is 3-50x slower. Dbt materializations crawl.
 
-With DevForge: Services auto-managed. VirtioFS >90% native I/O. Schema validation via StatGuardian contracts. `devforge doctor` catches data lineage issues before they hit production.
+With TinyBridge: Services auto-managed. VirtioFS >90% native I/O. Schema validation via StatGuardian contracts. `tinybridge doctor` catches data lineage issues before they hit production.
 
 ### For Platform Engineers
 Today: Standardizing on Docker Desktop costs $21/user/month per enterprise employee. OrbStack is faster but macOS-only, locking out Linux/Windows developers. Lima is powerful but requires Ansible expertise.
 
-With DevForge: Free, open-source, cross-platform (Phase 5 adds Linux/Windows). Declarative environments. Kubernetes templates. CI/CD parity.
+With TinyBridge: Free, open-source, cross-platform (Phase 5 adds Linux/Windows). Declarative environments. Kubernetes templates. CI/CD parity.
 
 ---
 
 ## Distribution & Shipping
 
-DevForge ships as a **real macOS product**:
+TinyBridge ships as a **real macOS product**:
 
-- **macOS app** (`DevForge.app`) — Swift/SwiftUI, menu bar status, system extension for device access
-- **CLI** (`devforge`) — single static Rust binary, installed to `/usr/local/bin`
+- **macOS app** (`TinyBridge.app`) — Swift/SwiftUI, menu bar status, system extension for device access
+- **CLI** (`tinybridge`) — single static Rust binary, installed to `/usr/local/bin`
 - **Installer** — `.dmg` with code signing + Developer ID notarization (required for macOS Gatekeeper)
-- **Package manager** — `brew install --cask devforge`
+- **Package manager** — `brew install --cask tinybridge`
 - **Auto-update** — Sparkle framework handles seamless updates
 
 The user experience is **indistinguishable from a native macOS app** — not "another developer tool that happens to run on macOS."
@@ -287,23 +287,23 @@ The user experience is **indistinguishable from a native macOS app** — not "an
 
 ### vs. OrbStack
 - OrbStack: Proprietary, $8/user/month, macOS-only, zero GPU, no Environment-as-Code, ROS 2 broken
-- **DevForge:** Open-source free, cross-platform (Phase 5), GPU Phase 5, Environment-as-Code core, ROS 2 native
+- **TinyBridge:** Open-source free, cross-platform (Phase 5), GPU Phase 5, Environment-as-Code core, ROS 2 native
 
-DevForge wins on **trust, extensibility, robotics/AI integration, and cost.**
+TinyBridge wins on **trust, extensibility, robotics/AI integration, and cost.**
 
-OrbStack will always have better GUI polish initially, but DevForge's **architectural foundations** (declarative environments, transparent execution routing, open-source plugin system) create defensible moats.
+OrbStack will always have better GUI polish initially, but TinyBridge's **architectural foundations** (declarative environments, transparent execution routing, open-source plugin system) create defensible moats.
 
 ### vs. Docker Desktop
 - Docker: Cross-platform, GUI polish, but $21/user/month enterprise, resource hog, slow file I/O
-- **DevForge:** Free, optimized for macOS, >90% native I/O, declarative environments
+- **TinyBridge:** Free, optimized for macOS, >90% native I/O, declarative environments
 
-DevForge wins on **cost, performance, and developer experience.**
+TinyBridge wins on **cost, performance, and developer experience.**
 
 ### vs. Lima
 - Lima: Powerful, open-source, but no GUI, requires Ansible expertise, no ecosystem
-- **DevForge:** Open-source, has GUI, batteries-included (templates, AI diagnostics, device management), community ecosystem
+- **TinyBridge:** Open-source, has GUI, batteries-included (templates, AI diagnostics, device management), community ecosystem
 
-DevForge wins on **accessibility and ecosystem.**
+TinyBridge wins on **accessibility and ecosystem.**
 
 ---
 
@@ -333,7 +333,7 @@ DevForge wins on **accessibility and ecosystem.**
 **Phase 4 (Weeks 19-24): Remote + Cloud**
 - CUDA auto-detection + remote routing
 - RunPod, Vast.ai, AWS integrations
-- `devforge sync` for environment push/pull
+- `tinybridge sync` for environment push/pull
 - CI/CD parity mode
 - **Ship v1.1:** AI/ML workflows complete
 
@@ -366,15 +366,15 @@ DevForge wins on **accessibility and ecosystem.**
 2. **Apple Silicon adoption complete** — Virtualization.framework is mature
 3. **AI/robotics exploding** — demand for GPU routing + ROS 2 DDS is real and growing
 4. **Community fatigue with closed-source** — Docker licensing, OrbStack pricing, VMware opacity drive demand for open alternative
-5. **Declarative infrastructure trend** — Nix, Devbox, mise, Devcontainers mindshare ripe for DevForge's Environment-as-Code
+5. **Declarative infrastructure trend** — Nix, Devbox, mise, Devcontainers mindshare ripe for TinyBridge's Environment-as-Code
 
-DevForge arrives at **exactly the right moment** to establish a new category: **The open-source macOS development substrate.**
+TinyBridge arrives at **exactly the right moment** to establish a new category: **The open-source macOS development substrate.**
 
 ---
 
 ## Call to Action
 
-DevForge is **shipping as a real product**: not a research project, not a side hustle, not a feature in another tool.
+TinyBridge is **shipping as a real product**: not a research project, not a side hustle, not a feature in another tool.
 
 Target launch: **Q3 2026** (Phase 1 + 2, production-grade)
 

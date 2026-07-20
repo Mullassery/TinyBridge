@@ -10,7 +10,7 @@
 
 Developers on macOS need Linux capabilities (ROS 2, systemd services, Linux-only ABIs, GPU training) without the pain of traditional VMs: frozen desktops, snapshot hell, slow file I/O, and opaque closed-source tooling. OrbStack is the current best-in-class but is closed-source, macOS-only, charges $8/user/month for commercial use, and has hard gaps: zero GPU support, broken ROS 2 DDS networking, limited USB/serial passthrough, no parallel environments, and no Environment-as-Code paradigm.
 
-DevForge ships as a native macOS `.dmg` — a real product — built open-source (Apache 2.0). It is NOT a VM manager. It is a **development substrate** that routes workloads to the right execution tier (native macOS / minimal Linux kernel / remote GPU) transparently, with a declarative Environment-as-Code model at the center.
+TinyBridge ships as a native macOS `.dmg` — a real product — built open-source (Apache 2.0). It is NOT a VM manager. It is a **development substrate** that routes workloads to the right execution tier (native macOS / minimal Linux kernel / remote GPU) transparently, with a declarative Environment-as-Code model at the center.
 
 ---
 
@@ -47,16 +47,16 @@ The only C is a thin FFI header to bridge Swift's Virtualization.framework into 
 
 ```
 macOS Host
-├── DevForge.app  (Swift/SwiftUI)
+├── TinyBridge.app  (Swift/SwiftUI)
 │   ├── Menu bar: environment status, quick actions
 │   ├── System extension: network + device management
 │   └── Onboarding + preferences UI
 │
-├── devforge CLI  (Rust)
+├── tinybridge CLI  (Rust)
 │   └── Commands: up/down/exec/shell/doctor/devices/sync/env
 │
-├── devforgd daemon  (Rust + tokio)
-│   ├── Unix socket IPC  (/var/run/devforge.sock)
+├── tinybridged daemon  (Rust + tokio)
+│   ├── Unix socket IPC  (/var/run/tinybridge.sock)
 │   ├── Calls into VZ via C FFI bridge (Swift wrapper)
 │   ├── Environment lifecycle manager
 │   ├── Execution router (native → container → remote)
@@ -81,7 +81,7 @@ macOS Host
 ## Execution Router Logic
 
 ```
-devforge exec <cmd>
+tinybridge exec <cmd>
         │
         ▼
 Does the command require a Linux ABI or syscall?
@@ -112,8 +112,8 @@ The developer never specifies a tier. The router decides based on:
 ## Environment-as-Code Schema
 
 ```yaml
-# .devforge/env.yaml
-apiVersion: devforge/v1
+# .tinybridge/env.yaml
+apiVersion: tinybridge/v1
 kind: Environment
 
 metadata:
@@ -189,10 +189,10 @@ Single file. Version-controlled. Shareable with team. Diff-able.
 - Menu bar status: running environments, resource usage
 - System Extension for privileged operations (network interface creation, device passthrough)
 - Handles code signing, notarization, system permissions (microphone, camera, USB)
-- Launches and supervises `devforgd`
+- Launches and supervises `tinybridged`
 
 ### CLI (Rust)
-- Single static binary, installed to `/usr/local/bin/devforge`
+- Single static binary, installed to `/usr/local/bin/tinybridge`
 - Communicates with daemon via Unix socket (protobuf or JSON-RPC)
 - Fast: sub-100ms for status commands
 - Key crates: `clap`, `tokio`, `serde`, `tonic` (gRPC), `indicatif` (progress), `ratatui` (TUI)
@@ -215,7 +215,7 @@ Single file. Version-controlled. Shareable with team. Diff-able.
 - Virtual Layer 2 network between macOS and Linux substrate
 - **Multicast pass-through** — ROS 2 DDS discovery works out of the box (no `--network=host` required)
 - Automatic `ROS_DOMAIN_ID` namespace isolation per environment (no cross-environment DDS bleed)
-- `.devforge.local` DNS: `robotics-env.devforge.local` resolves from macOS and Linux both
+- `.tinybridge.local` DNS: `robotics-env.tinybridge.local` resolves from macOS and Linux both
 - Optional bridged mode: expose Linux substrate on LAN (fixes OrbStack Issue #31)
 
 ### USB / Device Passthrough
@@ -233,9 +233,9 @@ Single file. Version-controlled. Shareable with team. Diff-able.
 
 ### Snapshot / Environment Versioning
 - CoW disk images (APFS sparse + reflink copy)
-- `devforge env snapshot` — instant CoW snapshot, <1 second
-- `devforge env rollback <snapshot>` — restore in seconds
-- `devforge env clone` — fork environment for AI agent workflows (fixes Arcjet's 670-line workaround)
+- `tinybridge env snapshot` — instant CoW snapshot, <1 second
+- `tinybridge env rollback <snapshot>` — restore in seconds
+- `tinybridge env clone` — fork environment for AI agent workflows (fixes Arcjet's 670-line workaround)
 - Environments are git-diffable (YAML definition) + snapshot-restorable (VM state)
 
 ### GPU Strategy (Phased)
@@ -244,7 +244,7 @@ Single file. Version-controlled. Shareable with team. Diff-able.
 - **Phase 5**: Metal Compute API forwarding for MLX/PyTorch-MPS workflows
 
 ### Remote Execution (CUDA Tier)
-- SSH multiplexing with connection pooling (`~/.devforge/remotes/<name>`)
+- SSH multiplexing with connection pooling (`~/.tinybridge/remotes/<name>`)
 - Auto-detection: if command imports `torch.cuda`, `cupy`, or uses CUDA libs → route to configured remote
 - Cloud provider integrations: RunPod, Vast.ai, AWS, GCP (spawn + terminate GPU instances)
 - Same `env.yaml` deploys locally and remotely — no separate config
@@ -264,7 +264,7 @@ build pipeline (GitHub Actions)
 ```
 
 - `.dmg` for direct download
-- `brew install --cask devforge` (Homebrew cask)
+- `brew install --cask tinybridge` (Homebrew cask)
 - Developer ID signed + notarized (required for macOS Gatekeeper)
 - Auto-update via Sparkle framework
 
@@ -273,43 +273,43 @@ build pipeline (GitHub Actions)
 ## Workspace Structure
 
 ```
-devforge/
+tinybridge/
 ├── Cargo.toml                    # Rust workspace root
 ├── rust-toolchain.toml
 ├── Package.swift                 # Swift package (app + FFI bridge)
 │
 ├── crates/                       # All Rust, zero C++
-│   ├── devforge-core/            # Shared types, schema, config (no_std compatible)
-│   ├── devforge-daemon/          # devforgd: lifecycle, router, IPC server
-│   ├── devforge-cli/             # devforge CLI binary
-│   ├── devforge-vz-sys/          # Rust FFI bindings to VZ C bridge (generated from C header)
-│   ├── devforge-vz/              # Rust wrapper around -sys bindings (safe API)
-│   ├── devforge-router/          # Execution tier decision engine
-│   ├── devforge-devices/         # Device discovery (calls Swift bridge for IOKit)
-│   ├── devforge-remote/          # SSH + cloud provider APIs
-│   ├── devforge-doctor/          # Diagnostic engine
-│   ├── devforge-templates/       # Environment template library
-│   └── devforge-env/             # env.yaml parser, validator, versioning
+│   ├── tinybridge-core/            # Shared types, schema, config (no_std compatible)
+│   ├── tinybridge-daemon/          # tinybridged: lifecycle, router, IPC server
+│   ├── tinybridge-cli/             # tinybridge CLI binary
+│   ├── tinybridge-vz-sys/          # Rust FFI bindings to VZ C bridge (generated from C header)
+│   ├── tinybridge-vz/              # Rust wrapper around -sys bindings (safe API)
+│   ├── tinybridge-router/          # Execution tier decision engine
+│   ├── tinybridge-devices/         # Device discovery (calls Swift bridge for IOKit)
+│   ├── tinybridge-remote/          # SSH + cloud provider APIs
+│   ├── tinybridge-doctor/          # Diagnostic engine
+│   ├── tinybridge-templates/       # Environment template library
+│   └── tinybridge-env/             # env.yaml parser, validator, versioning
 │
 ├── swift/                        # All Swift, zero C++
-│   ├── DevForgeApp/              # SwiftUI macOS app
+│   ├── TinyBridgeApp/              # SwiftUI macOS app
 │   │   ├── AppDelegate.swift
 │   │   ├── MenuBarView.swift
 │   │   ├── EnvironmentListView.swift
 │   │   └── PreferencesView.swift
-│   ├── DevForgeVZBridge/         # ← THE C FFI BRIDGE (~500 lines)
+│   ├── TinyBridgeVZBridge/         # ← THE C FFI BRIDGE (~500 lines)
 │   │   ├── VZBridge.swift        # Swift wrapper around Virtualization.framework
 │   │   ├── include/
-│   │   │   └── devforge_vz.h     # C header exposed to Rust (FFI boundary)
-│   │   ├── DevForgeVZ.h          # Internal Objective-C header
-│   │   └── DevForgeVZ.swift      # Swift implementation
-│   ├── DevForgeIOKitBridge/      # Device discovery via IOKit (similar C bridge, ~300 lines)
+│   │   │   └── tinybridge_vz.h     # C header exposed to Rust (FFI boundary)
+│   │   ├── TinyBridgeVZ.h          # Internal Objective-C header
+│   │   └── TinyBridgeVZ.swift      # Swift implementation
+│   ├── TinyBridgeIOKitBridge/      # Device discovery via IOKit (similar C bridge, ~300 lines)
 │   │   ├── IOKitBridge.swift
 │   │   ├── include/
-│   │   │   └── devforge_iokit.h
-│   │   └── DevForgeIOKit.swift
-│   └── DevForgeExtension/        # System Extension (network/device passthrough)
-│       └── DevForgeNetworkExtension.swift
+│   │   │   └── tinybridge_iokit.h
+│   │   └── TinyBridgeIOKit.swift
+│   └── TinyBridgeExtension/        # System Extension (network/device passthrough)
+│       └── TinyBridgeNetworkExtension.swift
 │
 ├── c-bridge/                     # Generated C FFI bindings (DO NOT EDIT)
 │   └── (bindgen output goes here)
@@ -326,8 +326,8 @@ devforge/
 │   └── cloudnative.yaml          # Kubernetes + Helm + Terraform
 │
 ├── packaging/
-│   ├── DevForge.dmg.spec
-│   ├── Casks/devforge.rb         # Homebrew cask
+│   ├── TinyBridge.dmg.spec
+│   ├── Casks/tinybridge.rb         # Homebrew cask
 │   └── entitlements.plist
 │
 └── .github/
@@ -337,9 +337,9 @@ devforge/
 ```
 
 **Key points:**
-- `devforge-vz-sys/` — Auto-generated via `bindgen` from C header (low-level FFI)
-- `devforge-vz/` — Hand-written Rust wrapper providing safe API
-- `DevForgeVZBridge/` — Swift wrapper around VZ Framework; exports minimal C header
+- `tinybridge-vz-sys/` — Auto-generated via `bindgen` from C header (low-level FFI)
+- `tinybridge-vz/` — Hand-written Rust wrapper providing safe API
+- `TinyBridgeVZBridge/` — Swift wrapper around VZ Framework; exports minimal C header
 - The C header is the **only** C code; zero C++ anywhere
 
 This pattern mirrors how Lima and Podman Machine work on macOS.
@@ -392,14 +392,14 @@ Check categories:
 
 Output format:
 ```
-devforge doctor
+tinybridge doctor
 
 ✓  Linux substrate running  (kernel 6.12.4, arm64 + amd64 via Rosetta)
 ✓  VirtioFS mounted  (/Users/georgi → /home/georgi, 94% native I/O)
 ✓  DDS multicast active  (domain 42, 3 nodes discovered)
-⚠  Quectel modem /dev/ttyUSB1 not passed through  → run: devforge devices attach ttyUSB1
-✗  Remote GPU profile not configured  → run: devforge remote add runpod --key $RUNPOD_KEY
-⚠  Python 3.11 version mismatch: native=3.11.9, substrate=3.11.4  → run: devforge env sync python
+⚠  Quectel modem /dev/ttyUSB1 not passed through  → run: tinybridge devices attach ttyUSB1
+✗  Remote GPU profile not configured  → run: tinybridge remote add runpod --key $RUNPOD_KEY
+⚠  Python 3.11 version mismatch: native=3.11.9, substrate=3.11.4  → run: tinybridge env sync python
 ```
 
 ---
@@ -410,7 +410,7 @@ Templates are YAML with inheritance:
 
 ```yaml
 # templates/robotics.yaml
-apiVersion: devforge/v1
+apiVersion: tinybridge/v1
 kind: Template
 metadata:
   name: robotics
@@ -438,12 +438,12 @@ network:
 
 Usage:
 ```bash
-devforge create --template robotics my-robot-project
-devforge create --template ai-cloud training-run
-devforge create --template data analytics-stack
+tinybridge create --template robotics my-robot-project
+tinybridge create --template ai-cloud training-run
+tinybridge create --template data analytics-stack
 ```
 
-Custom templates stored in `~/.devforge/templates/` or `.devforge/templates/` in project.
+Custom templates stored in `~/.tinybridge/templates/` or `.tinybridge/templates/` in project.
 
 ---
 
@@ -453,17 +453,17 @@ Custom templates stored in `~/.devforge/templates/` or `.devforge/templates/` in
 **Goal: Shippable alpha with core VM lifecycle**
 
 - [ ] Rust workspace + Swift package setup
-- [ ] `devforgd` daemon with Unix socket IPC
+- [ ] `tinybridged` daemon with Unix socket IPC
 - [ ] Apple VZ Framework integration (Swift VZ wrapper → Rust FFI)
 - [ ] Minimal Linux kernel build pipeline (arm64 + x86 config)
 - [ ] VirtioFS filesystem sharing
-- [ ] `devforge up`, `down`, `status`, `shell` commands
-- [ ] `env.yaml` schema parser + validator (`devforge-core`)
+- [ ] `tinybridge up`, `down`, `status`, `shell` commands
+- [ ] `env.yaml` schema parser + validator (`tinybridge-core`)
 - [ ] SwiftUI menu bar app skeleton (shows running environments)
 - [ ] `.dmg` build + code signing + notarization pipeline (GitHub Actions)
 - [ ] Homebrew cask formula
 
-**Deliverable**: Install `.dmg`, run `devforge up`, get a shell in a Linux environment. Sub-5-second boot.
+**Deliverable**: Install `.dmg`, run `tinybridge up`, get a shell in a Linux environment. Sub-5-second boot.
 
 ---
 
@@ -471,35 +471,35 @@ Custom templates stored in `~/.devforge/templates/` or `.devforge/templates/` in
 **Goal: Smart routing + templates + VS Code integration**
 
 - [ ] Execution router (Tier 1 / 2 / 3 decision logic)
-- [ ] `devforge exec <cmd>` — transparent command routing
+- [ ] `tinybridge exec <cmd>` — transparent command routing
 - [ ] Podman rootless inside Linux substrate
 - [ ] Container management within environments (services: postgres, redis, etc.)
 - [ ] Rosetta 2 AMD64 support in substrate
 - [ ] Environment templates: `robotics`, `ai-local`, `data`, `cloudnative`
-- [ ] VS Code Remote-SSH auto-config (`.devforge/ssh_config` → `~/.ssh/config`)
-- [ ] `devforge doctor` v1 — basic health checks
+- [ ] VS Code Remote-SSH auto-config (`.tinybridge/ssh_config` → `~/.ssh/config`)
+- [ ] `tinybridge doctor` v1 — basic health checks
 - [ ] Environment variables + secrets management
 - [ ] Nix integration (detect + use nix-installed tools in Tier 1)
 
-**Deliverable**: `devforge create --template robotics` → fully working ROS 2 environment in VS Code.
+**Deliverable**: `tinybridge create --template robotics` → fully working ROS 2 environment in VS Code.
 
 ---
 
 ### Phase 3 — Hardware & DX (Weeks 13-18)
 **Goal: Robotics-grade device support + parallel environments + DDS networking**
 
-- [ ] `devforge devices` — IOKit device discovery
+- [ ] `tinybridge devices` — IOKit device discovery
 - [ ] USB/serial passthrough (curated kernel modules + USB/IP)
 - [ ] Camera/video device routing (AVFoundation → v4l2 virtual device)
 - [ ] DDS-aware virtual network (ROS 2 multicast works out of the box)
 - [ ] `ROS_DOMAIN_ID` auto-isolation per environment
 - [ ] Parallel environments with auto port assignment + workspace isolation
-- [ ] CoW snapshot / rollback (`devforge env snapshot`, `rollback`, `clone`)
-- [ ] `devforge doctor` v2 — ROS 2, device, and container diagnostics
+- [ ] CoW snapshot / rollback (`tinybridge env snapshot`, `rollback`, `clone`)
+- [ ] `tinybridge doctor` v2 — ROS 2, device, and container diagnostics
 - [ ] LAN access to Linux substrate (bridged networking mode)
-- [ ] Environment git-versioning (`devforge env diff`, `log`, `rollback`)
+- [ ] Environment git-versioning (`tinybridge env diff`, `log`, `rollback`)
 
-**Deliverable**: `devforge devices attach lidar` → LiDAR sensor available in ROS 2 with multicast discovery. `devforge env clone agent-1` for parallel AI agent workflows.
+**Deliverable**: `tinybridge devices attach lidar` → LiDAR sensor available in ROS 2 with multicast discovery. `tinybridge env clone agent-1` for parallel AI agent workflows.
 
 ---
 
@@ -508,15 +508,15 @@ Custom templates stored in `~/.devforge/templates/` or `.devforge/templates/` in
 
 - [ ] CUDA detection (import scanning + lib detection)
 - [ ] Remote execution bridge (SSH multiplexed, transparent)
-- [ ] `devforge remote add runpod --key $KEY`
+- [ ] `tinybridge remote add runpod --key $KEY`
 - [ ] Auto-routing: CUDA workload → remote GPU host
 - [ ] Cloud provider integrations: RunPod, Vast.ai, AWS (g4dn/p3), GCP (A100)
-- [ ] `devforge sync` — push environment to cloud, execute, pull results
+- [ ] `tinybridge sync` — push environment to cloud, execute, pull results
 - [ ] Remote environment lifecycle (spin up cloud instance → execute → terminate)
-- [ ] CI/CD parity mode (`devforge ci-run github-actions`)
+- [ ] CI/CD parity mode (`tinybridge ci-run github-actions`)
 - [ ] `ai-cloud` template with seamless local→remote handoff
 
-**Deliverable**: `devforge exec python train.py` → automatically runs on RunPod A100 when CUDA detected, syncs results back.
+**Deliverable**: `tinybridge exec python train.py` → automatically runs on RunPod A100 when CUDA detected, syncs results back.
 
 ---
 
@@ -525,7 +525,7 @@ Custom templates stored in `~/.devforge/templates/` or `.devforge/templates/` in
 
 - [ ] Vulkan-to-Metal bridge in Linux substrate (VirtioGPU Venus + MoltenVK)
 - [ ] Metal Compute API forwarding (MLX/PyTorch-MPS accessible from Linux)
-- [ ] WASM plugin architecture (`devforge plugin install ros-foxglove`)
+- [ ] WASM plugin architecture (`tinybridge plugin install ros-foxglove`)
 - [ ] Security auditing + compliance exports
 - [ ] Database native support (schema inspection, lineage, diagnostics)
 - [ ] Kubernetes local cluster (lightweight k3s in substrate)
@@ -538,7 +538,7 @@ Custom templates stored in `~/.devforge/templates/` or `.devforge/templates/` in
 
 ## Differentiators vs. OrbStack
 
-| Capability | OrbStack | DevForge |
+| Capability | OrbStack | TinyBridge |
 |-----------|----------|---------|
 | Open source | ❌ Closed | ✅ Apache 2.0 |
 | Price | $8/user/month commercial | Free |
@@ -559,8 +559,8 @@ Custom templates stored in `~/.devforge/templates/` or `.devforge/templates/` in
 
 ## Integration with Existing Portfolio
 
-- **PyTerrainMap** — ships as a `devforge create --template pyterrainmap` environment; sensor drivers pre-configured
-- **PyStreamMCP** — optional: `devforge exec` routing logic mirrors PyStreamMCP's query routing architecture
+- **PyTerrainMap** — ships as a `tinybridge create --template pyterrainmap` environment; sensor drivers pre-configured
+- **PyStreamMCP** — optional: `tinybridge exec` routing logic mirrors PyStreamMCP's query routing architecture
 - **StatGuardian** — optional Phase 5: environment contract validation via StatGuardian (reproducibility contracts)
 - **PyRoboFrames** — robotics template pre-installs PyRoboFrames sensor pipeline
 
@@ -579,26 +579,26 @@ Custom templates stored in `~/.devforge/templates/` or `.devforge/templates/` in
 ## Verification Plan
 
 ### Phase 1 verification
-1. `brew install --cask devforge` on clean macOS 14 machine
-2. `devforge up` → Linux substrate boots, `devforge status` shows running
-3. `devforge shell` → bash prompt inside Linux
+1. `brew install --cask tinybridge` on clean macOS 14 machine
+2. `tinybridge up` → Linux substrate boots, `tinybridge status` shows running
+3. `tinybridge shell` → bash prompt inside Linux
 4. Edit a file on macOS, verify change visible in Linux via VirtioFS (within 100ms)
-5. `devforge down` → substrate stops cleanly
+5. `tinybridge down` → substrate stops cleanly
 6. Measure boot time: target <5 seconds
 
 ### Phase 2 verification
-1. `devforge create --template robotics robot-ws` → ROS 2 jazzy available
-2. `devforge exec ros2 run demo_nodes_cpp talker` → talker running
-3. Open VS Code → Remote-SSH to `robot-ws.devforge.local` → extensions working
-4. `devforge exec python script.py` on pure Python script → executes natively on macOS (Tier 1)
+1. `tinybridge create --template robotics robot-ws` → ROS 2 jazzy available
+2. `tinybridge exec ros2 run demo_nodes_cpp talker` → talker running
+3. Open VS Code → Remote-SSH to `robot-ws.tinybridge.local` → extensions working
+4. `tinybridge exec python script.py` on pure Python script → executes natively on macOS (Tier 1)
 
 ### Phase 3 verification
-1. Plug in Arduino/serial device → `devforge devices` shows it
-2. `devforge devices attach ttyUSB0` → `/dev/ttyUSB0` accessible in Linux substrate
+1. Plug in Arduino/serial device → `tinybridge devices` shows it
+2. `tinybridge devices attach ttyUSB0` → `/dev/ttyUSB0` accessible in Linux substrate
 3. Run ROS 2 talker/listener across two parallel environments → DDS discovery works
-4. `devforge env snapshot v1` → modify env → `devforge env rollback v1` → restored
+4. `tinybridge env snapshot v1` → modify env → `tinybridge env rollback v1` → restored
 
 ### Phase 4 verification
-1. `devforge remote add runpod --key $KEY`
-2. `devforge exec python -c "import torch; print(torch.cuda.is_available())"` → routed to RunPod, prints `True`
-3. `devforge sync training-job` → pushes, executes, returns results
+1. `tinybridge remote add runpod --key $KEY`
+2. `tinybridge exec python -c "import torch; print(torch.cuda.is_available())"` → routed to RunPod, prints `True`
+3. `tinybridge sync training-job` → pushes, executes, returns results
