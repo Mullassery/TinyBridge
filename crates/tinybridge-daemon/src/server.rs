@@ -5,18 +5,21 @@ use tokio::net::UnixStream;
 use tokio::sync::Mutex;
 
 use tinybridge_core::{error_codes, methods, JsonRpcRequest, JsonRpcResponse};
+use tinybridge_dds::DdsManager;
 
 use crate::manager::EnvironmentManager;
+use crate::server;
 
 pub async fn handle_connection(
     mut socket: UnixStream,
     manager: Arc<Mutex<EnvironmentManager>>,
+    dds_manager: Arc<parking_lot::Mutex<DdsManager>>,
 ) -> Result<()> {
     let (reader, mut writer) = socket.split();
     let mut lines = BufReader::new(reader).lines();
 
     while let Some(line) = lines.next_line().await? {
-        let response = process_request(&line, &manager).await;
+        let response = process_request(&line, &manager, &dds_manager).await;
 
         let response_json = serde_json::to_string(&response)?;
         writer.write_all(response_json.as_bytes()).await?;
@@ -26,7 +29,11 @@ pub async fn handle_connection(
     Ok(())
 }
 
-async fn process_request(line: &str, manager: &Arc<Mutex<EnvironmentManager>>) -> JsonRpcResponse {
+async fn process_request(
+    line: &str,
+    manager: &Arc<Mutex<EnvironmentManager>>,
+    dds_manager: &Arc<parking_lot::Mutex<DdsManager>>,
+) -> JsonRpcResponse {
     let request: JsonRpcRequest = match serde_json::from_str(line) {
         Ok(req) => req,
         Err(_) => {
@@ -34,6 +41,13 @@ async fn process_request(line: &str, manager: &Arc<Mutex<EnvironmentManager>>) -
         }
     };
 
+    // Try DDS methods first
+    let dds_handler = crate::dds_rpc::DdsRpcHandler::new(Arc::clone(dds_manager));
+    if let Some(response) = dds_handler.dispatch(&request.method, &request.params, request.id) {
+        return response;
+    }
+
+    // Then try environment methods
     let result = match request.method.as_str() {
         methods::ENVIRONMENT_UP => {
             let name = request

@@ -2,6 +2,7 @@ mod anomaly_detector;
 mod boot_tiers;
 mod clipboard_sync;
 mod daemon;
+mod dds_rpc;
 mod ip_monitor;
 mod manager;
 mod otel;

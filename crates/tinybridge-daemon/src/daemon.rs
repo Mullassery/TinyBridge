@@ -3,6 +3,7 @@ use std::os::unix::net::UnixListener;
 use std::path::PathBuf;
 use std::sync::Arc;
 use tokio::sync::Mutex;
+use tinybridge_dds::DdsManager;
 
 use crate::manager::EnvironmentManager;
 use crate::server;
@@ -24,14 +25,16 @@ pub async fn run(socket_path: PathBuf) -> Result<()> {
     tracing::info!("Listening on {:?}", socket_path);
 
     let manager = Arc::new(Mutex::new(EnvironmentManager::new()));
+    let dds_manager = Arc::new(parking_lot::Mutex::new(DdsManager::new()));
     let listener = tokio::net::UnixListener::from_std(listener)?;
 
     loop {
         match listener.accept().await {
             Ok((stream, _)) => {
                 let manager = Arc::clone(&manager);
+                let dds_manager = Arc::clone(&dds_manager);
                 tokio::spawn(async move {
-                    if let Err(e) = server::handle_connection(stream, manager).await {
+                    if let Err(e) = server::handle_connection(stream, manager, dds_manager).await {
                         tracing::error!("Connection error: {}", e);
                     }
                 });
