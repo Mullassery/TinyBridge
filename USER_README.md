@@ -596,6 +596,182 @@ tinybridge up bob-env      # Bob's project environment
 # Different devs on same Mac, isolated setups
 ```
 
+### Permanently Removing Environments
+
+There are different ways to remove an environment, depending on whether you want to keep the data:
+
+#### Option 1: Soft Stop (Preserves All Data)
+
+Stop the environment but keep files and data:
+
+```bash
+tinybridge down myprojectname
+```
+
+The environment is stopped but:
+- ✅ All files in `~/myprojectname/` are preserved
+- ✅ Environment state is saved
+- ✅ You can restart anytime: `tinybridge up myprojectname`
+- ✅ env.yaml still controls the environment
+
+**Use this when:** You're pausing development but might come back to it.
+
+#### Option 2: Hard Delete (Remove Everything)
+
+Completely delete an environment and all its data:
+
+```bash
+# First stop the environment
+tinybridge down myprojectname
+
+# Then delete it permanently
+tinybridge delete myprojectname --force
+```
+
+This removes:
+- ✗ The environment VM
+- ✗ All environment metadata
+- ✗ Associated system files
+- ✗ Everything in `~/.tinybridge/data/myprojectname`
+
+But **preserves:**
+- ✅ Files in `~/myprojectname/` on your Mac (these stay safe)
+- ✅ Your env.yaml file (if in git or elsewhere)
+- ✅ Version control history
+
+**Use this when:** You're completely done with a project and want to free resources.
+
+#### Option 3: Clean Up All Environments
+
+Remove all stopped environments at once:
+
+```bash
+# List all environments
+tinybridge list
+
+# Remove all (after confirming which ones to delete)
+tinybridge cleanup --all
+```
+
+This only removes stopped environments. Running environments are not affected.
+
+### Comparison: Stop vs. Delete
+
+| Action | Command | Environment State | Mac Files | Can Restart? |
+|--------|---------|-------------------|-----------|--------------|
+| **Pause** | `tinybridge down name` | Stopped (saved) | Preserved | ✅ Yes |
+| **Delete** | `tinybridge delete name --force` | Deleted | Preserved | ❌ No (must recreate) |
+| **Cleanup** | `tinybridge cleanup --all` | Deleted (stopped only) | Preserved | ❌ No |
+
+### Safe Deletion Workflow
+
+**If you're uncertain, use this safe workflow:**
+
+```bash
+# 1. Stop the environment
+tinybridge down myprojectname
+
+# 2. Back up your important files
+cp -r ~/myprojectname ~/myprojectname.backup
+
+# 3. Back up environment config
+cp env.yaml env.yaml.backup
+
+# 4. Now it's safe to delete
+tinybridge delete myprojectname --force
+
+# 5. Verify deletion
+tinybridge list  # Should not show myprojectname
+
+# 6. Optional: clean up backup after confirming
+rm -rf ~/myprojectname.backup
+rm env.yaml.backup
+```
+
+### Data Recovery After Deletion
+
+If you accidentally deleted an environment:
+
+**Option 1: Recreate from Backup**
+```bash
+# If you backed up env.yaml
+cp env.yaml.backup env.yaml
+
+# Start a new environment with same config
+tinybridge up myprojectname
+
+# Restore backed-up files
+cp -r ~/myprojectname.backup/* ~/myprojectname/
+```
+
+**Option 2: Restore from Git**
+```bash
+# If your files were in git
+git clone <repo>
+cd myprojectname
+
+# Recreate the environment
+tinybridge up myprojectname
+```
+
+**Option 3: Restore from Time Machine** (macOS)
+```bash
+# Mac files are always in Time Machine (if enabled)
+# Restore via Time Machine
+# Recover files from ~/myprojectname/
+```
+
+### Freeing Disk Space
+
+After deleting environments, free up disk space:
+
+```bash
+# Check current disk usage
+tinybridge info  # Shows environment sizes
+
+# Remove unused images (after deleting all environments using them)
+tinybridge cleanup --images
+
+# Clear cache
+tinybridge cleanup --cache
+```
+
+### Scenarios: When to Delete vs. Pause
+
+**Scenario 1: Project Complete**
+```bash
+# Project shipped, archiving for history
+tinybridge down myprojectname     # Keep for 6 months
+# Later:
+tinybridge delete myprojectname --force   # Remove after archival period
+```
+
+**Scenario 2: Quick Testing**
+```bash
+# Test a feature
+tinybridge up test-env
+# ... test complete ...
+tinybridge delete test-env --force     # Clean up immediately
+```
+
+**Scenario 3: Resource Constrained**
+```bash
+# Low on disk space
+tinybridge down heavy-ml-training    # Paused but not deleted (100GB)
+tinybridge delete heavy-ml-training --force  # Delete to free space
+# Can recreate later if needed
+```
+
+**Scenario 4: Taking a Break**
+```bash
+# Going on vacation, will return to project
+tinybridge down backend   # Pause, don't delete
+# ... 2 weeks later ...
+tinybridge up backend     # Resume where you left off
+```
+
+---
+
 ### Tips for Multiple Environments
 
 **Tip 1: Use Descriptive Names**
