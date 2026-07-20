@@ -267,7 +267,7 @@ Stop context-switching between your Mac and production Linux. Develop locally in
 Share environment configurations via git. No more "it works on my machine" when deploying. Identical setups for everyone.
 
 ### ML Engineers
-Run Python on Linux with all Linux-only packages. Mount training data directly. Full GPU support coming in Phase 4.
+Run Python on Linux with all Linux-only packages. Mount training data directly from macOS.
 
 ### Robotics Teams
 ROS 2 development environment that matches your robot's OS. DDS multicast networking works out of the box.
@@ -329,7 +329,6 @@ Run Spark, Postgres, Kafka locally on Linux while writing code on macOS. No Dock
 | **Distro Options** | ✅ Ubuntu, Debian, Alpine, Fedora (any version) | ✅ Any Linux image | ✅ Ubuntu focus |
 | **Production Parity** | ✅ Exact OS matching | ✅ Good | ⚠️ Partial |
 | **Multi-OS Testing** | ✅ Easy (switch distros in env.yaml) | ✅ Easy | ⚠️ Manual |
-| **GPU Support** | ✅ Phase 4 (CUDA routing) | ✅ Limited | ❌ No |
 | **Rosetta 2 Support** | ✅ AMD64 on Apple Silicon | ⚠️ Via emulation | ✅ Yes |
 
 ### Observability & Intelligence
@@ -585,8 +584,8 @@ TinyBridge's OpenTelemetry integration means:
 **Future Phases:**
 - Phase 2: Execution routing + templates
 - Phase 3: Hardware passthrough + DDS networking
-- Phase 4: Remote GPU routing
-- Phase 5: GPU bridge + plugin ecosystem
+- Phase 4: Advanced networking + device support
+- Phase 5: Plugin ecosystem + extensibility
 
 ---
 
