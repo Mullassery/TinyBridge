@@ -889,6 +889,141 @@ tinybridge up research-2024                # Recreate with all data
 
 ---
 
+## Clarifying: Save/Close vs. Permanent Termination
+
+This is the most important distinction to understand:
+
+### Quick Reference Table
+
+| Operation | Command | Environment Still Exists? | Can Restart? | Disk Space | When to Use |
+|-----------|---------|--------------------------|--------------|-----------|-------------|
+| **Save & Close (Pause)** | `tinybridge down` | ✅ Yes | ✅ Yes, instantly | ~50GB used | Taking a break, coming back later |
+| **Checkpoint** | `tinybridge checkpoint --name "x"` | ✅ Yes | ✅ Yes, from checkpoint | ~50GB + snapshots | Before risky experiments |
+| **Permanent Delete** | `tinybridge delete --force` | ❌ No | ❌ No (must recreate) | Freed | Done with project, need disk space |
+| **Cleanup All** | `tinybridge cleanup --all` | ❌ No (stopped only) | ❌ No | Freed | Removing multiple unused environments |
+
+### Visual Workflow
+
+```
+┌─ RUNNING ENVIRONMENT ─┐
+│  tinybridge up myenv  │
+│  Environment: Active  │
+│  Disk: ~50GB used     │
+└──────────────────────┘
+         │
+         ├─ tinybridge down (PAUSE/SAVE)
+         │  └─→ Environment: Paused (Disk: ~50GB still used)
+         │      └─→ tinybridge up (RESUME)
+         │
+         └─ tinybridge delete --force (TERMINATE)
+            └─→ Environment: Deleted (Disk: Freed)
+                └─→ Cannot resume (must recreate from env.yaml)
+```
+
+### When to Use Each
+
+**Use `tinybridge down` (Save/Close) when:**
+- ✅ You'll come back to the project later today/this week/this month
+- ✅ You want to pause but keep all state intact
+- ✅ You're switching between multiple projects (pause one, work on another)
+- ✅ You want instant resume with everything exactly as you left it
+- ✅ Disk space isn't a concern (environment still uses ~50GB)
+
+Example:
+```bash
+# Working on frontend
+tinybridge down frontend    # Pause it
+
+# Switch to backend
+tinybridge up backend       # Start backend
+
+# Later...
+tinybridge up frontend      # Resume frontend exactly as it was
+```
+
+**Use `tinybridge delete --force` (Terminate) when:**
+- ✅ Project is truly done (shipped, archived, or no longer needed)
+- ✅ You need to free disk space urgently
+- ✅ You're certain you won't need this environment again
+- ✅ You have backups or version control of important files
+- ✅ You want to remove clutter and keep only active environments
+
+Example:
+```bash
+# Project is shipped and archived
+tinybridge delete shipped-project --force   # Free ~50GB
+
+# Later, if needed:
+git clone <repo>
+tinybridge up shipped-project               # Recreate fresh from repo
+```
+
+### The Critical Difference Explained
+
+**Save/Close (`down`):**
+- Environment is **paused**, not deleted
+- **All state is preserved** exactly as-is
+- Can resume **instantly** with `tinybridge up`
+- **Disk space is NOT freed** (still uses ~50GB)
+- **Your files remain** in `~/myprojectname/`
+- **No data loss** possible
+
+**Terminate (`delete --force`):**
+- Environment is **permanently deleted**
+- **State is destroyed** (can't resume)
+- Must **recreate from env.yaml** to restore
+- **Disk space IS freed** (~50GB recovered)
+- **Mac files are preserved** in `~/myprojectname/`
+- **Data loss possible** if not backed up
+
+### Decision Tree
+
+```
+Do you think you'll use this environment again?
+│
+├─ YES (even in 6 months)
+│  └─→ tinybridge down    (SAVE/CLOSE)
+│      Keep everything, resume later
+│
+└─ NO (project done, never coming back)
+   │
+   └─ Do you have important files to keep?
+      │
+      ├─ YES
+      │  ├─ Back them up first
+      │  │  cp -r ~/myenv ~/myenv-backup
+      │  │
+      │  └─ Then delete
+      │     tinybridge delete myenv --force
+      │
+      └─ NO (just throwaway test)
+         └─→ tinybridge delete myenv --force
+             (Disk freed, safe to delete)
+```
+
+### Common Confusion Resolved
+
+**Q: Is `tinybridge down` the same as deleting?**
+A: NO. `down` is a pause/stop. Delete is permanent. Use `down` if you might come back.
+
+**Q: Will my files disappear if I use `tinybridge down`?**
+A: NO. Your files in `~/myprojectname/` are always safe. They're on your Mac, not in the environment.
+
+**Q: How do I recover after `tinybridge delete`?**
+A: You must recreate the environment:
+```bash
+# If you have env.yaml backed up:
+tinybridge up myprojectname      # Recreates from env.yaml
+
+# If you have files backed up:
+cp -r ~/myprojectname-backup/* ~/myprojectname/
+```
+
+**Q: Can I delete an environment while it's running?**
+A: No, stop it first: `tinybridge down myenv`, then `tinybridge delete myenv --force`
+
+---
+
 ### Safe Deletion Workflow
 
 **If you're uncertain, use this safe workflow:**
