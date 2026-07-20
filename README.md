@@ -145,6 +145,27 @@ $ cat ~/test.txt
 hello
 ```
 
+### 🔌 Intelligent Port Forwarding
+Services inside your VMs are automatically accessible from your workstation—no manual configuration required. TinyBridge detects services running inside environments and securely exposes them through the host network. Access applications, SSH servers, APIs, databases, and web services without manual NAT or network configuration.
+
+Continue using enterprise VPNs, firewalls, proxies, and security monitoring tools—TinyBridge integrates transparently:
+
+```bash
+# API running in VM on port 8000
+tinybridge forward myprojectname 8000:8000
+
+# Now accessible from macOS
+curl http://localhost:8000/api/health
+
+# Database running in VM
+tinybridge forward myprojectname 5432:5432
+
+# Connect with standard tools
+psql -h localhost -U user -d mydb
+```
+
+**No firewall exceptions needed.** Traffic routes through the same network paths as your enterprise monitoring. Full security compliance maintained.
+
 ### 🚀 Multiple Parallel Environments
 Run multiple projects simultaneously. Each isolated and independent. Replace these with YOUR actual project names:
 
@@ -153,6 +174,11 @@ tinybridge up frontend        # Your frontend project name
 tinybridge up backend         # Your backend project name
 tinybridge up database        # Your database project name
 # All three running at once
+
+# Forward ports for all three simultaneously
+tinybridge forward frontend 3000:3000
+tinybridge forward backend 8000:8000
+tinybridge forward database 5432:5432
 ```
 
 ### 📈 Scales Naturally: Dev → Team → Organization
@@ -266,6 +292,17 @@ Replace `<projectname>` with your actual project name (must match `metadata.name
 | `tinybridge update <projectname> --cpu 4 --memory 8GB` | Update both | `tinybridge update myprojectname --cpu 4 --memory 8GB` |
 | `tinybridge restart <projectname>` | Restart with new resources | `tinybridge restart myprojectname` |
 
+### Port Forwarding & Networking
+
+| Command | Purpose | Example |
+|---------|---------|---------|
+| `tinybridge forward <projectname> <local>:<remote>` | Forward port from VM to macOS | `tinybridge forward myprojectname 8000:8000` |
+| `tinybridge forward <projectname> <local>:<remote> --protocol tcp` | Forward TCP port | `tinybridge forward myprojectname 5432:5432 --protocol tcp` |
+| `tinybridge forward <projectname> <local>:<remote> --protocol udp` | Forward UDP port | `tinybridge forward myprojectname 5353:5353 --protocol udp` |
+| `tinybridge forwards <projectname>` | List active port forwards | `tinybridge forwards myprojectname` |
+| `tinybridge unforward <projectname> <local>` | Remove port forward | `tinybridge unforward myprojectname 8000` |
+| `tinybridge dns <projectname>` | Get environment's DNS name | `tinybridge dns myprojectname` |
+
 ### Environment Management
 
 | Command | Purpose | Example |
@@ -331,6 +368,27 @@ tinybridge down myprojectname
 tinybridge up myprojectname
 tinybridge shell myprojectname
 # Everything is intact
+```
+
+**Forward service ports for enterprise integration:**
+```bash
+# Start backend environment
+tinybridge up backend
+
+# Forward API and database ports
+tinybridge forward backend 8000:8000  # API server
+tinybridge forward backend 5432:5432  # PostgreSQL
+
+# Access from macOS tools while maintaining firewall/VPN
+curl http://localhost:8000/api/health
+psql -h localhost -U admin -d mydb
+
+# List all active forwards
+tinybridge forwards backend
+
+# Stop forwarding when done
+tinybridge unforward backend 8000
+tinybridge unforward backend 5432
 ```
 
 **Adjust resources for heavy workload:**
@@ -725,8 +783,17 @@ TinyBridge's OpenTelemetry integration means:
 - ✅ OpenTelemetry integration
 - 🔄 Performance benchmarking (architecture validated, metrics collection in progress)
 
+**Phase 2 (In Development):** Intelligent service exposure and execution routing.
+
+- ✅ SSH tunneling framework (local forward, remote forward, SOCKS proxy)
+- ✅ Intelligent port forwarding (auto-detect services, secure exposure)
+- ✅ IP change detection & auto-update SSH config
+- ✅ DNS/mDNS support (.local TLD domains)
+- ✅ Environment snapshots & CoW cloning
+- ✅ Execution profiles (tier-based routing)
+- 🔄 Phase 2 networking and templates (coming soon)
+
 **Future Phases:**
-- Phase 2: Execution routing + templates
 - Phase 3: Hardware passthrough + DDS networking
 - Phase 4: Advanced networking + device support
 - Phase 5: Plugin ecosystem + extensibility
