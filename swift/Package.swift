@@ -24,5 +24,9 @@ let package = Package(
                 .linkedFramework("Foundation"),
             ]
         ),
+        .testTarget(
+            name: "TinyBridgeVZBridgeTests",
+            dependencies: ["TinyBridgeVZBridge"]
+        ),
     ]
 )

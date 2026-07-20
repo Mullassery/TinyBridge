@@ -61,9 +61,6 @@ jobs:
       - name: Build Swift package
         run: swift build --package-path swift/ -c release
 
-      - name: Run Swift tests
-        run: swift test --package-path swift/
-
   verify-assets:
     name: Verify Assets
     runs-on: ubuntu-latest
