@@ -98,13 +98,13 @@ ps aux | grep tinybridged
 
 ### Step 1: Create `env.yaml`
 
-In your project directory, create a file called `env.yaml`:
+In your project directory, create a file called `env.yaml`. **Replace `myprojectname` with your actual project name:**
 
 ```yaml
 apiVersion: tinybridge/v1
 kind: Environment
 metadata:
-  name: my-first-env
+  name: myprojectname
 substrate:
   os: ubuntu
   version: "24.04"
@@ -116,18 +116,22 @@ resources:
 
 **That's your entire environment definition.** Save it in your project root.
 
-**Important:** The `metadata.name` (here: `my-first-env`) must match what you pass to `tinybridge up`.
+**Critical:** The `metadata.name` in your env.yaml must exactly match the name you use in `tinybridge up`. These must be identical:
+- If your project is "ml-training": `metadata.name: ml-training` and `tinybridge up ml-training`
+- If your project is "backend": `metadata.name: backend` and `tinybridge up backend`
+- If your project is "frontend-react": `metadata.name: frontend-react` and `tinybridge up frontend-react`
 
 ### Step 2: Start the Environment
 
 ```bash
-# The name must match metadata.name from env.yaml
-tinybridge up my-first-env
+# Replace 'myprojectname' with YOUR actual project name
+# This MUST match metadata.name from env.yaml
+tinybridge up myprojectname
 ```
 
 TinyBridge looks for `env.yaml` in the current directory. If your file is in a subdirectory, use:
 ```bash
-tinybridge up my-first-env --file path/to/env.yaml
+tinybridge up myprojectname --file path/to/env.yaml
 ```
 
 You'll see:
@@ -143,14 +147,15 @@ First boot downloads the Linux image. Subsequent boots reuse the cached image.
 ### Step 3: Enter the Shell
 
 ```bash
-tinybridge shell my-first-env
+# Replace 'myprojectname' with YOUR project name
+tinybridge shell myprojectname
 ```
 
-You're now in Ubuntu:
+You're now in Ubuntu (replace myprojectname with your actual project name):
 ```bash
-vm@ubuntu:~$ uname -a
-Linux ubuntu 6.12.4-generic #1 SMP ... x86_64 GNU/Linux
-vm@ubuntu:~$ 
+ubuntu@myprojectname:~$ uname -a
+Linux myprojectname 6.12.4-generic #1 SMP ... x86_64 GNU/Linux
+ubuntu@myprojectname:~$ 
 ```
 
 Welcome to Linux. You can run any Linux command here.
@@ -159,12 +164,13 @@ Welcome to Linux. You can run any Linux command here.
 
 On your Mac (in a new Terminal window):
 ```bash
-echo "Hello from macOS" > ~/my-first-env/test.txt
+# Replace 'myprojectname' with YOUR project name
+echo "Hello from macOS" > ~/myprojectname/test.txt
 ```
 
-In your Linux shell:
+In your Linux shell (which you opened with `tinybridge shell myprojectname`):
 ```bash
-vm@ubuntu:~$ cat ~/test.txt
+ubuntu@myprojectname:~$ cat ~/test.txt
 Hello from macOS
 ```
 

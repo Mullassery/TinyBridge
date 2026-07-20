@@ -48,13 +48,13 @@ If `tinybridge --version` fails, restart Terminal. The daemon starts automatical
 
 ### Step 1: Create `env.yaml`
 
-In your project directory, create a file named `env.yaml`:
+In your project directory, create a file named `env.yaml`. **Replace `myprojectname` with your actual project name:**
 
 ```yaml
 apiVersion: tinybridge/v1
 kind: Environment
 metadata:
-  name: my-project
+  name: myprojectname
 substrate:
   os: ubuntu
   version: "24.04"
@@ -70,38 +70,39 @@ native:
 
 Save this file in your project root. That's your entire environment definition.
 
-**Important:** The `metadata.name` (here: `my-project`) must match what you pass to `tinybridge up`.
+**Critical:** The `metadata.name` in env.yaml must exactly match the name you use in `tinybridge up <name>`. If your project is called "backend", use `name: backend`. If it's "ml-training", use `name: ml-training`.
 
 ### Step 2: Start Your Environment
 
 ```bash
-# The name must match metadata.name from env.yaml
-tinybridge up my-project
+# Replace 'myprojectname' with YOUR actual project name
+tinybridge up myprojectname
 ```
 
 First run downloads the Linux image (~500MB, one-time). You'll see:
 ```
-⟳ Starting environment: my-project
-✓ Environment my-project is ready
+⟳ Starting environment: myprojectname
+✓ Environment myprojectname is ready
 ```
 
 ### Step 3: Enter the Linux Shell
 
 ```bash
-tinybridge shell my-project
+# Use the SAME name as your project
+tinybridge shell myprojectname
 ```
 
 You're now in Ubuntu Linux:
 ```bash
-ubuntu@my-project:~$ uname -a
-Linux my-project 6.12.4-generic #1 SMP ... x86_64 GNU/Linux
-ubuntu@my-project:~$ python3 --version
+ubuntu@myprojectname:~$ uname -a
+Linux myprojectname 6.12.4-generic #1 SMP ... x86_64 GNU/Linux
+ubuntu@myprojectname:~$ python3 --version
 Python 3.11.9
 ```
 
 All your files from macOS are available at `~/`:
 ```bash
-ubuntu@my-project:~$ ls
+ubuntu@myprojectname:~$ ls
 # Lists your macOS home directory
 ```
 
@@ -113,60 +114,61 @@ ubuntu@my-project:~$ ls
 Define your entire Linux setup in one YAML file. Check it into git. Everyone on your team gets the identical environment.
 
 ```bash
+# In your project (e.g., myprojectname):
 git add env.yaml
 git push
 
-# Your teammates:
+# Your teammates get the same environment:
 git pull
-tinybridge up my-project
+tinybridge up myprojectname  # Uses metadata.name from env.yaml
 ```
 
 No more "works on my machine". Production matches development exactly.
 
 ### ⚡ Instant Linux Shell
-Full Ubuntu with optimized boot. SSH-ready in seconds. All your tools pre-configured.
+Full Ubuntu with optimized boot. SSH-ready in seconds. All your tools pre-configured. Replace `myprojectname` with your actual project name:
 
 ```bash
-tinybridge up myproject
-tinybridge shell myproject
-ubuntu@myproject:~$ docker run ubuntu:24.04 bash
+tinybridge up myprojectname
+tinybridge shell myprojectname
+ubuntu@myprojectname:~$ docker run ubuntu:24.04 bash
 ```
 
 ### 🔄 Automatic File Sync
-Files on macOS instantly appear in Linux. Edit on your Mac, run in Linux. No mounting. No configuration.
+Files on macOS instantly appear in Linux. Edit on your Mac, run in Linux. No mounting. No configuration. Replace `myprojectname` with your project name:
 
 ```bash
 # On macOS
-$ echo "hello" > ~/myproject/test.txt
+$ echo "hello" > ~/myprojectname/test.txt
 
-# In Linux (automatic)
+# In Linux (automatic, via: tinybridge shell myprojectname)
 $ cat ~/test.txt
 hello
 ```
 
 ### 🚀 Multiple Parallel Environments
-Run multiple projects simultaneously. Each isolated and independent.
+Run multiple projects simultaneously. Each isolated and independent. Replace these with YOUR actual project names:
 
 ```bash
-tinybridge up frontend
-tinybridge up backend
-tinybridge up database
+tinybridge up frontend        # Your frontend project name
+tinybridge up backend         # Your backend project name
+tinybridge up database        # Your database project name
 # All three running at once
 ```
 
 ### 📈 Scales Naturally: Dev → Team → Organization
 
-**Single developer:**
+**Single developer:** (replace `myprojectname` with your project)
 ```bash
-# Define locally
-tinybridge up myproject
+# Define locally in env.yaml with metadata.name: myprojectname
+tinybridge up myprojectname
 ```
 
-**Team scale:**
+**Team scale:** (all teammates use the same project name)
 ```bash
 # Commit env.yaml to git, teammates run:
 git pull
-tinybridge up myproject
+tinybridge up myprojectname  # Same name as metadata.name in env.yaml
 ```
 
 **Organization scale:**
@@ -243,14 +245,16 @@ Apache 2.0 licensed. No subscriptions. No license costs. Read the code. Fork it.
 
 ## Commands Reference
 
-| Command | Purpose |
-|---------|---------|
-| `tinybridge up <name>` | Start an environment |
-| `tinybridge shell <name>` | Open bash in environment |
-| `tinybridge exec <name> "cmd"` | Run command in environment |
-| `tinybridge list` | Show all environments |
-| `tinybridge status <name>` | Check environment status |
-| `tinybridge down <name>` | Stop environment |
+Replace `<projectname>` with your actual project name (must match `metadata.name` in env.yaml):
+
+| Command | Purpose | Example |
+|---------|---------|---------|
+| `tinybridge up <projectname>` | Start an environment | `tinybridge up myprojectname` |
+| `tinybridge shell <projectname>` | Open bash in environment | `tinybridge shell myprojectname` |
+| `tinybridge exec <projectname> "cmd"` | Run command in environment | `tinybridge exec myprojectname "python train.py"` |
+| `tinybridge list` | Show all environments | `tinybridge list` |
+| `tinybridge status <projectname>` | Check environment status | `tinybridge status myprojectname` |
+| `tinybridge down <projectname>` | Stop environment | `tinybridge down myprojectname` |
 
 ---
 
