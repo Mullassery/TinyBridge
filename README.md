@@ -115,6 +115,37 @@ Self-aware security built on OpenTelemetry:
 - **No blind spots** — complete observability of environment behavior
 - **Compliance ready** — structured event logging for regulatory requirements
 
+### 📊 OpenTelemetry Integration (Zero Vendor Lock-in)
+Full observability built on industry standards. Choose your own backend—switch anytime without rebuilding:
+
+```bash
+# Configure in env.yaml
+observability:
+  backend: datadog    # or: prometheus, jaeger, honeycomb, newrelic, splunk, dynatrace, grafana
+  sample_rate: 1.0
+```
+
+**Included metrics:**
+- **Traces** — Distributed tracing of environment lifecycle (boot → ready → shutdown)
+- **Metrics** — Boot time, resource usage, I/O latency, error rates
+- **Logs** — Structured event logging with full context
+
+**Supported backends (pick any):**
+| Backend | Use Case | Cost |
+|---------|----------|------|
+| Prometheus | Self-hosted, on-premise | Free |
+| Jaeger | Distributed tracing focus | Free |
+| Datadog | Enterprise, multi-cloud | Paid (but cheapest at scale) |
+| New Relic | Full-stack monitoring | Paid |
+| Honeycomb | Observability-first | Paid |
+| Splunk | Log aggregation + analysis | Paid |
+| Dynatrace | AI-driven insights | Paid |
+| Grafana Stack | Open source stack | Free |
+
+**No lock-in:** Migrate from Datadog to self-hosted Prometheus. Switch from Honeycomb to Jaeger. Change your mind next month. All metrics are standard OTel format.
+
+**Cost control:** Start free with Prometheus. Scale to Datadog when needed. No agent changes required.
+
 ### 🔐 Open Source, Forever Free
 Apache 2.0 licensed. No subscriptions. No license costs. Read the code. Fork it. Run it forever.
 
