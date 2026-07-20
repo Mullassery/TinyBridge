@@ -1,5 +1,6 @@
 mod anomaly_detector;
 mod boot_tiers;
+mod clipboard_sync;
 mod daemon;
 mod manager;
 mod otel;

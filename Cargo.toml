@@ -6,6 +6,8 @@ members = [
     "crates/tinybridge-daemon",
     "crates/tinybridge-vz-sys",
     "crates/tinybridge-vz",
+    "crates/tinybridge-router",
+    "crates/tinybridge-clipboard",
 ]
 
 [workspace.package]
@@ -38,11 +40,16 @@ uuid               = { version = "1.10", features = ["v4", "serde"] }
 chrono             = { version = "0.4", features = ["serde"] }
 futures            = "0.3"
 bindgen            = "0.70"
-tinybridge-core   = { path = "crates/tinybridge-core" }
-tinybridge-cli    = { path = "crates/tinybridge-cli" }
-tinybridge-daemon = { path = "crates/tinybridge-daemon" }
-tinybridge-vz-sys = { path = "crates/tinybridge-vz-sys" }
-tinybridge-vz     = { path = "crates/tinybridge-vz" }
+goblin             = "0.8"
+lru                = "0.12"
+tempfile           = "3.8"
+tinybridge-core       = { path = "crates/tinybridge-core" }
+tinybridge-cli        = { path = "crates/tinybridge-cli" }
+tinybridge-daemon     = { path = "crates/tinybridge-daemon" }
+tinybridge-vz-sys     = { path = "crates/tinybridge-vz-sys" }
+tinybridge-vz         = { path = "crates/tinybridge-vz" }
+tinybridge-router     = { path = "crates/tinybridge-router" }
+tinybridge-clipboard  = { path = "crates/tinybridge-clipboard" }
 
 [profile.release]
 opt-level = 3

@@ -1,0 +1,24 @@
+[package]
+name = "tinybridge-clipboard"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Clipboard bridging between macOS and Linux"
+
+[dependencies]
+tokio = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+objc = "0.2"
+objc-foundation = "0.1"
+core-foundation = "0.9"
+
+[dev-dependencies]
+tempfile = { workspace = true }
