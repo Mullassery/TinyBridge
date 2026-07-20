@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       asset_type:
-        description: Asset to build
-        required: true
-        default: all
+        description: 'Asset to build (all, kernel, rootfs, dmg)'
+        required: false
+        default: 'all'
         type: choice
         options:
           - all
