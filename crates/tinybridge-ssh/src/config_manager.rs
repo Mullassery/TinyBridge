@@ -112,7 +112,7 @@ impl SshConfigManager {
     }
 
     /// Create config manager with default ~/.ssh/config path
-    pub fn default() -> Result<Self> {
+    pub fn new_default() -> Result<Self> {
         let home = dirs::home_dir()
             .ok_or_else(|| SshError::InvalidEnvironment("HOME directory not found".to_string()))?;
         let ssh_config_path = home.join(".ssh/config");
@@ -265,7 +265,7 @@ impl SshConfigManager {
         };
 
         // Check if include is already present
-        let include_line = format!("Include config.d/tinybridge-auto.conf");
+        let include_line = "Include config.d/tinybridge-auto.conf".to_string();
         if config_content.contains(&include_line) {
             return Ok(());
         }

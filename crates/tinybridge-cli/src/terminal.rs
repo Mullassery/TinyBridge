@@ -82,7 +82,7 @@ impl TerminalHandler {
                         }
                         _ => {
                             // Send Ctrl+char
-                            vec![(c as u8 & 0x1f) as u8]
+                            vec![c as u8 & 0x1f]
                         }
                     }
                 } else if key.modifiers.contains(KeyModifiers::ALT) {

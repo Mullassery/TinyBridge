@@ -261,7 +261,7 @@ impl PolicyEngine {
 
         self.device_type_rules
             .entry(device_type)
-            .or_insert_with(Vec::new)
+            .or_default()
             .push(rule_id);
 
         self.rules.insert(rule_id, rule);

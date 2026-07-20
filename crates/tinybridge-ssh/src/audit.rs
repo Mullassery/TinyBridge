@@ -55,12 +55,12 @@ pub struct AuditEvent {
 impl AuditEvent {
     /// Format event as JSON line
     pub fn to_json_line(&self) -> Result<String> {
-        serde_json::to_string(self).map_err(|e| SshError::SerializationError(e))
+        serde_json::to_string(self).map_err(SshError::SerializationError)
     }
 
     /// Parse from JSON line
     pub fn from_json_line(line: &str) -> Result<Self> {
-        serde_json::from_str(line).map_err(|e| SshError::SerializationError(e))
+        serde_json::from_str(line).map_err(SshError::SerializationError)
     }
 
     /// Format event as human-readable log line
@@ -94,7 +94,7 @@ impl SshAuditLogger {
     }
 
     /// Create logger with default path (~/.tinybridge/ssh/audit.log)
-    pub fn default() -> Result<Self> {
+    pub fn new_default() -> Result<Self> {
         let home = dirs::home_dir()
             .ok_or_else(|| SshError::InvalidEnvironment("HOME directory not found".to_string()))?;
         let audit_log_path = home.join(".tinybridge/ssh/audit.log");
@@ -182,7 +182,7 @@ impl SshAuditLogger {
     /// Get recent events
     pub fn recent_events(&self, limit: usize) -> Result<Vec<AuditEvent>> {
         let mut events = self.read_events()?;
-        events.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
+        events.sort_by_key(|e| std::cmp::Reverse(e.timestamp));
         Ok(events.into_iter().take(limit).collect())
     }
 

@@ -26,7 +26,7 @@ pub struct DdsConfig {
 }
 
 /// Individual DDS feature toggles (principle of least privilege)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct DdsFeatures {
     /// Enable/disable DDS participant discovery
     pub discovery_enabled: bool,
@@ -58,29 +58,8 @@ pub struct DdsFeatures {
     pub vpn_integration_enabled: bool,
 }
 
-impl Default for DdsFeatures {
-    fn default() -> Self {
-        Self {
-            discovery_enabled: false,
-            multicast_discovery_enabled: false,
-            unicast_discovery_enabled: false,
-            router_enabled: false,
-            relay_enabled: false,
-            bridge_enabled: false,
-            monitoring_enabled: false,
-            topic_inspection_enabled: false,
-            packet_capture_enabled: false,
-            telemetry_enabled: false,
-            security_enabled: false,
-            cross_host_communication_enabled: false,
-            wan_communication_enabled: false,
-            vpn_integration_enabled: false,
-        }
-    }
-}
-
 /// Security configuration for DDS communications
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct DdsSecurityConfig {
     /// Enable encrypted DDS communications
     pub encryption_enabled: bool,
@@ -100,22 +79,6 @@ pub struct DdsSecurityConfig {
     pub blocked_participants: Vec<String>,
     /// Network isolation: each domain in separate network namespace
     pub network_isolation_by_domain: bool,
-}
-
-impl Default for DdsSecurityConfig {
-    fn default() -> Self {
-        Self {
-            encryption_enabled: false,
-            authentication_enabled: false,
-            access_control_enabled: false,
-            allowed_domains: vec![],
-            blocked_domains: vec![],
-            use_participant_allowlist: false,
-            allowed_participants: vec![],
-            blocked_participants: vec![],
-            network_isolation_by_domain: false,
-        }
-    }
 }
 
 /// Network-level controls for DDS

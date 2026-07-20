@@ -19,11 +19,10 @@ pub enum BinaryFormat {
 impl BinaryFormat {
     /// Detect binary format from a file path
     pub fn detect_from_file<P: AsRef<Path>>(path: P) -> Result<BinaryFormat> {
-        let mut file = std::fs::File::open(path.as_ref()).map_err(|e| TunnelError::IoError(e))?;
+        let mut file = std::fs::File::open(path.as_ref()).map_err(TunnelError::IoError)?;
 
         let mut magic = [0u8; 4];
-        file.read_exact(&mut magic)
-            .map_err(|e| TunnelError::IoError(e))?;
+        file.read_exact(&mut magic).map_err(TunnelError::IoError)?;
 
         Ok(Self::from_magic_bytes(&magic))
     }
@@ -45,10 +44,13 @@ impl BinaryFormat {
         }
 
         // Mach-O (big-endian): 0xFE ED FA [CE|CF]
-        if bytes.len() >= 4 && bytes[0] == 0xFE && bytes[1] == 0xED && bytes[2] == 0xFA {
-            if bytes[3] == 0xCE || bytes[3] == 0xCF {
-                return BinaryFormat::MachO;
-            }
+        if bytes.len() >= 4
+            && bytes[0] == 0xFE
+            && bytes[1] == 0xED
+            && bytes[2] == 0xFA
+            && (bytes[3] == 0xCE || bytes[3] == 0xCF)
+        {
+            return BinaryFormat::MachO;
         }
 
         // Mach-O (little-endian): 0xFE ED FA [CE|CF] reversed
@@ -145,7 +147,7 @@ mod tests {
 
     #[test]
     fn test_shebang_detection() {
-        let shebang = [b'#', b'!', b'/', b'b'];
+        let shebang = *b"#!/b";
         assert_eq!(
             BinaryFormat::from_magic_bytes(&shebang),
             BinaryFormat::Script

@@ -118,9 +118,7 @@ impl DeviceManager {
             .get_mut(&device_id)
             .ok_or_else(|| DeviceError::DeviceNotFound(device_id.to_string()))?;
 
-        device
-            .attach(env_id)
-            .map_err(|e| DeviceError::AttachError(e))
+        device.attach(env_id).map_err(DeviceError::AttachError)
     }
 
     /// Detach device from environment

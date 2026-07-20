@@ -193,7 +193,7 @@ impl DdsPolicyEngine {
     pub fn add_policy(&mut self, policy: DdsPolicy) {
         self.policies.push(policy);
         // Sort by level (higher level first)
-        self.policies.sort_by(|a, b| b.level.cmp(&a.level));
+        self.policies.sort_by_key(|p| std::cmp::Reverse(p.level));
     }
 
     /// Remove policy by ID

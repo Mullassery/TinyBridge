@@ -47,7 +47,7 @@ impl VirtualMachine {
             user_data: null_mut(),
         };
 
-        let vm = unsafe { tb_vm_create(&vz_config) as *mut tinybridge_vz_sys::TBVirtualMachine };
+        let vm = unsafe { tb_vm_create(&vz_config) };
 
         if vm.is_null() {
             return Err(VzError::CreationFailed);

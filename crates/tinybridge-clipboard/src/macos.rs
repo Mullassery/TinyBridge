@@ -1,3 +1,5 @@
+#![allow(unexpected_cfgs)]
+
 #[cfg(target_os = "macos")]
 use crate::error::{ClipboardError, Result};
 

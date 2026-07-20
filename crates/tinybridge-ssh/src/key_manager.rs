@@ -63,7 +63,7 @@ impl SshKeyManager {
     }
 
     /// Create key manager with default path (~/.tinybridge/keys)
-    pub fn default() -> Result<Self> {
+    pub fn new_default() -> Result<Self> {
         let home = dirs::home_dir()
             .ok_or_else(|| SshError::InvalidEnvironment("HOME directory not found".to_string()))?;
         let keys_dir = home.join(".tinybridge/keys");
@@ -230,7 +230,7 @@ impl SshKeyManager {
 
         let metadata_path = env_dir.join("metadata.json");
         let metadata_json =
-            serde_json::to_string_pretty(keypair).map_err(|e| SshError::SerializationError(e))?;
+            serde_json::to_string_pretty(keypair).map_err(SshError::SerializationError)?;
 
         fs::write(&metadata_path, metadata_json)
             .map_err(|e| SshError::KeyWriteError(e.to_string()))?;
