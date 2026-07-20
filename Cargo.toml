@@ -2,9 +2,10 @@
 resolver = "2"
 members = [
     "crates/tinybridge-core",
+    "crates/tinybridge-cli",
+    "crates/tinybridge-daemon",
 ]
 
-# Week 2+: tinybridge-cli, tinybridge-daemon
 # Week 3: tinybridge-vz-sys, tinybridge-vz
 
 [workspace.package]
@@ -37,7 +38,9 @@ uuid               = { version = "1.10", features = ["v4", "serde"] }
 chrono             = { version = "0.4", features = ["serde"] }
 futures            = "0.3"
 bindgen            = "0.70"
-tinybridge-core = { path = "crates/tinybridge-core" }
+tinybridge-core    = { path = "crates/tinybridge-core" }
+tinybridge-cli     = { path = "crates/tinybridge-cli" }
+tinybridge-daemon  = { path = "crates/tinybridge-daemon" }
 # tinybridge-vz-sys (Week 3) and tinybridge-vz (Week 3) added when crates created
 
 [profile.release]

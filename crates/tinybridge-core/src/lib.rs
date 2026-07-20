@@ -9,4 +9,7 @@ pub use environment::{
     Resources, SubstrateConfig,
 };
 pub use error::{CoreError, Result};
-pub use ipc::{error_codes, methods, JsonRpcError, JsonRpcRequest, JsonRpcResponse};
+pub use ipc::{
+    error_codes, methods, DownResponse, EnvironmentSummary, JsonRpcError, JsonRpcRequest,
+    JsonRpcResponse, ListResponse, ShellResponse, StatusResponse, UpResponse,
+};

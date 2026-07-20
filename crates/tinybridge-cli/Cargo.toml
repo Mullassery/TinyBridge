@@ -1,0 +1,25 @@
+[package]
+name    = "tinybridge-cli"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[[bin]]
+name = "tinybridge"
+path = "src/main.rs"
+
+[dependencies]
+tokio              = { workspace = true, features = ["rt-multi-thread", "macros"] }
+clap               = { workspace = true }
+serde_json         = { workspace = true }
+thiserror          = { workspace = true }
+tracing            = { workspace = true }
+tracing-subscriber = { workspace = true }
+tinybridge-core    = { workspace = true }
+anyhow             = { workspace = true }
+crossterm          = { workspace = true }
+indicatif          = { workspace = true }
+console            = { workspace = true }
+futures            = { workspace = true }
