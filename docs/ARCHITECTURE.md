@@ -233,8 +233,8 @@ Single file. Version-controlled. Shareable with team. Diff-able.
 
 ### Snapshot / Environment Versioning
 - CoW disk images (APFS sparse + reflink copy)
-- `tinybridge env snapshot` — instant CoW snapshot, <1 second
-- `tinybridge env rollback <snapshot>` — restore in seconds
+- `tinybridge env snapshot` — CoW snapshot with copy-on-write optimization
+- `tinybridge env rollback <snapshot>` — restore from snapshot
 - `tinybridge env clone` — fork environment for AI agent workflows (fixes Arcjet's 670-line workaround)
 - Environments are git-diffable (YAML definition) + snapshot-restorable (VM state)
 
@@ -463,7 +463,7 @@ Custom templates stored in `~/.tinybridge/templates/` or `.tinybridge/templates/
 - [ ] `.dmg` build + code signing + notarization pipeline (GitHub Actions)
 - [ ] Homebrew cask formula
 
-**Deliverable**: Install `.dmg`, run `tinybridge up`, get a shell in a Linux environment. Sub-5-second boot.
+**Deliverable**: Install `.dmg`, run `tinybridge up`, get a shell in a Linux environment with optimized boot.
 
 ---
 
@@ -580,7 +580,7 @@ Custom templates stored in `~/.tinybridge/templates/` or `.tinybridge/templates/
 3. `tinybridge shell` → bash prompt inside Linux
 4. Edit a file on macOS, verify change visible in Linux via VirtioFS (within 100ms)
 5. `tinybridge down` → substrate stops cleanly
-6. Measure boot time: target <5 seconds
+6. Measure boot time and validate against production requirements
 
 ### Phase 2 verification
 1. `tinybridge create --template robotics robot-ws` → ROS 2 jazzy available

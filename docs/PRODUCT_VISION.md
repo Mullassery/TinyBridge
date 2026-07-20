@@ -250,7 +250,7 @@ Enables:
 ### For Roboticists
 Today: Spend 2 hours debugging why their Docker ROS 2 setup cannot discover nodes. Multi-container networking, DDS multicast, USB device passthrough all require manual configuration.
 
-With TinyBridge: `tinybridge create --template robotics`, 2 minutes later: multiple robots discovering each other via DDS, Gazebo running, Foxglove streaming sensor data, hardware attached. `tinybridge doctor` detects missing firmware and suggests fixes.
+With TinyBridge: `tinybridge create --template robotics` gives you multiple robots discovering each other via DDS, Gazebo running, Foxglove streaming sensor data, hardware attached. `tinybridge doctor` detects missing firmware and suggests fixes.
 
 ### For AI Engineers
 Today: Develop locally in CPU-only containers, push to cloud for GPU training, deal with code sync issues, wait for results, pull them back. Context-switching hell.

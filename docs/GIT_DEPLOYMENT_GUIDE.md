@@ -86,7 +86,7 @@ tinybridge up  # Gets Python 3.11
 
 **Why this is better than current approaches:**
 - ❌ Old way: "Someone mention to everyone we're upgrading Python" (someone forgets)
-- ❌ Old way: Docker rebuild takes 20 min, silently fails in one environment
+- ❌ Old way: Docker rebuild is expensive, silently fails in one environment
 - ✅ New way: One-line change, git history, reproducible
 
 ### Versioning Environments
@@ -262,7 +262,7 @@ tinybridge up
 # No environment setup help needed
 ```
 
-**Time saved per onboarding:** 2-4 hours per developer × 20 developers = 40-80 hours
+**Onboarding improvement:** Eliminates manual setup steps per developer. Scale across teams.
 
 ### Cross-Team Collaboration
 

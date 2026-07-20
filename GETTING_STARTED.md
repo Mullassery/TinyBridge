@@ -1,15 +1,15 @@
 # TinyBridge: Getting Started
 
-**Get a working Linux shell on your Mac in under 5 minutes.**
+**Get a working Linux shell on your Mac.**
 
 ---
 
 ## What You're About to Do
 
-1. Install TinyBridge (2 min)
-2. Create your first environment (2 min)
-3. SSH into Linux (1 min)
-4. Run commands native in Linux (at your pace)
+1. Install TinyBridge
+2. Create your first environment
+3. SSH into Linux
+4. Run commands native in Linux
 
 That's it. You'll have a real Ubuntu system running on your Mac, accessible via SSH, with your files automatically synced.
 
@@ -105,7 +105,7 @@ You'll see:
 ✓ Running (SSH ready)
 ```
 
-The first boot downloads Linux (~5 min on typical connection). Subsequent boots are instant.
+First boot downloads the Linux image. Subsequent boots reuse the cached image.
 
 ### Step 3: Enter the Shell
 
@@ -273,7 +273,7 @@ Each boots in parallel. Each has its own isolated filesystem and network.
 
 ### "SSH connection refused"
 
-The VM is still booting. Wait 5-10 seconds and try again:
+The VM is still booting. Wait and try again:
 ```bash
 sleep 5 && tinybridge shell my-first-env
 ```

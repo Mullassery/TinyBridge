@@ -82,7 +82,7 @@ make ARCH=arm64 -j$(nproc)
 cp arch/arm64/boot/Image ~/.tinybridge/assets/vmlinux
 ```
 
-Expected build time: 30-60 minutes on M5 MacBook
+Build time on M5 MacBook will vary based on system load and network conditions.
 
 ---
 
@@ -300,13 +300,13 @@ Expected timeline:
 
 ### On Your M5 MacBook:
 
-1. **Get kernel** (30 min)
+1. **Get kernel**
    ```bash
    curl -L -o ~/.tinybridge/assets/vmlinux \
      https://github.com/cloud-hypervisor/cloud-hypervisor/releases/download/v31.0/arch-arm64-vmlinux
    ```
 
-2. **Build rootfs** (1 hour)
+2. **Build rootfs**
    ```bash
    # Via debootstrap if on Linux/WSL2
    sudo debootstrap --arch arm64 noble ./rootfs http://ports.ubuntu.com/ubuntu-ports/
@@ -316,13 +316,13 @@ Expected timeline:
    docker export ubuntu:24.04 | gzip > ~/.tinybridge/assets/ubuntu-24.04-rootfs.tar.gz
    ```
 
-3. **Create checksums** (1 min)
+3. **Create checksums**
    ```bash
    cd ~/.tinybridge/assets
    sha256sum * > checksums.txt
    ```
 
-4. **Test daemon** (5 min)
+4. **Test daemon**
    ```bash
    tinybridge up test-env
    tinybridge shell test-env
@@ -365,4 +365,4 @@ Expected timeline:
 
 ---
 
-**Summary:** Skeleton is built. Production assets require 1-2 hours of downloading/building on real hardware with internet access. Once in place, TinyBridge testing can proceed.
+**Summary:** Skeleton is built. Production assets require downloading/building on real hardware with internet access. Once in place, TinyBridge testing can proceed.
