@@ -2007,6 +2007,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "tinybridge-dds"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.19",
+ "tinybridge-core",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
 name = "tinybridge-devices"
 version = "0.1.0"
 dependencies = [
