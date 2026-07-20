@@ -1,0 +1,22 @@
+[package]
+name = "tinybridge-devices"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Hardware device passthrough (USB, serial, camera) for VM environments"
+
+[dependencies]
+tokio              = { workspace = true, features = ["fs", "sync", "time"] }
+thiserror          = { workspace = true }
+tracing            = { workspace = true }
+serde              = { workspace = true, features = ["derive"] }
+serde_json         = { workspace = true }
+uuid               = { workspace = true, features = ["v4", "serde"] }
+chrono             = { workspace = true }
+anyhow             = { workspace = true }
+
+[dev-dependencies]
+tempfile           = { workspace = true }

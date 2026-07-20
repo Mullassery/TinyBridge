@@ -13,6 +13,7 @@ members = [
     "crates/tinybridge-tunnel",
     "crates/tinybridge-dns",
     "crates/tinybridge-snapshots",
+    "crates/tinybridge-devices",
 ]
 
 [workspace.package]
@@ -65,6 +66,7 @@ tinybridge-templates  = { path = "crates/tinybridge-templates" }
 tinybridge-tunnel     = { path = "crates/tinybridge-tunnel" }
 tinybridge-dns        = { path = "crates/tinybridge-dns" }
 tinybridge-snapshots  = { path = "crates/tinybridge-snapshots" }
+tinybridge-devices    = { path = "crates/tinybridge-devices" }
 
 [profile.release]
 opt-level = 3
