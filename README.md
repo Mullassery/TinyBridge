@@ -396,6 +396,171 @@ Run Spark, Postgres, Kafka locally on Linux while writing code on macOS. No Dock
 
 ---
 
+## 🎯 OpenTelemetry: The Strategic Advantage
+
+TinyBridge's **OpenTelemetry-first architecture** is a game-changer for teams that don't want to be locked into a single vendor.
+
+### Why OTel Matters
+
+Traditional tools lock you into one observability platform:
+- Docker Desktop → Docker Hub and Docker Swarm only
+- Lima → manual logging setup
+- Most dev tools → vendor-specific formats
+
+**TinyBridge uses industry-standard OpenTelemetry**, meaning:
+
+```
+TinyBridge Metrics (Standard OTel Format)
+    ↓
+    ├─ Send to Prometheus (free, self-hosted)
+    ├─ Send to Datadog (when you scale)
+    ├─ Send to Jaeger (tracing focus)
+    ├─ Send to Honeycomb (observability-first)
+    ├─ Send to New Relic (full-stack)
+    ├─ Send to Splunk (log aggregation)
+    ├─ Send to Dynatrace (AI-driven)
+    └─ Send to Grafana (open source stack)
+```
+
+**No code changes. No agent changes. Just point to a different backend.**
+
+### Real-World Scenario
+
+**Week 1: Starting out (Free)**
+```yaml
+# env.yaml - use free Prometheus
+observability:
+  backend: prometheus
+  sample_rate: 1.0
+```
+
+**Month 6: Growing company**
+```yaml
+# Same env.yaml - switch to Datadog
+observability:
+  backend: datadog
+  sample_rate: 1.0
+  # Same metrics, same format, different backend
+```
+
+**Year 2: Evaluating options**
+```yaml
+# Switch to Honeycomb (better tracing)
+observability:
+  backend: honeycomb
+  # Complete portability, no rewrite
+```
+
+**Cost savings:** No platform renegotiation, no data migration, no rewrite. Just a config change.
+
+### Complete Observability Stack
+
+TinyBridge captures everything:
+
+**Traces** (distributed tracing)
+- Environment startup timeline
+- Boot phase breakdown (Tier 1 SSH, Tier 2 ready, Tier 3 complete)
+- Command execution paths
+- File sync latency
+
+**Metrics** (quantified measurements)
+- Boot time trends (detect regressions)
+- Resource usage (CPU, memory, disk I/O)
+- SSH availability (always-on monitoring)
+- File sync performance (latency percentiles)
+- Error rates per environment type
+
+**Logs** (structured events)
+- Every environment state change (creates audit trail)
+- Resource allocation changes
+- Anomalies detected
+- Security events
+- User actions
+
+### Integration with Popular Backends
+
+**Prometheus** (Self-Hosted, Free)
+```yaml
+observability:
+  backend: prometheus
+  prometheus_scrape_interval: 15s
+```
+Pull-based metrics. Run on your infrastructure. Zero cost.
+
+**Datadog** (Cloud SaaS)
+```yaml
+observability:
+  backend: datadog
+  datadog_site: us5.datadoghq.com
+  sample_rate: 1.0
+```
+All metrics, traces, logs in one place. ~$12/GB/month.
+
+**Jaeger** (Distributed Tracing, Open Source)
+```yaml
+observability:
+  backend: jaeger
+  jaeger_endpoint: http://localhost:14268/api/traces
+```
+Specialized for tracing. Free. Self-hosted.
+
+**Honeycomb** (Observability-First SaaS)
+```yaml
+observability:
+  backend: honeycomb
+  honeycomb_api_key: ${HONEYCOMB_API_KEY}
+```
+Query and drill-down into any dimension. AI-assisted debugging.
+
+**Grafana Stack** (Open Source, Complete)
+```yaml
+observability:
+  backend: grafana
+  grafana_loki: http://loki:3100
+  grafana_prometheus: http://prometheus:9090
+```
+Prometheus metrics + Loki logs + Grafana dashboards. Fully open source.
+
+### Comparing Observability Strategies
+
+| Aspect | Docker | Lima | TinyBridge |
+|--------|--------|------|-----------|
+| **Built-in Observability** | ❌ No | ❌ No | ✅ Yes (OTel) |
+| **Standard Format** | ❌ Proprietary | ❌ Manual | ✅ OpenTelemetry |
+| **Vendor Lock-in** | ✅ Locked to Docker | ⚠️ Manual setup | ❌ None (8+ options) |
+| **Switch Backends** | 🔴 Requires rebuild | 🔴 Requires rewrite | 🟢 Config change only |
+| **Cost Control** | 🔴 Vendor's pricing | ⚠️ Tool dependent | 🟢 Choose your price |
+| **Compliance Logging** | ❌ No audit trail | ❌ No audit trail | ✅ Tamper-evident logs |
+| **Anomaly Detection** | ❌ No | ❌ No | ✅ 6 types + intrusion |
+
+### Why Startups & Enterprises Love This
+
+**For Startups:**
+- Start free with Prometheus (no cost)
+- Keep OTel-formatted data (future-proof)
+- Switch to Datadog at scale (just a config change)
+- Never pay for vendor lock-in migration
+
+**For Enterprises:**
+- Compliance-ready (tamper-evident audit logs)
+- Anomaly detection (catch issues before users do)
+- Cost visibility (track resource usage per team)
+- Vendor flexibility (evaluate new tools without rewrite)
+- Security-first (forensics and replay for incident investigation)
+
+### The Bottom Line on OTel
+
+TinyBridge's OpenTelemetry integration means:
+- ✅ **No vendor lock-in** — your observability data is portable
+- ✅ **Future-proof** — OTel is industry standard (CNCF, AWS, Google, Microsoft backing)
+- ✅ **Cost control** — switch backends to optimize price/value
+- ✅ **Flexibility** — 8+ backend options, pick the best for your needs
+- ✅ **Enterprise-grade** — compliance, audit, forensics built-in
+
+**In short: OTel support isn't a feature. It's an architectural guarantee that TinyBridge will never lock you in.**
+
+---
+
 ## Learn More
 
 - **[Getting Started Guide](GETTING_STARTED.md)** — Step-by-step walkthrough
