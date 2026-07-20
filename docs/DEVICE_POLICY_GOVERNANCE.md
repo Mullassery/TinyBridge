@@ -8,7 +8,7 @@
 
 ## Overview
 
-TinyBridge implements a comprehensive hardware device passthrough governance system that balances developer convenience with enterprise-grade security and compliance requirements.
+TinyBridge implements a comprehensive hardware device passthrough governance system that provides developer convenience with enterprise-grade security and compliance requirements.
 
 **Design Principles:**
 1. ✅ **Default Allow (Developer-Friendly):** Device passthrough enabled by default for best out-of-the-box experience

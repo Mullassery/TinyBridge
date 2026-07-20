@@ -415,19 +415,14 @@ Every device enable/disable action logged:
 
 ---
 
-## Competitive Advantage
+## Key Capabilities
 
-**vs OrbStack:**
-- ✅ We: 20+ individual device controls (OrbStack has few toggles)
-- ✅ We: Device profiles (OrbStack lacks this)
-- ✅ We: Audit everything (OrbStack lacks this)
-- ✅ We: No restart for most changes (OrbStack often requires)
-
-**vs Docker Desktop:**
-- ✅ We: Any device controls (Docker has none)
-
-**vs Lima:**
-- ✅ We: Comprehensive device management (Lima lacks this)
+- ✅ 20+ individual device controls for granular management
+- ✅ Device profiles (Minimal, Development, Enterprise, HighPerformance)
+- ✅ Comprehensive audit trails for all device operations
+- ✅ Most changes take effect without VM restart
+- ✅ Independent control of each device type
+- ✅ Full transparency on active/inactive devices
 
 ---
 

@@ -261,23 +261,23 @@ TinyBridge Enterprise VM Platform
 **TinyBridge becomes:**
 
 ✅ Complete hardware management platform (no competitors have this)  
-✅ Enterprise compliance automation (OrbStack, Docker, Lima lack this)  
+✅ Enterprise compliance automation (complete audit trails and governance)  
 ✅ Robotics-ready (ROS 2 DDS native)  
 ✅ Advanced GPU support (Phase 4-5)  
 ✅ Plugin extensible (Phase 5)  
 
 **Market Position:**
 
-| Capability | OrbStack | Docker | Lima | TinyBridge |
-|-----------|----------|--------|------|------------|
-| Device passthrough | Basic | None | None | ✅ Complete |
-| Device governance | None | None | None | ✅ Yes |
-| Compliance reporting | None | None | None | ✅ Yes |
-| DDS networking | ❌ Broken | N/A | N/A | ✅ Works |
-| GPU routing | None | None | None | ✅ Phase 4 |
-| Plugin system | None | None | None | ✅ Phase 5 |
-| Cost | $8/user/month | $7-12/user/month | Free | ✅ Free |
-| Open source | ❌ No | Partial | ✅ Yes | ✅ Yes |
+| Capability | Docker | Lima | TinyBridge |
+|-----------|--------|------|------------|
+| Device passthrough | None | None | ✅ Complete |
+| Device governance | None | None | ✅ Yes |
+| Compliance reporting | None | None | ✅ Yes |
+| DDS networking | N/A | N/A | ✅ Works |
+| GPU routing | None | None | ✅ Phase 4 |
+| Plugin system | None | None | ✅ Phase 5 |
+| Cost | $7-12/user/month | Free | ✅ Free |
+| Open source | Partial | ✅ Yes | ✅ Yes |
 
 ---
 

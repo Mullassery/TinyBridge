@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-The IP monitoring system has been evolved from a basic IP tracker into a **production-grade network awareness engine** comparable to OrbStack, VMware Fusion, Parallels, and Hyper-V.
+The IP monitoring system has been evolved from a basic IP tracker into a **production-grade network awareness engine** with enterprise-grade audit trails and compliance support.
 
 **What Changed:** 50 lines → 400+ lines of comprehensive network monitoring  
 **What's New:** 6 major use cases, 8 unit tests, production-grade security monitoring  
@@ -323,7 +323,7 @@ Covers:
 - ✅ 6 detailed use case walkthroughs  
 - ✅ Integration with ssh/dns/tunnel/otel
 - ✅ API reference
-- ✅ Competitive analysis vs OrbStack/Docker/Lima
+- ✅ Platform capabilities & features
 - ✅ Future enhancement roadmap
 
 ---
@@ -359,11 +359,12 @@ Diagnostics data → OTel metrics (trends + anomalies)
 
 ## Product Positioning
 
-**vs OrbStack:** Feature-complete IP monitoring with OTel audit trail  
-**vs Docker Desktop:** Built-in connectivity automation (Docker has none)  
-**vs Lima:** Enterprise-grade security + diagnostics  
+**Core Capabilities:**
+- ✅ Feature-complete IP monitoring with OpenTelemetry audit trail
+- ✅ Built-in connectivity automation
+- ✅ Enterprise-grade security + diagnostics
 
-**Key Advantage:** Production-ready without vendor lock-in (OTel-based)
+**Key Advantage:** Production-ready without vendor lock-in (OpenTelemetry-based)
 
 ---
 
@@ -406,7 +407,7 @@ The enhanced IP monitoring system transforms TinyBridge from a basic VM manager 
 ✅ **Detects VPN/Firewall** routing  
 ✅ **Provides diagnostics** for troubleshooting  
 
-**Result:** Zero-config VM connectivity comparable to OrbStack, with enterprise-grade security and no vendor lock-in.
+**Result:** Zero-config VM connectivity with enterprise-grade security and no vendor lock-in.
 
 ---
 

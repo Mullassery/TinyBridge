@@ -2,7 +2,7 @@
 
 ## Overview
 
-TinyBridge implements a production-grade IP monitoring system inspired by OrbStack, VMware Fusion, Parallels, and Hyper-V. This system enables:
+TinyBridge implements a production-grade IP monitoring system that enables:
 
 - **Automatic VM Discovery** — Show VMs with their IPs and connection options
 - **Dynamic Port Forwarding** — Auto-update forwarding rules when VM IPs change
@@ -451,26 +451,26 @@ Tests cover:
 
 ---
 
-## Comparison with Competitors
+## Platform Features
 
-| Feature | TinyBridge | OrbStack | Docker | Lima |
-|---------|---|---|---|---|
-| **IP Monitoring** | ✅ Full | ✅ Full | ❌ No | ❌ No |
-| **Auto-Update SSH** | ✅ Yes | ✅ Yes | ❌ No | ❌ No |
-| **Security Events** | ✅ Yes | ⚠️ Limited | ❌ No | ❌ No |
-| **VM Discovery** | ✅ Full metadata | ✅ Basic | ❌ No | ❌ No |
-| **VPN Awareness** | ✅ Yes | ✅ Yes | ❌ No | ❌ No |
-| **Diagnostics** | ✅ Integrated | ✅ Integrated | ❌ Manual | ❌ Manual |
+| Feature | TinyBridge |
+|---------|---|
+| **IP Monitoring** | ✅ Full production-grade system |
+| **Auto-Update SSH** | ✅ Automatic on IP change |
+| **Security Events** | ✅ Comprehensive anomaly detection |
+| **VM Discovery** | ✅ Full metadata with connection details |
+| **VPN Awareness** | ✅ Network path detection |
+| **Diagnostics** | ✅ Integrated troubleshooting tools |
 
 ---
 
 ## Product Positioning
 
-TinyBridge's IP monitoring is the foundation for OrbStack-style automation:
+TinyBridge's IP monitoring provides enterprise-grade connectivity automation:
 
 1. **Zero-Config Connectivity** — Users don't manually SSH to IPs; system discovers and forwards automatically
 2. **Enterprise Ready** — Security alerts and VPN awareness built-in
-3. **Production Grade** — OTel integration for compliance and forensics
+3. **Production Grade** — OpenTelemetry integration for compliance and forensics
 4. **Future-Proof** — Extensible for bandwidth, latency, and firewall features
 
 **Result:** Developers get "it just works" connectivity without manual configuration or vendor lock-in.
