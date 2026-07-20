@@ -74,7 +74,7 @@ Open-source macOS Linux development substrate with intelligent VM orchestration,
 ### Option 1: Homebrew (Recommended)
 
 ```bash
-brew install --cask tinybridge
+brew install tinybridge
 ```
 
 ### Option 2: GitHub Releases
