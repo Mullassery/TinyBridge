@@ -1,0 +1,604 @@
+# TinyBridge: Open-Source macOS Linux Development Substrate
+
+**Working name: TinyBridge** (final branding TBD)
+- GitHub: `github.com/yourusername/tinybridge` (private)
+- CLI: `tinybridge up`, `tinybridge exec`, `tinybridge doctor`
+- App: TinyBridge.app
+- Crate: `tinybridge` on crates.io
+
+## Context
+
+Developers on macOS need Linux capabilities (ROS 2, systemd services, Linux-only ABIs, GPU training) without the pain of traditional VMs: frozen desktops, snapshot hell, slow file I/O, and opaque closed-source tooling. OrbStack is the current best-in-class but is closed-source, macOS-only, charges $8/user/month for commercial use, and has hard gaps: zero GPU support, broken ROS 2 DDS networking, limited USB/serial passthrough, no parallel environments, and no Environment-as-Code paradigm.
+
+DevForge ships as a native macOS `.dmg` — a real product — built open-source (Apache 2.0). It is NOT a VM manager. It is a **development substrate** that routes workloads to the right execution tier (native macOS / minimal Linux kernel / remote GPU) transparently, with a declarative Environment-as-Code model at the center.
+
+---
+
+## Competitive Gaps We Are Filling
+
+| Gap | Evidence |
+|-----|----------|
+| No open-source alternative to OrbStack | OrbStack Issue #359 closed "not planned"; developers explicitly cite this as a trust/procurement blocker |
+| Zero GPU/Metal support in any VM/container tool | OrbStack #1818, #2438; Podman libkrun achieves ~15% native GPU speed with manual setup |
+| ROS 2 DDS multicast breaks in all container tools | Requires `--network=host` workaround; no tool provides multicast-aware virtual networking |
+| USB/serial passthrough is incomplete | Docker Desktop: zero. OrbStack: partial. Missing kernel modules for Quectel modems, Xbox controllers, many serial devices |
+| No declarative full-stack environment spec | Takes 4 separate files across 4 tools (Nix flake + Lima YAML + docker-compose.yml + devcontainer.json) |
+| No parallel isolated environments | Arcjet case study: required 670-line custom Go tool to work around single-port-set limitation |
+| Snapshot/rollback absent in lightweight tools | OrbStack, Lima, Colima: none. UTM: partial only |
+| OrbStack locked to localhost SSH | Issue #31: cannot SSH into Linux machine from another device on LAN |
+| File I/O: 3-50x slower via bind mounts | CNCF documented 3.5x typical; small-file workloads hit 50x; OrbStack is best at ~75-95% native |
+
+---
+
+## Language Stack
+
+**100% Rust + Swift. No C++.**
+
+- **Core daemon + CLI** — Rust + tokio (performance, safety, single binary)
+- **macOS UI** — Swift + SwiftUI (native look & feel, system integration)
+- **VZ Framework access** — Minimal C FFI bridge only (~500 lines of Swift + C header)
+- **Everything else** — Rust (device discovery via IOKit via Swift bridge, networking, routing, etc.)
+
+The only C is a thin FFI header to bridge Swift's Virtualization.framework into Rust. This is unavoidable (Apple's SDK is Objective-C/Swift-native) and follows the pattern used by Lima, Podman Machine, and other macOS hypervisor tools.
+
+---
+
+## Architecture
+
+```
+macOS Host
+├── DevForge.app  (Swift/SwiftUI)
+│   ├── Menu bar: environment status, quick actions
+│   ├── System extension: network + device management
+│   └── Onboarding + preferences UI
+│
+├── devforge CLI  (Rust)
+│   └── Commands: up/down/exec/shell/doctor/devices/sync/env
+│
+├── devforgd daemon  (Rust + tokio)
+│   ├── Unix socket IPC  (/var/run/devforge.sock)
+│   ├── Calls into VZ via C FFI bridge (Swift wrapper)
+│   ├── Environment lifecycle manager
+│   ├── Execution router (native → container → remote)
+│   ├── Device manager (IOKit via Swift bridge)
+│   └── Remote execution bridge
+│
+├── Linux Substrate  (Apple Virtualization Framework)
+│   ├── Minimal stripped kernel (fast boot, curated module set)
+│   ├── VirtioFS  (filesystem: targeting >90% native I/O)
+│   ├── Rosetta 2 bridge  (AMD64 Linux binary support)
+│   ├── DDS-aware virtual network  (ROS 2 multicast support)
+│   ├── USB/IP server  (curated: serial, cameras, Lidar, IMU, SDR)
+│   └── Podman rootless  (OCI containers inside the substrate)
+│
+└── Remote Bridge  (Rust)
+    ├── SSH multiplexing  (transparent remote exec)
+    └── Cloud APIs  (RunPod, Vast.ai, AWS, GCP for CUDA)
+```
+
+---
+
+## Execution Router Logic
+
+```
+devforge exec <cmd>
+        │
+        ▼
+Does the command require a Linux ABI or syscall?
+        │
+    No  ├──────────────────► Tier 1: Native macOS
+        │                    (zero overhead, fastest path)
+   Yes  │
+        ▼
+Does the workload require CUDA / NVIDIA GPU?
+        │
+    No  ├──────────────────► Tier 2: Linux Substrate
+        │                    (Apple VZ, headless, <5s boot,
+        │                     VirtioFS, Rosetta 2)
+  Yes   │
+        ▼
+                             Tier 3: Remote Linux
+                             (SSH to configured GPU host,
+                              RunPod/Vast.ai/AWS/GCP)
+```
+
+The developer never specifies a tier. The router decides based on:
+- Environment declaration (what the env requires)
+- Command context (ROS 2 launch → Tier 2, `torch.cuda` → Tier 3)
+- Runtime detection (CUDA libs present → route remote)
+
+---
+
+## Environment-as-Code Schema
+
+```yaml
+# .devforge/env.yaml
+apiVersion: devforge/v1
+kind: Environment
+
+metadata:
+  name: pyterrainmap-dev
+  version: "1.2.0"
+  description: Robotics terrain mapping dev environment
+
+substrate:
+  os: ubuntu-24.04
+  kernel: "6.12"          # pinned kernel version
+  arch: [arm64, amd64]    # amd64 via Rosetta 2
+
+resources:
+  cpu: 8
+  memory: 16GB
+  disk: 50GB
+
+native:                    # Tier 1: install natively on macOS
+  tools:
+    - rust@1.87
+    - python@3.11
+    - cmake
+    - uv
+
+linux:                     # Tier 2: available in Linux substrate
+  packages:
+    - ros-jazzy-desktop
+    - gazebo-harmonic
+    - libopencv-dev
+  services:
+    - name: postgres
+      image: postgres:16
+      env:
+        POSTGRES_DB: terrain_db
+    - name: redis
+      image: redis:7-alpine
+
+devices:                   # hardware passthrough to Tier 2
+  usb:
+    - class: serial        # all /dev/ttyUSB* and /dev/ttyACM*
+    - vendor: 0x2b03       # specific: Ouster Lidar
+  cameras: auto            # all AVFoundation cameras
+
+remote:                    # Tier 3: CUDA routing
+  profile: runpod-a100
+  triggers:
+    - cuda                 # auto-route when CUDA detected
+    - "torch.distributed" # distributed training
+
+vscode:
+  enabled: true
+  extensions:
+    - ms-python.python
+    - ms-iot.vscode-ros
+
+network:
+  dds:
+    enabled: true          # ROS 2 DDS multicast-aware
+    domain_id: 42
+  ports:                   # auto-assigned if omitted
+    - 8080:8080
+    - 5432:5432
+```
+
+Single file. Version-controlled. Shareable with team. Diff-able.
+
+---
+
+## Key Technical Decisions
+
+### macOS App (Swift/SwiftUI)
+- Native macOS app — no Electron, no web views
+- Menu bar status: running environments, resource usage
+- System Extension for privileged operations (network interface creation, device passthrough)
+- Handles code signing, notarization, system permissions (microphone, camera, USB)
+- Launches and supervises `devforgd`
+
+### CLI (Rust)
+- Single static binary, installed to `/usr/local/bin/devforge`
+- Communicates with daemon via Unix socket (protobuf or JSON-RPC)
+- Fast: sub-100ms for status commands
+- Key crates: `clap`, `tokio`, `serde`, `tonic` (gRPC), `indicatif` (progress), `ratatui` (TUI)
+
+### Daemon (Rust + tokio)
+- Manages VM lifecycle (start, stop, snapshot, clone)
+- Owns the execution router state machine
+- Handles device hotplug events (macOS IOKit → USB/IP passthrough)
+- Exposes gRPC API for CLI + app
+
+### Linux Substrate (Apple Virtualization Framework)
+- **NOT** a full desktop VM — headless, no GPU display, no GUI
+- Custom stripped Linux kernel: fast boot (<5s), only modules needed for development
+- Curated kernel module set for robotics/embedded hardware (see device section)
+- VirtioFS with write-back caching — targeting >90% native I/O (outperform OrbStack's ~75-95%)
+- Rosetta 2 binary translator registered in the VM — run AMD64 Linux binaries natively
+- Boot protocol: compressed kernel + initrd directly via VZ framework (no GRUB)
+
+### Networking (DDS-Aware)
+- Virtual Layer 2 network between macOS and Linux substrate
+- **Multicast pass-through** — ROS 2 DDS discovery works out of the box (no `--network=host` required)
+- Automatic `ROS_DOMAIN_ID` namespace isolation per environment (no cross-environment DDS bleed)
+- `.devforge.local` DNS: `robotics-env.devforge.local` resolves from macOS and Linux both
+- Optional bridged mode: expose Linux substrate on LAN (fixes OrbStack Issue #31)
+
+### USB / Device Passthrough
+- IOKit event monitor in daemon detects device plug/unpack
+- USB/IP protocol tunnels devices to Linux substrate
+- **Curated kernel module set** baked into the substrate kernel (what OrbStack misses):
+  - `usb_serial`, `cp210x`, `ch341`, `ftdi_sio` — serial adapters (Arduino, ESP32, sensors)
+  - `cdc_acm` — USB CDC modems (Quectel LTE, GPS)
+  - `uvcvideo` — UVC cameras
+  - `hid_xpad` — Xbox controllers / joysticks
+  - `rtl8xxxu` — USB WiFi (pentesting SDR)
+  - `sdr` module family — RTL-SDR, HackRF
+  - `xpad`, `joydev` — robotics gamepads
+- Camera: AVFoundation frame capture → v4l2 virtual device in Linux substrate
+
+### Snapshot / Environment Versioning
+- CoW disk images (APFS sparse + reflink copy)
+- `devforge env snapshot` — instant CoW snapshot, <1 second
+- `devforge env rollback <snapshot>` — restore in seconds
+- `devforge env clone` — fork environment for AI agent workflows (fixes Arcjet's 670-line workaround)
+- Environments are git-diffable (YAML definition) + snapshot-restorable (VM state)
+
+### GPU Strategy (Phased)
+- **Phase 1-4**: No GPU in Linux substrate (honest about the limitation; CUDA routes to remote)
+- **Phase 5**: Vulkan-to-Metal bridge via VirtioGPU Venus + MoltenVK (same approach as Podman libkrun but with maintained DX and documented performance)
+- **Phase 5**: Metal Compute API forwarding for MLX/PyTorch-MPS workflows
+
+### Remote Execution (CUDA Tier)
+- SSH multiplexing with connection pooling (`~/.devforge/remotes/<name>`)
+- Auto-detection: if command imports `torch.cuda`, `cupy`, or uses CUDA libs → route to configured remote
+- Cloud provider integrations: RunPod, Vast.ai, AWS, GCP (spawn + terminate GPU instances)
+- Same `env.yaml` deploys locally and remotely — no separate config
+
+---
+
+## Distribution
+
+```
+build pipeline (GitHub Actions)
+    ├── Cargo build (Rust CLI + daemon) — universal binary (arm64 + x86_64)
+    ├── Xcode build (Swift app) — signed with Developer ID
+    ├── Package into .app bundle
+    ├── Notarize with Apple
+    ├── Create .dmg (create-dmg)
+    └── Publish to GitHub Releases
+```
+
+- `.dmg` for direct download
+- `brew install --cask devforge` (Homebrew cask)
+- Developer ID signed + notarized (required for macOS Gatekeeper)
+- Auto-update via Sparkle framework
+
+---
+
+## Workspace Structure
+
+```
+devforge/
+├── Cargo.toml                    # Rust workspace root
+├── rust-toolchain.toml
+├── Package.swift                 # Swift package (app + FFI bridge)
+│
+├── crates/                       # All Rust, zero C++
+│   ├── devforge-core/            # Shared types, schema, config (no_std compatible)
+│   ├── devforge-daemon/          # devforgd: lifecycle, router, IPC server
+│   ├── devforge-cli/             # devforge CLI binary
+│   ├── devforge-vz-sys/          # Rust FFI bindings to VZ C bridge (generated from C header)
+│   ├── devforge-vz/              # Rust wrapper around -sys bindings (safe API)
+│   ├── devforge-router/          # Execution tier decision engine
+│   ├── devforge-devices/         # Device discovery (calls Swift bridge for IOKit)
+│   ├── devforge-remote/          # SSH + cloud provider APIs
+│   ├── devforge-doctor/          # Diagnostic engine
+│   ├── devforge-templates/       # Environment template library
+│   └── devforge-env/             # env.yaml parser, validator, versioning
+│
+├── swift/                        # All Swift, zero C++
+│   ├── DevForgeApp/              # SwiftUI macOS app
+│   │   ├── AppDelegate.swift
+│   │   ├── MenuBarView.swift
+│   │   ├── EnvironmentListView.swift
+│   │   └── PreferencesView.swift
+│   ├── DevForgeVZBridge/         # ← THE C FFI BRIDGE (~500 lines)
+│   │   ├── VZBridge.swift        # Swift wrapper around Virtualization.framework
+│   │   ├── include/
+│   │   │   └── devforge_vz.h     # C header exposed to Rust (FFI boundary)
+│   │   ├── DevForgeVZ.h          # Internal Objective-C header
+│   │   └── DevForgeVZ.swift      # Swift implementation
+│   ├── DevForgeIOKitBridge/      # Device discovery via IOKit (similar C bridge, ~300 lines)
+│   │   ├── IOKitBridge.swift
+│   │   ├── include/
+│   │   │   └── devforge_iokit.h
+│   │   └── DevForgeIOKit.swift
+│   └── DevForgeExtension/        # System Extension (network/device passthrough)
+│       └── DevForgeNetworkExtension.swift
+│
+├── c-bridge/                     # Generated C FFI bindings (DO NOT EDIT)
+│   └── (bindgen output goes here)
+│
+├── kernel/
+│   ├── config/                   # Stripped kernel .config (arm64 + x86)
+│   └── modules/                  # Module list: serial, USB, camera, ROS
+│
+├── templates/
+│   ├── robotics.yaml             # ROS 2 + Gazebo + OpenCV + Foxglove
+│   ├── ai-local.yaml             # PyTorch + JAX + Ollama + MLX-native
+│   ├── ai-cloud.yaml             # PyTorch + CUDA → remote GPU
+│   ├── data.yaml                 # Postgres + Kafka + Spark + DuckDB
+│   └── cloudnative.yaml          # Kubernetes + Helm + Terraform
+│
+├── packaging/
+│   ├── DevForge.dmg.spec
+│   ├── Casks/devforge.rb         # Homebrew cask
+│   └── entitlements.plist
+│
+└── .github/
+    └── workflows/
+        ├── ci.yml                # Test + lint on PR (cargo test + swift test)
+        └── release.yml           # Build + sign + notarize + publish .dmg
+```
+
+**Key points:**
+- `devforge-vz-sys/` — Auto-generated via `bindgen` from C header (low-level FFI)
+- `devforge-vz/` — Hand-written Rust wrapper providing safe API
+- `DevForgeVZBridge/` — Swift wrapper around VZ Framework; exports minimal C header
+- The C header is the **only** C code; zero C++ anywhere
+
+This pattern mirrors how Lima and Podman Machine work on macOS.
+
+
+---
+
+## Key Rust Dependencies
+
+```toml
+[workspace.dependencies]
+tokio           = { version = "1", features = ["full"] }
+clap            = { version = "4", features = ["derive"] }
+serde           = { version = "1", features = ["derive"] }
+serde_yaml      = "0.9"
+tonic           = "0.12"         # gRPC for CLI↔daemon IPC
+prost           = "0.13"         # protobuf
+tracing         = "0.1"
+anyhow          = "1"
+thiserror       = "2"
+indicatif       = "0.17"         # progress bars
+ratatui         = "0.29"         # optional TUI
+ssh2            = "0.9"          # remote execution
+reqwest         = "0.12"         # cloud API clients
+semver          = "1"            # env version pinning
+```
+
+---
+
+## `platform doctor` Architecture
+
+Diagnostic engine runs in the daemon, exposed via CLI. Each check is a trait:
+
+```rust
+pub trait DiagnosticCheck: Send + Sync {
+    fn name(&self) -> &str;
+    fn run(&self, ctx: &EnvContext) -> DiagResult;
+}
+```
+
+Check categories:
+- **Substrate**: VM running, VirtioFS mounted, kernel version, Rosetta status
+- **Network**: DDS multicast reachable, DNS resolving, port conflicts
+- **Devices**: USB devices enumerated, kernel modules loaded, camera accessible
+- **Native**: Tool versions, PATH conflicts, Homebrew/Nix state
+- **Containers**: Podman socket, image pulls, volume mounts
+- **Remote**: SSH connectivity, GPU availability, cloud credentials
+- **ROS 2**: RMW implementation, domain ID, topic discovery
+- **Security**: Secrets not in env.yaml, CVE scan on images
+
+Output format:
+```
+devforge doctor
+
+✓  Linux substrate running  (kernel 6.12.4, arm64 + amd64 via Rosetta)
+✓  VirtioFS mounted  (/Users/georgi → /home/georgi, 94% native I/O)
+✓  DDS multicast active  (domain 42, 3 nodes discovered)
+⚠  Quectel modem /dev/ttyUSB1 not passed through  → run: devforge devices attach ttyUSB1
+✗  Remote GPU profile not configured  → run: devforge remote add runpod --key $RUNPOD_KEY
+⚠  Python 3.11 version mismatch: native=3.11.9, substrate=3.11.4  → run: devforge env sync python
+```
+
+---
+
+## Environment Template System
+
+Templates are YAML with inheritance:
+
+```yaml
+# templates/robotics.yaml
+apiVersion: devforge/v1
+kind: Template
+metadata:
+  name: robotics
+  tags: [ros2, gazebo, lidar, camera]
+
+extends: base-ubuntu-24.04
+
+linux:
+  packages:
+    - ros-jazzy-desktop
+    - gazebo-harmonic
+    - ros-jazzy-ros2-control
+    - python3-colcon-common-extensions
+
+devices:
+  usb:
+    - class: serial       # all serial devices auto-attached
+  cameras: auto
+
+network:
+  dds:
+    enabled: true
+    domain_id: auto       # auto-assigned per environment
+```
+
+Usage:
+```bash
+devforge create --template robotics my-robot-project
+devforge create --template ai-cloud training-run
+devforge create --template data analytics-stack
+```
+
+Custom templates stored in `~/.devforge/templates/` or `.devforge/templates/` in project.
+
+---
+
+## Phase Roadmap
+
+### Phase 1 — Foundation (Weeks 1-6)
+**Goal: Shippable alpha with core VM lifecycle**
+
+- [ ] Rust workspace + Swift package setup
+- [ ] `devforgd` daemon with Unix socket IPC
+- [ ] Apple VZ Framework integration (Swift VZ wrapper → Rust FFI)
+- [ ] Minimal Linux kernel build pipeline (arm64 + x86 config)
+- [ ] VirtioFS filesystem sharing
+- [ ] `devforge up`, `down`, `status`, `shell` commands
+- [ ] `env.yaml` schema parser + validator (`devforge-core`)
+- [ ] SwiftUI menu bar app skeleton (shows running environments)
+- [ ] `.dmg` build + code signing + notarization pipeline (GitHub Actions)
+- [ ] Homebrew cask formula
+
+**Deliverable**: Install `.dmg`, run `devforge up`, get a shell in a Linux environment. Sub-5-second boot.
+
+---
+
+### Phase 2 — Execution Layer (Weeks 7-12)
+**Goal: Smart routing + templates + VS Code integration**
+
+- [ ] Execution router (Tier 1 / 2 / 3 decision logic)
+- [ ] `devforge exec <cmd>` — transparent command routing
+- [ ] Podman rootless inside Linux substrate
+- [ ] Container management within environments (services: postgres, redis, etc.)
+- [ ] Rosetta 2 AMD64 support in substrate
+- [ ] Environment templates: `robotics`, `ai-local`, `data`, `cloudnative`
+- [ ] VS Code Remote-SSH auto-config (`.devforge/ssh_config` → `~/.ssh/config`)
+- [ ] `devforge doctor` v1 — basic health checks
+- [ ] Environment variables + secrets management
+- [ ] Nix integration (detect + use nix-installed tools in Tier 1)
+
+**Deliverable**: `devforge create --template robotics` → fully working ROS 2 environment in VS Code.
+
+---
+
+### Phase 3 — Hardware & DX (Weeks 13-18)
+**Goal: Robotics-grade device support + parallel environments + DDS networking**
+
+- [ ] `devforge devices` — IOKit device discovery
+- [ ] USB/serial passthrough (curated kernel modules + USB/IP)
+- [ ] Camera/video device routing (AVFoundation → v4l2 virtual device)
+- [ ] DDS-aware virtual network (ROS 2 multicast works out of the box)
+- [ ] `ROS_DOMAIN_ID` auto-isolation per environment
+- [ ] Parallel environments with auto port assignment + workspace isolation
+- [ ] CoW snapshot / rollback (`devforge env snapshot`, `rollback`, `clone`)
+- [ ] `devforge doctor` v2 — ROS 2, device, and container diagnostics
+- [ ] LAN access to Linux substrate (bridged networking mode)
+- [ ] Environment git-versioning (`devforge env diff`, `log`, `rollback`)
+
+**Deliverable**: `devforge devices attach lidar` → LiDAR sensor available in ROS 2 with multicast discovery. `devforge env clone agent-1` for parallel AI agent workflows.
+
+---
+
+### Phase 4 — Remote & Cloud (Weeks 19-24)
+**Goal: CUDA routing + cloud sync**
+
+- [ ] CUDA detection (import scanning + lib detection)
+- [ ] Remote execution bridge (SSH multiplexed, transparent)
+- [ ] `devforge remote add runpod --key $KEY`
+- [ ] Auto-routing: CUDA workload → remote GPU host
+- [ ] Cloud provider integrations: RunPod, Vast.ai, AWS (g4dn/p3), GCP (A100)
+- [ ] `devforge sync` — push environment to cloud, execute, pull results
+- [ ] Remote environment lifecycle (spin up cloud instance → execute → terminate)
+- [ ] CI/CD parity mode (`devforge ci-run github-actions`)
+- [ ] `ai-cloud` template with seamless local→remote handoff
+
+**Deliverable**: `devforge exec python train.py` → automatically runs on RunPod A100 when CUDA detected, syncs results back.
+
+---
+
+### Phase 5 — GPU + Ecosystem (Weeks 25-34)
+**Goal: Native GPU bridge + plugin architecture + community**
+
+- [ ] Vulkan-to-Metal bridge in Linux substrate (VirtioGPU Venus + MoltenVK)
+- [ ] Metal Compute API forwarding (MLX/PyTorch-MPS accessible from Linux)
+- [ ] WASM plugin architecture (`devforge plugin install ros-foxglove`)
+- [ ] Security auditing + compliance exports
+- [ ] Database native support (schema inspection, lineage, diagnostics)
+- [ ] Kubernetes local cluster (lightweight k3s in substrate)
+- [ ] Community template marketplace
+- [ ] Windows host support (Linux substrate via WSL2 backend — different codebase paths)
+
+**Deliverable**: `torch.device('mps')` works inside the Linux substrate. Plugin ecosystem live.
+
+---
+
+## Differentiators vs. OrbStack
+
+| Capability | OrbStack | DevForge |
+|-----------|----------|---------|
+| Open source | ❌ Closed | ✅ Apache 2.0 |
+| Price | $8/user/month commercial | Free |
+| GPU/Metal | ❌ Zero | ✅ Phase 5 |
+| ROS 2 DDS multicast | ❌ Broken | ✅ Phase 3 |
+| USB serial passthrough | ⚠️ Limited modules | ✅ Curated full set |
+| Environment-as-Code | ⚠️ None | ✅ Core paradigm |
+| Parallel environments | ❌ | ✅ Phase 3 |
+| Snapshot/clone | ❌ | ✅ Phase 3 |
+| Remote CUDA routing | ❌ | ✅ Phase 4 |
+| LAN SSH access | ❌ localhost only | ✅ Phase 3 |
+| Nix integration | ❌ | ✅ Phase 2 |
+| VS Code devcontainers | ⚠️ Workaround | ✅ Phase 2 |
+| Plugin architecture | ❌ | ✅ Phase 5 |
+| macOS notarized installer | ✅ | ✅ Phase 1 |
+
+---
+
+## Integration with Existing Portfolio
+
+- **PyTerrainMap** — ships as a `devforge create --template pyterrainmap` environment; sensor drivers pre-configured
+- **PyStreamMCP** — optional: `devforge exec` routing logic mirrors PyStreamMCP's query routing architecture
+- **StatGuardian** — optional Phase 5: environment contract validation via StatGuardian (reproducibility contracts)
+- **PyRoboFrames** — robotics template pre-installs PyRoboFrames sensor pipeline
+
+---
+
+## Open Source Licensing
+
+**Apache License 2.0** — permissive, allows commercial use, requires attribution.
+
+- No proprietary lock-in, no licensing fees, no compliance friction
+- Community-driven roadmap and contributions welcome
+- Optional "open core" model (Phase 5+): team management features available as optional paid tier for enterprises (centralized config, audit logs, remote access broker)
+
+---
+
+## Verification Plan
+
+### Phase 1 verification
+1. `brew install --cask devforge` on clean macOS 14 machine
+2. `devforge up` → Linux substrate boots, `devforge status` shows running
+3. `devforge shell` → bash prompt inside Linux
+4. Edit a file on macOS, verify change visible in Linux via VirtioFS (within 100ms)
+5. `devforge down` → substrate stops cleanly
+6. Measure boot time: target <5 seconds
+
+### Phase 2 verification
+1. `devforge create --template robotics robot-ws` → ROS 2 jazzy available
+2. `devforge exec ros2 run demo_nodes_cpp talker` → talker running
+3. Open VS Code → Remote-SSH to `robot-ws.devforge.local` → extensions working
+4. `devforge exec python script.py` on pure Python script → executes natively on macOS (Tier 1)
+
+### Phase 3 verification
+1. Plug in Arduino/serial device → `devforge devices` shows it
+2. `devforge devices attach ttyUSB0` → `/dev/ttyUSB0` accessible in Linux substrate
+3. Run ROS 2 talker/listener across two parallel environments → DDS discovery works
+4. `devforge env snapshot v1` → modify env → `devforge env rollback v1` → restored
+
+### Phase 4 verification
+1. `devforge remote add runpod --key $KEY`
+2. `devforge exec python -c "import torch; print(torch.cuda.is_available())"` → routed to RunPod, prints `True`
+3. `devforge sync training-job` → pushes, executes, returns results
