@@ -197,11 +197,14 @@ Every operation logs:
 
 ## CLI Commands
 
+All operations are **CLI-based** and shell-scriptable:
+
 ```bash
 # Connect to environment (just works)
 tinybridge ssh myvm                    # SSH into myvm
-tinybridge ssh myvm "ls -la"           # Execute command
+tinybridge ssh myvm "ls -la"           # Execute command in one go
 tinybridge ssh myvm -c "bash"          # Interactive shell
+ssh myvm                                # Also works: standard SSH alias
 
 # SSH key management
 tinybridge ssh-key list                # List all keys
@@ -218,11 +221,20 @@ tinybridge ssh-config repair           # Fix broken entries
 tinybridge ssh-audit log               # View audit log
 tinybridge ssh-audit events <env>      # Events for specific environment
 tinybridge ssh-audit export log.txt    # Export for compliance
+tinybridge ssh-audit export --format json > audit.json
 
 # Sessions and tunnels (Phase 3)
 tinybridge ssh-session list            # Active sessions
 tinybridge ssh-tunnel create <env> 8000:localhost:3000  # Port forward
 tinybridge ssh-proxy <env>             # SOCKS proxy
+
+# Scriptable examples
+for env in backend frontend ml-train; do
+  tinybridge ssh $env "curl https://api.github.com" &
+done
+
+# Perfect for CI/CD
+tinybridge ssh production-db "pg_dump mydb" > backup.sql
 ```
 
 ## Integration Examples
@@ -242,29 +254,49 @@ tinybridge ssh-proxy <env>             # SOCKS proxy
 - VS Code uses standard SSH (it just works)
 ```
 
-### Terminal.app
+### Shell Scripting
 
 ```bash
-# One-click action in TinyBridge UI:
-"Open Terminal" button
-  → Runs: open -a Terminal /usr/bin/ssh myvm
-  → Terminal opens with SSH connection ready
+#!/bin/bash
+# Deploy to all environments
+
+for env in staging production; do
+  echo "Deploying to $env..."
+  tinybridge ssh $env "cd /app && git pull && ./deploy.sh"
+done
+
+echo "All environments updated!"
 ```
 
-### Docker Compose Remote
+### CI/CD Pipeline (GitHub Actions)
 
 ```yaml
-# docker-compose.yml
-services:
-  web:
-    build: .
-    ports:
-      - "3000:3000"
+name: Integration Tests
+on: [push]
 
-# User runs:
+jobs:
+  test:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: tinybridge up test-db
+      - run: tinybridge ssh test-db "psql -f tests/schema.sql"
+      - run: npm test
+      - run: tinybridge down test-db
+```
+
+### Docker & Kubernetes Contexts
+
+```bash
+# Docker context (Phase 4 container support)
 $ docker context create ssh myvm
 $ docker compose -c ssh up
 # Works seamlessly
+
+# kubectl integration (Phase 4 Kubernetes support)
+$ kubectl config set-cluster k3s --server=https://myvm:6443
+$ kubectl apply -f deployment.yaml
+# Native CLI integration
 ```
 
 ## Multi-Environment Example
@@ -395,15 +427,20 @@ TinyBridge SSH Status:
 
 ## Enterprise Features (Phase 3+)
 
-### SSH Certificates
+### SSH Certificates (Centralized Key Rotation)
 
 ```bash
 # For large teams (optional)
 $ tinybridge ssh-cert install /path/to/ca_key.pem
 
 # Automatic certificate generation instead of keys
-# Centralized key rotation
-# Better audit trail
+# Centralized key rotation (no per-env key management)
+# Better audit trail (CA controls all access)
+# Compliance-ready (certificate expiry enforcement)
+
+# Usage:
+$ tinybridge ssh-cert create backend-team
+$ tinybridge ssh-audit log  # Shows certificate usage
 ```
 
 ### Hardware-Backed Keys
@@ -412,19 +449,42 @@ $ tinybridge ssh-cert install /path/to/ca_key.pem
 # Secure Enclave support (macOS)
 $ tinybridge ssh-key create --hardware-backed secure-enclave
 
-# YubiKey support
+# YubiKey support  
 $ tinybridge ssh-key create --hardware-backed yubikey
 
-# TPM support (future)
+# TPM support (future, Linux)
+$ tinybridge ssh-key create --hardware-backed tpm
+
+# Key storage protected by hardware (can't be stolen)
 ```
 
-### Centralized Audit
+### Compliance & SIEM Integration
 
 ```bash
-# Export to SIEM
-$ tinybridge ssh-audit export --format syslog
-$ tinybridge ssh-audit export --format json > audit.json
-$ tinybridge ssh-audit export --format csv > audit.csv
+# Export audit logs to SIEM/compliance systems
+$ tinybridge ssh-audit export --format syslog > /dev/stdout  # Pipe to syslog-ng
+$ tinybridge ssh-audit export --format json > audit.json     # For Splunk, DataDog, etc.
+$ tinybridge ssh-audit export --format csv > audit.csv       # For auditors
+
+# Real-time audit streaming (Phase 3)
+$ tinybridge ssh-audit watch --format syslog
+
+# Query by compliance requirements
+$ tinybridge ssh-audit events --failed-only
+$ tinybridge ssh-audit events backend-env --since "2026-07-01"
+```
+
+### Team Automation Scripts
+
+```bash
+#!/bin/bash
+# Audit all SSH keys in organization
+
+for project in $(tinybridge project list); do
+  echo "Project: $project"
+  tinybridge ssh-key list --project=$project
+  tinybridge ssh-audit events --project=$project --since "2026-01-01" | jq '.[] | {user, status, timestamp}'
+done
 ```
 
 ## Success Criteria

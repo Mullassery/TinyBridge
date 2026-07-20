@@ -5,11 +5,20 @@
 
 ## Executive Summary
 
-OrbStack is a tightly integrated macOS-native platform combining containers, VMs, SSH, networking, and developer tooling. TinyBridge adopts OrbStack's best philosophies (zero-config, native integration, dev UX focus) while offering architectural advantages (multi-tier execution, environment-as-code, vendor lock-in prevention).
+OrbStack is a tightly integrated macOS GUI app combining containers, VMs, SSH, networking, and developer tooling. TinyBridge adopts OrbStack's UX philosophy (zero-config, native integration, dev joy) while taking a **CLI-first approach** that's better for automation, scripting, and enterprise workflows.
 
 **Key Strategic Difference**: 
-- OrbStack: Opinionated, integrated, single-vendor ecosystem
-- TinyBridge: Modular, extensible, vendor-neutral, quality-first
+- OrbStack: GUI-first, integrated, point-and-click, single-vendor ecosystem
+- TinyBridge: **CLI-first**, modular, scriptable, vendor-neutral, quality-first
+
+**CLI-First Advantage**:
+- ✅ Shell scriptable (bash, zsh, fish, PowerShell)
+- ✅ CI/CD native (GitHub Actions, GitLab CI, Jenkins)
+- ✅ Infrastructure-as-Code ready
+- ✅ Team automation via shared YAML configs
+- ✅ No Electron bloat (3x smaller binaries, faster startup)
+- ✅ Headless/server-friendly
+- ✅ Better for DevOps workflows
 
 ---
 
@@ -35,6 +44,7 @@ OrbStack is a tightly integrated macOS-native platform combining containers, VMs
 | **VM Cloning** | ✅ | 📋 | Phase 2 | Zero-copy clones via CoW |
 | **Native macOS UI** | ✅ | ✅ | Phase 1 | Swift/SwiftUI menu bar app |
 | **Multi-Arch** | ✅ | ✅ | Phase 1 | arm64 native, x86_64 via Rosetta 2 |
+| **CLI-First** | ⚪ | ✅ | Phase 1 | Pure CLI, no GUI, scriptable (unique advantage) |
 | **Kubernetes** | ✅ (lightweight) | 🎯 | Phase 4+ | Lightweight k3s integration |
 | **Port Forwarding** | ✅ | 📋 | Phase 2 | Automatic + manual tunneling |
 | **Network DNS** | ✅ | 📋 | Phase 2 | mDNS-based service discovery |

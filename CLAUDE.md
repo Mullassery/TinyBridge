@@ -11,14 +11,15 @@
 
 ## Vision
 
-Replace Docker Desktop and Lima as the preferred Linux development substrate on macOS. Architected for performance, simplicity, and developer joy.
+Replace Docker Desktop and Lima as the preferred Linux development substrate on macOS. CLI-first, built for automation, scripting, and team workflows.
 
 ### Key Differentiators
 - **Open source** (Apache 2.0, full transparency)
+- **CLI-first design** (no GUI bloat, shell-scriptable)
 - **Environment-as-Code** (declarative YAML, git-versioned)
 - **ROS 2 native** (DDS multicast networking works out of the box)
 - **Transparent CUDA routing** (routes to remote GPU automatically)
-- **Parallel environments** (AI agent workflows)
+- **Parallel environments** (AI agent workflows, team automation)
 - **Hardware passthrough** (curated USB/serial/camera support)
 
 ### Competitive Positioning
@@ -27,19 +28,18 @@ Replace Docker Desktop and Lima as the preferred Linux development substrate on 
 
 ## Technology Stack
 
-### Technology Stack: macOS
+### Technology Stack
 
-**Philosophy:** Rust for performance and safety. Swift for native system integration.
+**Philosophy:** Rust for performance and safety. CLI-first design for automation and scripting.
 
-**macOS:**
-- **Daemon + CLI:** Rust + tokio
-- **UI:** Swift + SwiftUI (menu bar app, native system integration)
+**Core:**
+- **Daemon + CLI:** Rust + tokio (100% CLI, no GUI)
 - **VM Backend:** Apple VZ Framework via C FFI (~500 lines; unavoidable for system APIs)
 - **VM Substrate:** Minimal Linux kernel, VirtioFS, Rosetta 2
 
-### No C++. Period.
+### No C++. No GUI. Period.
 
-Minimize C entirely. macOS uses a thin FFI header for VZ Framework (unavoidable system API access, same pattern as Lima/Podman).
+Minimize C entirely (only for VZ Framework FFI). Zero Electron, zero native UI frameworks. Pure CLI for shell scripting, automation, and CI/CD integration.
 
 ### Build System
 - **Rust:** Cargo workspace, universal binary (arm64 + x86_64 via Rosetta)
@@ -52,14 +52,17 @@ See `docs/ARCHITECTURE.md` for complete details.
 
 **High-level (macOS):**
 ```
-Tier 1 (Native macOS arm64/x86_64)  ← default, zero overhead
+tinybridge up myproject              ← CLI-driven
     ↓
-Tier 2 (Linux Substrate via Apple VZ Framework)  ← for Linux-only workloads
+tinybridged daemon                   ← Rust, JSON-RPC over Unix socket
+    ├─ Tier 1 (Native macOS)          ← Default, zero overhead
+    ├─ Tier 2 (Linux Substrate)       ← VirtioFS + VirtioNet
+    └─ Tier 3 (Remote GPU)            ← Transparent CUDA routing
     ↓
-Tier 3 (Remote Linux with GPU)  ← for CUDA/training
+SSH + Networking + Storage           ← Auto-configured
 ```
 
-Routing is **transparent** — developers never specify a tier. The platform decides based on workload capabilities.
+Routing is **transparent** — `tinybridge` CLI commands handle tier selection based on workload capabilities. No GUI, pure automation.
 
 ## Implementation Phases
 
