@@ -32,6 +32,8 @@ native:
 
 Check `env.yaml` into git. Your teammates run `tinybridge up my-project` and instantly get the identical environment.
 
+> **How it works:** The name in `tinybridge up my-project` must match the `metadata.name` in your `env.yaml`. TinyBridge looks for `env.yaml` in the current directory (or use `--file` to specify a path). On first run, the daemon starts automatically in the background.
+
 ### ⚡ Instant Linux Shell
 Once your environment is defined, boot it in one command.
 

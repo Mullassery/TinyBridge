@@ -67,6 +67,31 @@ tinybridge --version
 
 You should see a version number. If not, restart Terminal.
 
+### How TinyBridge Gets Detected on macOS
+
+When you install TinyBridge:
+
+1. **Homebrew** (if using `brew install --cask tinybridge`):
+   - Installs the `tinybridge` CLI to `/usr/local/bin/tinybridge`
+   - Adds the TinyBridge.app to `/Applications`
+   - Launches the daemon via LaunchAgent on login
+
+2. **Manual Installation** (from `.dmg`):
+   - Drag `TinyBridge.app` to `/Applications`
+   - Open it once to register the CLI
+   - The daemon runs in background automatically
+
+3. **First Run**:
+   - `tinybridge` CLI automatically starts the daemon if not running
+   - Daemon stores state at `~/.tinybridge/`
+   - Creates socket at `~/.tinybridge/tinybridge.sock` for CLI communication
+
+You can verify the daemon is running:
+```bash
+ps aux | grep tinybridged
+# Should show: /Applications/TinyBridge.app/Contents/MacOS/tinybridged
+```
+
 ---
 
 ## Your First Environment (5 Minutes)
@@ -91,10 +116,18 @@ resources:
 
 **That's your entire environment definition.** Save it in your project root.
 
+**Important:** The `metadata.name` (here: `my-first-env`) must match what you pass to `tinybridge up`.
+
 ### Step 2: Start the Environment
 
 ```bash
+# The name must match metadata.name from env.yaml
 tinybridge up my-first-env
+```
+
+TinyBridge looks for `env.yaml` in the current directory. If your file is in a subdirectory, use:
+```bash
+tinybridge up my-first-env --file path/to/env.yaml
 ```
 
 You'll see:
