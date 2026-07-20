@@ -1991,6 +1991,7 @@ dependencies = [
  "thiserror 2.0.19",
  "tinybridge-clipboard",
  "tinybridge-core",
+ "tinybridge-ssh",
  "tinybridge-vz",
  "tokio",
  "tracing",
@@ -2033,6 +2034,18 @@ dependencies = [
  "tokio",
  "tracing",
  "uuid",
+]
+
+[[package]]
+name = "tinybridge-templates"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror 2.0.19",
+ "tinybridge-core",
 ]
 
 [[package]]

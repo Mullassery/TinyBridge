@@ -11,13 +11,18 @@ use tinybridge_core::{
     DownResponse, Environment, EnvironmentStatus, EnvironmentSummary, ListResponse, StatusResponse,
     UpResponse,
 };
+use tinybridge_ssh::{SshKeyManager, SshConfigManager, SshConfigEntry, KeyType};
 
 use crate::boot_tiers::BootTierConfig;
+use crate::clipboard_sync::ClipboardSyncManager;
 use crate::vz::VmManager;
 
 pub struct EnvironmentManager {
     environments: HashMap<String, Environment>,
     vm_manager: VmManager,
+    ssh_key_manager: SshKeyManager,
+    ssh_config_manager: SshConfigManager,
+    clipboard_sync_manager: ClipboardSyncManager,
     assets_dir: PathBuf,
     boot_tiers: BootTierConfig,
 }
@@ -26,10 +31,15 @@ impl EnvironmentManager {
     pub fn new() -> Self {
         let home = dirs::home_dir().unwrap_or_else(|| PathBuf::from("."));
         let assets_dir = home.join(".tinybridge/assets");
+        let keys_dir = home.join(".tinybridge/keys");
+        let ssh_config_path = home.join(".ssh/config");
 
         EnvironmentManager {
             environments: HashMap::new(),
             vm_manager: VmManager::new(),
+            ssh_key_manager: SshKeyManager::new(&keys_dir),
+            ssh_config_manager: SshConfigManager::new(&ssh_config_path),
+            clipboard_sync_manager: ClipboardSyncManager::new(),
             assets_dir,
             boot_tiers: BootTierConfig::default(),
         }
@@ -126,6 +136,39 @@ impl EnvironmentManager {
         env.started_at = Some(Utc::now());
         env.ip_address = Some("192.168.105.2".to_string());
 
+        // Generate SSH key for this environment
+        match self.ssh_key_manager.generate_key(env_id, &env_name, KeyType::Ed25519).await {
+            Ok(keypair) => {
+                tracing::info!("SSH key generated: {}", keypair.fingerprint);
+
+                // Create SSH config entry
+                let ssh_entry = SshConfigEntry {
+                    env_id,
+                    alias: env_name.clone(),
+                    hostname: "192.168.105.2".to_string(),
+                    user: "user".to_string(),
+                    port: 22,
+                    identity_file: keypair.private_key_path.clone(),
+                    options: Default::default(),
+                };
+
+                if let Err(e) = self.ssh_config_manager.add_entry(&ssh_entry) {
+                    tracing::warn!("Failed to add SSH config entry: {}", e);
+                }
+            }
+            Err(e) => {
+                tracing::warn!("Failed to generate SSH key: {}", e);
+            }
+        }
+
+        // Start clipboard sync for this environment
+        self.clipboard_sync_manager.start_sync(
+            env_id,
+            "127.0.0.1".to_string(),
+            2222,
+            "user".to_string(),
+        ).await;
+
         // Record boot time metric (exported to OTel)
         crate::otel::record_boot_time(&env_name, boot_duration_ms, "success");
 
@@ -163,6 +206,20 @@ impl EnvironmentManager {
         }
 
         env.status = EnvironmentStatus::Stopping;
+        let env_id = env.id;
+
+        // Stop clipboard sync
+        self.clipboard_sync_manager.stop_sync(env_id).await;
+
+        // Remove SSH config entry
+        if let Err(e) = self.ssh_config_manager.remove_entry(&env_name) {
+            tracing::warn!("Failed to remove SSH config entry: {}", e);
+        }
+
+        // Archive SSH keys (don't delete, keep for recovery)
+        if let Err(e) = self.ssh_key_manager.delete_key(env_id) {
+            tracing::warn!("Failed to archive SSH keys: {}", e);
+        }
 
         // Stop the actual VM
         if force {

@@ -1,0 +1,19 @@
+[package]
+name = "tinybridge-templates"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Pre-configured environment templates for common development workflows"
+
+[dependencies]
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+tinybridge-core = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }

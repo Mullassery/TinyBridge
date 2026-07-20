@@ -9,6 +9,7 @@ members = [
     "crates/tinybridge-router",
     "crates/tinybridge-clipboard",
     "crates/tinybridge-ssh",
+    "crates/tinybridge-templates",
 ]
 
 [workspace.package]
@@ -55,6 +56,7 @@ tinybridge-vz         = { path = "crates/tinybridge-vz" }
 tinybridge-router     = { path = "crates/tinybridge-router" }
 tinybridge-clipboard  = { path = "crates/tinybridge-clipboard" }
 tinybridge-ssh        = { path = "crates/tinybridge-ssh" }
+tinybridge-templates  = { path = "crates/tinybridge-templates" }
 
 [profile.release]
 opt-level = 3
