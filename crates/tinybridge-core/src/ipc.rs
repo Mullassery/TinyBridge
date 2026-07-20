@@ -99,6 +99,22 @@ pub mod methods {
     pub const ENVIRONMENT_STATUS: &str = "environment.status";
     pub const ENVIRONMENT_LIST: &str = "environment.list";
     pub const ENVIRONMENT_SHELL: &str = "environment.shell";
+
+    pub const DDS_STATUS: &str = "dds.status";
+    pub const DDS_LIST: &str = "dds.list";
+    pub const DDS_ENABLE: &str = "dds.enable";
+    pub const DDS_DISABLE: &str = "dds.disable";
+    pub const DDS_FEATURES_LIST: &str = "dds.features.list";
+    pub const DDS_FEATURE_ENABLE: &str = "dds.feature.enable";
+    pub const DDS_FEATURE_DISABLE: &str = "dds.feature.disable";
+    pub const DDS_PROFILES_LIST: &str = "dds.profiles.list";
+    pub const DDS_PROFILE_APPLY: &str = "dds.profile.apply";
+    pub const DDS_SECURITY_ENABLE: &str = "dds.security.enable";
+    pub const DDS_POLICIES_LIST: &str = "dds.policies.list";
+    pub const DDS_POLICY_CREATE: &str = "dds.policy.create";
+    pub const DDS_OVERRIDE_GRANT: &str = "dds.override.grant";
+    pub const DDS_AUDIT_EXPORT: &str = "dds.audit.export";
+    pub const DDS_COMPLIANCE_REPORT: &str = "dds.compliance.report";
 }
 
 /// Request parameter structures

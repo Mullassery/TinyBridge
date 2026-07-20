@@ -24,7 +24,7 @@ impl DaemonClient {
         })
     }
 
-    async fn call(&mut self, method: &str, params: Value) -> Result<Value> {
+    pub async fn call(&mut self, method: &str, params: Value) -> Result<Value> {
         let request = JsonRpcRequest::new(self.request_id, method, params);
         self.request_id += 1;
 

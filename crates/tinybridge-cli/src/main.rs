@@ -42,6 +42,9 @@ enum Commands {
 
     /// Open shell in environment
     Shell(commands::ShellArgs),
+
+    /// Manage DDS networking
+    Dds(commands::dds::DdsArgs),
 }
 
 #[tokio::main]
@@ -69,5 +72,9 @@ async fn main() -> Result<()> {
         Commands::Status(args) => commands::status::execute(args, socket).await,
         Commands::List(args) => commands::list::execute(args, socket).await,
         Commands::Shell(args) => commands::shell::execute(args, socket).await,
+        Commands::Dds(args) => {
+            let mut client = client::DaemonClient::new(socket)?;
+            commands::dds::execute(args, &mut client).await
+        }
     }
 }
