@@ -463,7 +463,7 @@ $ tinybridge ssh-key create --hardware-backed tpm
 ```bash
 # Export audit logs to SIEM/compliance systems
 $ tinybridge ssh-audit export --format syslog > /dev/stdout  # Pipe to syslog-ng
-$ tinybridge ssh-audit export --format json > audit.json     # For Splunk, DataDog, etc.
+$ tinybridge ssh-audit export --format json > audit.json     # For SIEM systems
 $ tinybridge ssh-audit export --format csv > audit.csv       # For auditors
 
 # Real-time audit streaming (Phase 3)

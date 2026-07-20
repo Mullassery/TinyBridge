@@ -221,20 +221,15 @@ observability:
 - Metrics (boot time, resource usage, I/O latency, error rates)
 - Logs (structured event logging with full context)
 
-**Supported backends (pick any):**
+**Supported open source backends:**
 
-| Backend | Cost | Use Case |
-|---------|------|----------|
-| Prometheus | Free | Self-hosted, on-premise |
-| Jaeger | Free | Distributed tracing focus |
-| Datadog | Paid | Enterprise, multi-cloud |
-| New Relic | Paid | Full-stack monitoring |
-| Honeycomb | Paid | Observability-first |
-| Splunk | Paid | Log aggregation + analysis |
-| Dynatrace | Paid | AI-driven insights |
-| Grafana Stack | Free | Open source complete stack |
+| Backend | Type | Focus |
+|---------|------|-------|
+| Prometheus | Self-hosted | Metrics collection |
+| Jaeger | Self-hosted | Distributed tracing |
+| Grafana | Self-hosted | Visualization & dashboards |
 
-**No lock-in:** Start with free Prometheus. Scale to Datadog later. Migrate to Jaeger next month. All metrics are standard OTel format—no agent changes required.
+**No lock-in:** All metrics are standard OpenTelemetry format. Switch backends anytime—no code changes required. Run on your infrastructure, not a vendor's.
 
 ### 🔐 Open Source, Forever Free
 
@@ -508,7 +503,7 @@ Run Spark, Postgres, Kafka locally on Linux while writing code on macOS. No Dock
 | Feature | TinyBridge | Docker Desktop | Lima |
 |---------|---|---|---|
 | **Observability Built-in** | ✅ OpenTelemetry (traces, metrics, logs) | ❌ Manual setup | ❌ Manual setup |
-| **Backend Agnostic** | ✅ 8+ backends (Prometheus, Datadog, Jaeger, Honeycomb, etc.) | ⚠️ Limited integrations | ❌ No built-in |
+| **Backend Agnostic** | ✅ Multiple open source backends | ⚠️ Limited integrations | ❌ No built-in |
 | **Zero Vendor Lock-in** | ✅ Standard OTel format | ❌ Tied to Docker Hub | ❌ Manual collection |
 | **Cost Tracking** | ✅ Resource usage per environment | ⚠️ Indirect | ❌ No |
 | **Performance Insights** | ✅ Boot regression, latency, error trends | ❌ No | ❌ No |
@@ -582,14 +577,9 @@ Traditional tools lock you into one observability platform:
 ```
 TinyBridge Metrics (Standard OTel Format)
     ↓
-    ├─ Send to Prometheus (free, self-hosted)
-    ├─ Send to Datadog (when you scale)
-    ├─ Send to Jaeger (tracing focus)
-    ├─ Send to Honeycomb (observability-first)
-    ├─ Send to New Relic (full-stack)
-    ├─ Send to Splunk (log aggregation)
-    ├─ Send to Dynatrace (AI-driven)
-    └─ Send to Grafana (open source stack)
+    ├─ Send to Prometheus (self-hosted metrics)
+    ├─ Send to Jaeger (self-hosted tracing)
+    └─ Send to Grafana (self-hosted dashboards & visualization)
 ```
 
 **No code changes. No agent changes. Just point to a different backend.**
@@ -604,24 +594,24 @@ observability:
   sample_rate: 1.0
 ```
 
-**Month 6: Growing company**
+**Month 6: Growing company (still free)**
 ```yaml
-# Same env.yaml - switch to Datadog
+# Same env.yaml - switch to Jaeger for distributed tracing
 observability:
-  backend: datadog
+  backend: jaeger
   sample_rate: 1.0
   # Same metrics, same format, different backend
 ```
 
-**Year 2: Evaluating options**
+**Year 2: Advanced observability (still open source)**
 ```yaml
-# Switch to Honeycomb (better tracing)
+# Switch to Grafana for complete visualization stack
 observability:
-  backend: honeycomb
-  # Complete portability, no rewrite
+  backend: grafana
+  # Complete portability, no vendor lock-in
 ```
 
-**Cost savings:** No platform renegotiation, no data migration, no rewrite. Just a config change.
+**No surprise bills:** All backends are open source. Run them yourself, on your infrastructure.
 
 ### Complete Observability Stack
 
@@ -649,22 +639,13 @@ TinyBridge captures everything:
 
 ### Integration with Popular Backends
 
-**Prometheus** (Self-Hosted, Free)
+**Prometheus** (Self-Hosted, Open Source)
 ```yaml
 observability:
   backend: prometheus
   prometheus_scrape_interval: 15s
 ```
 Pull-based metrics. Run on your infrastructure. Zero cost.
-
-**Datadog** (Cloud SaaS)
-```yaml
-observability:
-  backend: datadog
-  datadog_site: us5.datadoghq.com
-  sample_rate: 1.0
-```
-All metrics, traces, logs in one place. ~$12/GB/month.
 
 **Jaeger** (Distributed Tracing, Open Source)
 ```yaml
@@ -674,14 +655,6 @@ observability:
 ```
 Specialized for tracing. Free. Self-hosted.
 
-**Honeycomb** (Observability-First SaaS)
-```yaml
-observability:
-  backend: honeycomb
-  honeycomb_api_key: ${HONEYCOMB_API_KEY}
-```
-Query and drill-down into any dimension. AI-assisted debugging.
-
 **Grafana Stack** (Open Source, Complete)
 ```yaml
 observability:
@@ -689,7 +662,7 @@ observability:
   grafana_loki: http://loki:3100
   grafana_prometheus: http://prometheus:9090
 ```
-Prometheus metrics + Loki logs + Grafana dashboards. Fully open source.
+Prometheus metrics + Loki logs + Grafana dashboards. Fully open source. Zero licensing cost.
 
 ### Comparing Observability Strategies
 
@@ -708,8 +681,8 @@ Prometheus metrics + Loki logs + Grafana dashboards. Fully open source.
 **For Startups:**
 - Start free with Prometheus (no cost)
 - Keep OTel-formatted data (future-proof)
-- Switch to Datadog at scale (just a config change)
-- Never pay for vendor lock-in migration
+- Upgrade to Grafana or Jaeger as you grow (just a config change)
+- Never vendor lock-in to proprietary services
 
 **For Enterprises:**
 - Compliance-ready (tamper-evident audit logs)
