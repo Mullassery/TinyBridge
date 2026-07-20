@@ -2,6 +2,7 @@ use anyhow::{anyhow, Result};
 use chrono::Utc;
 use serde_json::json;
 use std::collections::HashMap;
+use std::path::PathBuf;
 use uuid::Uuid;
 
 use tinybridge_core::{
@@ -9,14 +10,23 @@ use tinybridge_core::{
     UpResponse,
 };
 
+use crate::vz::VmManager;
+
 pub struct EnvironmentManager {
     environments: HashMap<String, Environment>,
+    vm_manager: VmManager,
+    assets_dir: PathBuf,
 }
 
 impl EnvironmentManager {
     pub fn new() -> Self {
+        let home = dirs::home_dir().unwrap_or_else(|| PathBuf::from("."));
+        let assets_dir = home.join(".tinybridge/assets");
+
         EnvironmentManager {
             environments: HashMap::new(),
+            vm_manager: VmManager::new(),
+            assets_dir,
         }
     }
 
@@ -34,24 +44,39 @@ impl EnvironmentManager {
             }
         }
 
+        let env_id = Uuid::new_v4();
+        let resources = tinybridge_core::Resources {
+            cpu: 2,
+            memory_bytes: 4 * 1024_u64.pow(3),
+            disk_bytes: 20 * 1024_u64.pow(3),
+        };
+
+        // Create VM via tinybridge-vz
+        let kernel_path = self.assets_dir.join("vmlinux");
+        let disk_path = self.assets_dir.join("rootfs.img");
+
+        self.vm_manager.create_vm(
+            env_id,
+            env_name.clone(),
+            kernel_path.to_string_lossy().to_string(),
+            disk_path.to_string_lossy().to_string(),
+            resources.clone(),
+        )?;
+
         let env = self
             .environments
             .entry(env_name.clone())
             .or_insert_with(|| Environment {
-                id: Uuid::new_v4(),
+                id: env_id,
                 name: env_name.clone(),
                 version: "1.0.0".to_string(),
-                description: Some("Stub environment".to_string()),
+                description: Some("TinyBridge environment".to_string()),
                 substrate: tinybridge_core::SubstrateConfig {
                     os: "ubuntu-24.04".to_string(),
                     kernel: None,
                     arch: vec![tinybridge_core::Arch::Arm64],
                 },
-                resources: tinybridge_core::Resources {
-                    cpu: 2,
-                    memory_bytes: 4 * 1024_u64.pow(3),
-                    disk_bytes: 20 * 1024_u64.pow(3),
-                },
+                resources,
                 native_tools: vec![],
                 status: EnvironmentStatus::Stopped,
                 created_at: Utc::now(),
@@ -61,7 +86,10 @@ impl EnvironmentManager {
 
         env.status = EnvironmentStatus::Starting { progress_pct: 0 };
 
-        // Simulate progress
+        // Start the VM
+        self.vm_manager.start_vm(env.id)?;
+
+        // Simulate boot progress while VM starts
         for pct in [25, 50, 75, 100] {
             tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
             env.status = EnvironmentStatus::Starting { progress_pct: pct };
@@ -79,7 +107,7 @@ impl EnvironmentManager {
         })?)
     }
 
-    pub async fn down(&mut self, name: Option<String>, _force: bool) -> Result<serde_json::Value> {
+    pub async fn down(&mut self, name: Option<String>, force: bool) -> Result<serde_json::Value> {
         let env_name = name.unwrap_or_else(|| "default".to_string());
 
         let env = self
@@ -92,10 +120,21 @@ impl EnvironmentManager {
         }
 
         env.status = EnvironmentStatus::Stopping;
+
+        // Stop the actual VM
+        if force {
+            self.vm_manager.force_stop_vm(env.id)?;
+        } else {
+            self.vm_manager.stop_vm(env.id)?;
+        }
+
         tokio::time::sleep(tokio::time::Duration::from_millis(200)).await;
         env.status = EnvironmentStatus::Stopped;
         env.started_at = None;
         env.ip_address = None;
+
+        // Clean up VM handle
+        self.vm_manager.destroy_vm(env.id)?;
 
         Ok(serde_json::to_value(DownResponse {
             name: env.name.clone(),

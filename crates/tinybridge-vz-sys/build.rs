@@ -22,8 +22,16 @@ fn main() {
         .expect("Couldn't write bindings!");
 
     println!("cargo:rustc-link-lib=dylib=TinyBridgeVZBridge");
-    println!(
-        "cargo:rustc-link-search={}",
-        out_path.join("../../../target/swift-libs").display()
-    );
+
+    // Use absolute path to swift-libs
+    let manifest_dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
+    let swift_libs = manifest_dir
+        .parent()
+        .and_then(|p| p.parent())
+        .map(|p| p.join("target/swift-libs"))
+        .expect("Could not determine swift-libs path");
+
+    if swift_libs.exists() {
+        println!("cargo:rustc-link-search={}", swift_libs.display());
+    }
 }

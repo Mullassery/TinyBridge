@@ -2,6 +2,7 @@ mod daemon;
 mod manager;
 mod server;
 mod state;
+mod vz;
 
 use anyhow::Result;
 use clap::Parser;

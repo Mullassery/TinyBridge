@@ -11,6 +11,10 @@ pub struct VirtualMachine {
     name: String,
 }
 
+// Safe to send across threads - the C FFI handles thread safety
+unsafe impl Send for VirtualMachine {}
+unsafe impl Sync for VirtualMachine {}
+
 impl VirtualMachine {
     pub fn new(name: String, config: VmConfig) -> Result<Self> {
         if !Self::is_available() {
