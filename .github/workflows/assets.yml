@@ -36,7 +36,7 @@ jobs:
           cat vmlinux.sha256
 
       - name: Upload kernel artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: kernel
           path: assets/vmlinux*
@@ -86,7 +86,7 @@ jobs:
           cat ubuntu-24.04-rootfs.tar.gz.sha256
 
       - name: Upload rootfs artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: rootfs
           path: assets/ubuntu-24.04-rootfs*
@@ -96,7 +96,7 @@ jobs:
     needs: [build-kernel, build-rootfs]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
 
       - name: Verify artifacts
         run: |
