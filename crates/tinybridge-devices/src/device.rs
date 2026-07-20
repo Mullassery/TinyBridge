@@ -4,7 +4,7 @@ use std::path::PathBuf;
 use uuid::Uuid;
 
 /// Type of device
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum DeviceType {
     /// USB device (VID:PID)
     Usb,

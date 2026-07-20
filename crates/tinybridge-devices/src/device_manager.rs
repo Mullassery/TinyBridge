@@ -1,23 +1,59 @@
 use crate::device::Device;
 use crate::device::DeviceType;
 use crate::error::{DeviceError, Result};
+use crate::policy::{PolicyEngine, PolicyAuditEvent};
+use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::PathBuf;
 use uuid::Uuid;
 
-/// Device manager for lifecycle operations
+/// Compliance report for environment device usage
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ComplianceReport {
+    /// Environment ID
+    pub env_id: Uuid,
+    /// When this report was generated
+    pub generated_at: DateTime<Utc>,
+    /// Total devices registered
+    pub total_devices: usize,
+    /// Devices currently attached to this environment
+    pub attached_devices: usize,
+    /// Number of active policy rules
+    pub policy_rules: usize,
+    /// Total audit events for this environment
+    pub audit_events_count: usize,
+    /// Number of blocked attachment attempts
+    pub blocked_attempts: usize,
+    /// Detailed audit events
+    pub audit_events: Vec<PolicyAuditEvent>,
+}
+
+/// Device manager for lifecycle operations with policy enforcement
 pub struct DeviceManager {
     devices: HashMap<Uuid, Device>,
     host_path_to_id: HashMap<PathBuf, Uuid>, // Reverse lookup
+    policy_engine: PolicyEngine,              // Policy enforcement
 }
 
 impl DeviceManager {
-    /// Create a new device manager
+    /// Create a new device manager with default allow-all policies
     pub fn new() -> Self {
         Self {
             devices: HashMap::new(),
             host_path_to_id: HashMap::new(),
+            policy_engine: PolicyEngine::new(),
         }
+    }
+
+    /// Get mutable access to policy engine
+    pub fn policy_engine(&mut self) -> &mut PolicyEngine {
+        &mut self.policy_engine
+    }
+
+    /// Get immutable access to policy engine
+    pub fn policies(&self) -> &PolicyEngine {
+        &self.policy_engine
     }
 
     /// Register a device
@@ -59,8 +95,23 @@ impl DeviceManager {
             .and_then(|id| self.devices.get(id).cloned())
     }
 
-    /// Attach device to environment
-    pub fn attach(&mut self, device_id: Uuid, env_id: Uuid) -> Result<()> {
+    /// Attach device to environment with policy checks
+    pub fn attach(&mut self, device_id: Uuid, env_id: Uuid, user_id: Option<&str>) -> Result<()> {
+        let device = self
+            .devices
+            .get(&device_id)
+            .ok_or_else(|| DeviceError::DeviceNotFound(device_id.to_string()))?;
+
+        // Check policy before attaching
+        let access_result = self.policy_engine.check_access(device.device_type, Some(env_id), user_id);
+
+        if !access_result.allowed {
+            return Err(DeviceError::PermissionDenied(
+                access_result.user_message(),
+            ));
+        }
+
+        // Policy check passed, proceed with attachment
         let device = self
             .devices
             .get_mut(&device_id)
@@ -137,6 +188,43 @@ impl DeviceManager {
         self.devices.values().filter(|d| d.is_attached()).count()
     }
 
+    /// Check if a device can be attached without actually attaching it
+    pub fn can_attach(&mut self, device_type: DeviceType, env_id: Uuid, user_id: Option<&str>) -> (bool, Option<String>) {
+        let result = self.policy_engine.check_access(device_type, Some(env_id), user_id);
+        (result.allowed, if !result.allowed { Some(result.user_message()) } else { None })
+    }
+
+    /// Get audit log from policy engine
+    pub fn get_audit_log(&self) -> Vec<crate::policy::PolicyAuditEvent> {
+        self.policy_engine.get_audit_log()
+    }
+
+    /// Export audit log as JSON string
+    pub fn export_audit_log(&self) -> String {
+        self.policy_engine.export_audit_log()
+    }
+
+    /// Get compliance report for an environment
+    pub fn get_compliance_report(&self, env_id: Uuid) -> ComplianceReport {
+        let audit_events = self.policy_engine.get_audit_log_for_env(env_id);
+        let policies = self.policy_engine.list_rules();
+        let attached_devices = self.list_for_env(env_id);
+
+        ComplianceReport {
+            env_id,
+            generated_at: chrono::Utc::now(),
+            total_devices: self.count(),
+            attached_devices: attached_devices.len(),
+            policy_rules: policies.len(),
+            audit_events_count: audit_events.len(),
+            blocked_attempts: audit_events
+                .iter()
+                .filter(|e| e.decision == crate::policy::AccessDecision::Block)
+                .count(),
+            audit_events,
+        }
+    }
+
     /// Detach all devices from an environment
     pub fn detach_all_for_env(&mut self, env_id: Uuid) -> Vec<Uuid> {
         let mut detached = Vec::new();
@@ -181,6 +269,7 @@ impl Default for DeviceManager {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::device::DeviceStatus;
 
     #[test]
     fn test_register_device() {
@@ -226,7 +315,7 @@ mod tests {
         let env_id = Uuid::new_v4();
 
         manager.register(device).unwrap();
-        manager.attach(device_id, env_id).unwrap();
+        manager.attach(device_id, env_id, None).unwrap();
 
         let attached = manager.get(device_id).unwrap();
         assert!(attached.is_attached());
