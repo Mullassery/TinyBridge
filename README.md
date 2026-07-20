@@ -14,11 +14,10 @@ Stop switching between macOS and Linux. Run a full Ubuntu environment on your Ma
 brew install --cask tinybridge
 ```
 
-### Option 2: Manual Download
+### Option 2: GitHub Releases
 
 1. Download latest `.dmg` from [GitHub Releases](https://github.com/Mullassery/tinybridge/releases)
-2. Open the file and drag `TinyBridge.app` to Applications
-3. Open TinyBridge.app once (registers the CLI)
+2. Extract and follow the installer instructions
 
 ### Option 3: Python Projects (with UV)
 
@@ -40,7 +39,7 @@ ps aux | grep tinybridged
 # Should show: /Applications/TinyBridge.app/Contents/MacOS/tinybridged
 ```
 
-If `tinybridge --version` fails, restart Terminal. The daemon starts automatically on first run.
+If `tinybridge --version` fails, restart Terminal. The daemon starts automatically when needed.
 
 ---
 
@@ -460,7 +459,6 @@ Run Spark, Postgres, Kafka locally on Linux while writing code on macOS. No Dock
 |---------|---|---|---|
 | **Price** | Free forever | $7/month/user | Free |
 | **Setup** | One YAML file | Multiple configs + registration | YAML + scripts |
-| **Native Mac App** | ✅ Yes (SwiftUI) | Heavy Electron | CLI only |
 | **Open Source** | ✅ Apache 2.0 | Partial | ✅ Yes |
 
 ### Performance & Operations
