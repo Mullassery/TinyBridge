@@ -8,17 +8,6 @@ Stop switching between macOS and Linux. Run a full Ubuntu environment on your Ma
 
 ## What You Get
 
-### ⚡ Instant Linux Shell
-Get to a working Linux prompt with optimized boot architecture.
-
-```bash
-tinybridge up myproject
-# ✓ Running (SSH ready)
-
-ssh vm@myproject
-ubuntu@myproject:~$
-```
-
 ### 📝 Environment-as-Code
 Define your Linux environment in one file. Share with your team. Everyone gets the same setup.
 
@@ -41,7 +30,20 @@ native:
     - docker
 ```
 
-Check it into git. Your teammates run `tinybridge up` and instantly have the identical environment.
+Check `env.yaml` into git. Your teammates run `tinybridge up my-project` and instantly get the identical environment.
+
+### ⚡ Instant Linux Shell
+Once your environment is defined, boot it in one command.
+
+```bash
+tinybridge up my-project
+# ✓ Running (SSH ready)
+
+ssh vm@my-project
+ubuntu@my-project:~$
+```
+
+Your Linux environment is ready to use with optimized boot architecture.
 
 ### 🔄 Automatic File Sync
 Your Mac's files are automatically available in Linux. Edit on macOS, run on Linux.
