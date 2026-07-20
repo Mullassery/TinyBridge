@@ -245,16 +245,191 @@ Apache 2.0 licensed. No subscriptions. No license costs. Read the code. Fork it.
 
 ## Commands Reference
 
-Replace `<projectname>` with your actual project name (must match `metadata.name` in env.yaml):
+Replace `<projectname>` with your actual project name (must match `metadata.name` in env.yaml).
+
+### Basic Commands
 
 | Command | Purpose | Example |
 |---------|---------|---------|
 | `tinybridge up <projectname>` | Start an environment | `tinybridge up myprojectname` |
-| `tinybridge shell <projectname>` | Open bash in environment | `tinybridge shell myprojectname` |
-| `tinybridge exec <projectname> "cmd"` | Run command in environment | `tinybridge exec myprojectname "python train.py"` |
+| `tinybridge up <projectname> --file path/to/env.yaml` | Start with custom env file | `tinybridge up myprojectname --file ./prod-env.yaml` |
+| `tinybridge shell <projectname>` | Open interactive bash shell | `tinybridge shell myprojectname` |
+| `tinybridge shell <projectname> -c "command"` | Run single command in shell | `tinybridge shell myprojectname -c "python train.py"` |
+| `tinybridge exec <projectname> "cmd"` | Execute command (non-interactive) | `tinybridge exec myprojectname "pytest tests/"` |
 | `tinybridge list` | Show all environments | `tinybridge list` |
+| `tinybridge list --json` | List environments as JSON | `tinybridge list --json` |
 | `tinybridge status <projectname>` | Check environment status | `tinybridge status myprojectname` |
-| `tinybridge down <projectname>` | Stop environment | `tinybridge down myprojectname` |
+| `tinybridge status <projectname> --json` | Status as JSON | `tinybridge status myprojectname --json` |
+| `tinybridge down <projectname>` | Stop environment (preserves state) | `tinybridge down myprojectname` |
+| `tinybridge down <projectname> --force` | Force stop without graceful shutdown | `tinybridge down myprojectname --force` |
+
+### Resource Management
+
+| Command | Purpose | Example |
+|---------|---------|---------|
+| `tinybridge update <projectname> --cpu 8` | Increase CPU cores | `tinybridge update myprojectname --cpu 8` |
+| `tinybridge update <projectname> --memory 16GB` | Increase memory | `tinybridge update myprojectname --memory 16GB` |
+| `tinybridge update <projectname> --cpu 4 --memory 8GB` | Update both | `tinybridge update myprojectname --cpu 4 --memory 8GB` |
+| `tinybridge restart <projectname>` | Restart with new resources | `tinybridge restart myprojectname` |
+
+### Environment Management
+
+| Command | Purpose | Example |
+|---------|---------|---------|
+| `tinybridge checkpoint <projectname> --name "milestone"` | Save progress checkpoint | `tinybridge checkpoint myprojectname --name "training-v1"` |
+| `tinybridge checkpoints <projectname>` | List all checkpoints | `tinybridge checkpoints myprojectname` |
+| `tinybridge restore <projectname> --from "checkpoint-name"` | Restore from checkpoint | `tinybridge restore myprojectname --from "training-v1"` |
+| `tinybridge delete <projectname> --force` | Permanently delete environment | `tinybridge delete myprojectname --force` |
+| `tinybridge cleanup --all` | Remove all stopped environments | `tinybridge cleanup --all` |
+| `tinybridge cleanup --images` | Remove unused Linux images | `tinybridge cleanup --images` |
+| `tinybridge cleanup --cache` | Clear cache data | `tinybridge cleanup --cache` |
+
+### Information & Diagnostics
+
+| Command | Purpose | Example |
+|---------|---------|---------|
+| `tinybridge --version` | Show TinyBridge version | `tinybridge --version` |
+| `tinybridge --help` | Show help message | `tinybridge --help` |
+| `tinybridge info` | Show environment sizes and usage | `tinybridge info` |
+| `tinybridge info <projectname>` | Show specific environment info | `tinybridge info myprojectname` |
+| `tinybridge logs <projectname>` | Show daemon logs for environment | `tinybridge logs myprojectname` |
+| `tinybridge --verbose status` | Status with debug output | `tinybridge -v status myprojectname` |
+
+### Common Workflows
+
+**Start fresh development session:**
+```bash
+tinybridge up myprojectname
+tinybridge shell myprojectname
+# You're now in Ubuntu
+ubuntu@myprojectname:~$ python app.py
+```
+
+**Run tests in environment:**
+```bash
+tinybridge exec myprojectname "pytest tests/ -v"
+```
+
+**Run multiple environments in parallel:**
+```bash
+tinybridge up backend &
+tinybridge up database &
+tinybridge up frontend &
+tinybridge list
+```
+
+**Switch between environments:**
+```bash
+# Close current shell (Ctrl+D)
+tinybridge shell frontend
+
+# From another terminal
+tinybridge shell backend
+```
+
+**Pause and resume:**
+```bash
+# Save progress
+tinybridge checkpoint myprojectname --name "after-deploy"
+tinybridge down myprojectname
+
+# Later, resume exactly where you left off
+tinybridge up myprojectname
+tinybridge shell myprojectname
+# Everything is intact
+```
+
+**Adjust resources for heavy workload:**
+```bash
+tinybridge status myprojectname
+# Running: 4 cores, 8GB memory
+
+tinybridge update myprojectname --cpu 8 --memory 16GB
+tinybridge restart myprojectname
+# Now running: 8 cores, 16GB memory
+```
+
+**Clean up after project:**
+```bash
+# Back up important files
+cp -r ~/myprojectname ~/myprojectname-backup
+
+# Stop environment
+tinybridge down myprojectname
+
+# Permanently delete
+tinybridge delete myprojectname --force
+
+# Free up disk space
+tinybridge cleanup --images
+```
+
+### Global Options
+
+| Flag | Purpose | Example |
+|------|---------|---------|
+| `-v, --verbose` | Show detailed output | `tinybridge -v up myprojectname` |
+| `--socket <path>` | Custom daemon socket path | `tinybridge --socket /tmp/custom.sock list` |
+| `--json` | Output as JSON (where supported) | `tinybridge --json status myprojectname` |
+| `--help` | Show command help | `tinybridge shell --help` |
+
+### SSH Direct Access
+
+If you prefer SSH over `tinybridge shell`:
+
+```bash
+# Find environment IP
+tinybridge status myprojectname
+
+# SSH directly
+ssh vm@192.168.105.2
+
+# Exit SSH
+exit
+```
+
+### Environment Variables
+
+Control TinyBridge behavior:
+
+```bash
+# Use custom daemon socket
+export TINYBRIDGE_SOCKET=/tmp/custom.sock
+tinybridge list
+
+# Enable debug logging
+export TINYBRIDGE_LOG=debug
+tinybridge up myprojectname
+
+# Specify custom assets directory
+export TINYBRIDGE_ASSETS=~/my-assets
+tinybridge up myprojectname
+```
+
+### Aliases for Common Commands
+
+Add to your shell config (`~/.bashrc` or `~/.zshrc`):
+
+```bash
+# Quick environment commands
+alias tb-list='tinybridge list'
+alias tb-up='tinybridge up'
+alias tb-shell='tinybridge shell'
+alias tb-status='tinybridge status'
+alias tb-down='tinybridge down'
+
+# Development shortcuts
+alias tb-dev-up='tinybridge up dev && tinybridge shell dev'
+alias tb-test='tinybridge exec test'
+```
+
+Usage:
+```bash
+tb-list
+tb-up myprojectname
+tb-shell myprojectname
+tb-status myprojectname
+```
 
 ---
 
