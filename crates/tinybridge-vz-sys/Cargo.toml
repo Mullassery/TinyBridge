@@ -1,0 +1,14 @@
+[package]
+name    = "tinybridge-vz-sys"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+links = "tinybridge_vz"
+
+[dependencies]
+
+[build-dependencies]
+bindgen = { workspace = true }

@@ -1,6 +1,11 @@
 default: build
 
-build:
+vz-bridge:
+    swift build -c release --package-path swift/ --product TinyBridgeVZBridge
+    mkdir -p target/swift-libs
+    cp swift/.build/release/libTinyBridgeVZBridge.dylib target/swift-libs/
+
+build: vz-bridge
     cargo build --workspace
 
 test:
@@ -15,6 +20,7 @@ fmt:
 
 clean:
     cargo clean
+    swift package clean --package-path swift/
 
 run-daemon:
     RUST_LOG=debug cargo run --bin tinybridged
@@ -28,7 +34,7 @@ run-cli-help:
 check:
     cargo check --workspace
 
-release:
+release: vz-bridge
     cargo build --release --workspace
 
 watch:

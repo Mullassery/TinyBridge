@@ -1,0 +1,46 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     '/Users/georgimullassery/tinybridge/swift/.build/arm64-apple-macosx/release/libTinyBridgeVZBridge.dylib'
+relocations:
+  - { offset: 0x8A3C6, size: 0x8, addend: 0x0, symName: _tb_version, symObjAddr: 0x0, symBinAddr: 0xC90, symSize: 0x4 }
+  - { offset: 0x8A3E2, size: 0x8, addend: 0x0, symName: '_$s18TinyBridgeVZBridge10tb_versionSPys4Int8VGyF', symObjAddr: 0x4, symBinAddr: 0xC94, symSize: 0x54 }
+  - { offset: 0x8A5FF, size: 0x8, addend: 0x0, symName: ___swift_instantiateConcreteTypeFromMangledNameV2, symObjAddr: 0x58, symBinAddr: 0xCE8, symSize: 0x50 }
+  - { offset: 0x8A613, size: 0x8, addend: 0x0, symName: _tb_is_available, symObjAddr: 0xA8, symBinAddr: 0xD38, symSize: 0x8 }
+  - { offset: 0x8A62F, size: 0x8, addend: 0x0, symName: '_$s18TinyBridgeVZBridge15tb_is_availableSbyF', symObjAddr: 0xB0, symBinAddr: 0xD40, symSize: 0x8 }
+  - { offset: 0x8A75C, size: 0x8, addend: 0x0, symName: _tb_vm_create, symObjAddr: 0xB8, symBinAddr: 0xD48, symSize: 0x2C }
+  - { offset: 0x8A77C, size: 0x8, addend: 0x0, symName: _tb_vm_create, symObjAddr: 0xB8, symBinAddr: 0xD48, symSize: 0x2C }
+  - { offset: 0x8A7CD, size: 0x8, addend: 0x0, symName: '_$s18TinyBridgeVZBridge12tb_vm_createySvSgSVSgF', symObjAddr: 0xE4, symBinAddr: 0xD74, symSize: 0x2C }
+  - { offset: 0x8A839, size: 0x8, addend: 0x0, symName: '_$s18TinyBridgeVZBridge6VMStubCMa', symObjAddr: 0x110, symBinAddr: 0xDA0, symSize: 0x20 }
+  - { offset: 0x8A8A7, size: 0x8, addend: 0x0, symName: _tb_vm_force_stop, symObjAddr: 0x1E0, symBinAddr: 0xE70, symSize: 0x34 }
+  - { offset: 0x8A8C7, size: 0x8, addend: 0x0, symName: _tb_vm_force_stop, symObjAddr: 0x1E0, symBinAddr: 0xE70, symSize: 0x34 }
+  - { offset: 0x8A936, size: 0x8, addend: 0x0, symName: '_$s18TinyBridgeVZBridge16tb_vm_force_stopys5Int32VSvSgF', symObjAddr: 0x214, symBinAddr: 0xEA4, symSize: 0x34 }
+  - { offset: 0x8A9D9, size: 0x8, addend: 0x0, symName: _tb_vm_destroy, symObjAddr: 0x248, symBinAddr: 0xED8, symSize: 0xC }
+  - { offset: 0x8A9F9, size: 0x8, addend: 0x0, symName: _tb_vm_destroy, symObjAddr: 0x248, symBinAddr: 0xED8, symSize: 0xC }
+  - { offset: 0x8AA14, size: 0x8, addend: 0x0, symName: '_$s18TinyBridgeVZBridge13tb_vm_destroyyySvSgF', symObjAddr: 0x254, symBinAddr: 0xEE4, symSize: 0xC }
+  - { offset: 0x8AA74, size: 0x8, addend: 0x0, symName: _tb_vm_add_virtiofs, symObjAddr: 0x260, symBinAddr: 0xEF0, symSize: 0x14 }
+  - { offset: 0x8AA94, size: 0x8, addend: 0x0, symName: _tb_vm_add_virtiofs, symObjAddr: 0x260, symBinAddr: 0xEF0, symSize: 0x14 }
+  - { offset: 0x8AAB7, size: 0x8, addend: 0x0, symName: '_$s18TinyBridgeVZBridge18tb_vm_add_virtiofsys5Int32VSvSg_SVSgtF', symObjAddr: 0x274, symBinAddr: 0xF04, symSize: 0x14 }
+  - { offset: 0x8ABA3, size: 0x8, addend: 0x0, symName: _tb_vm_get_status, symObjAddr: 0x288, symBinAddr: 0xF18, symSize: 0x68 }
+  - { offset: 0x8AC30, size: 0x8, addend: 0x0, symName: '_$s18TinyBridgeVZBridge16tb_vm_get_statusys5Int32VSvSg_AEtF', symObjAddr: 0x2F0, symBinAddr: 0xF80, symSize: 0x68 }
+  - { offset: 0x8ACAD, size: 0x8, addend: 0x0, symName: _tb_vm_get_ip, symObjAddr: 0x358, symBinAddr: 0xFE8, symSize: 0x4 }
+  - { offset: 0x8AD00, size: 0x8, addend: 0x0, symName: '_$s18TinyBridgeVZBridge12tb_vm_get_ipys5Int32VSvSg_Spys4Int8VGSgSitF', symObjAddr: 0x35C, symBinAddr: 0xFEC, symSize: 0x144 }
+  - { offset: 0x8AE56, size: 0x8, addend: 0x0, symName: '_$sIeg_IeyB_TR', symObjAddr: 0x548, symBinAddr: 0x11D8, symSize: 0x2C }
+  - { offset: 0x8AEC8, size: 0x8, addend: 0x0, symName: '_$sS2SSysWl', symObjAddr: 0x9E4, symBinAddr: 0x1674, symSize: 0x40 }
+  - { offset: 0x8AEDC, size: 0x8, addend: 0x0, symName: '_$s18TinyBridgeVZBridge6VMStubC9getStatusAA14TBVMStatusStubVyFySPys4Int8VGXEfU_TA', symObjAddr: 0xA48, symBinAddr: 0x16D8, symSize: 0x38 }
+  - { offset: 0x8AF4A, size: 0x8, addend: 0x0, symName: '_$sSo17OS_dispatch_queueCMa', symObjAddr: 0xA80, symBinAddr: 0x1710, symSize: 0x44 }
+  - { offset: 0x8AF5E, size: 0x8, addend: 0x0, symName: '_$s18TinyBridgeVZBridge6VMStubC4stopyyFyyScMYccfU_TA', symObjAddr: 0xAE8, symBinAddr: 0x1778, symSize: 0x8 }
+  - { offset: 0x8AF72, size: 0x8, addend: 0x0, symName: _block_copy_helper, symObjAddr: 0xAF0, symBinAddr: 0x1780, symSize: 0x14 }
+  - { offset: 0x8AF86, size: 0x8, addend: 0x0, symName: _block_destroy_helper, symObjAddr: 0xB04, symBinAddr: 0x1794, symSize: 0x8 }
+  - { offset: 0x8AF9A, size: 0x8, addend: 0x0, symName: '_$s8Dispatch0A13WorkItemFlagsVACs10SetAlgebraAAWl', symObjAddr: 0xB0C, symBinAddr: 0x179C, symSize: 0x44 }
+  - { offset: 0x8AFAE, size: 0x8, addend: 0x0, symName: '_$sSay8Dispatch0A13WorkItemFlagsVGSayxGSTsWl', symObjAddr: 0xB50, symBinAddr: 0x17E0, symSize: 0x50 }
+  - { offset: 0x8AFC2, size: 0x8, addend: 0x0, symName: ___swift_instantiateConcreteTypeFromMangledNameAbstractV2, symObjAddr: 0xBA0, symBinAddr: 0x1830, symSize: 0x54 }
+  - { offset: 0x8AFD6, size: 0x8, addend: 0x0, symName: '_$s18TinyBridgeVZBridge6VMStubC5startyyFyyScMYccfU_TA', symObjAddr: 0xBF4, symBinAddr: 0x1884, symSize: 0x8 }
+  - { offset: 0x8B0EA, size: 0x8, addend: 0x0, symName: '_$s18TinyBridgeVZBridge6VMStubC9getStatusAA14TBVMStatusStubVyF', symObjAddr: 0x894, symBinAddr: 0x1524, symSize: 0x150 }
+  - { offset: 0x8B2CE, size: 0x8, addend: 0x0, symName: '_$s18TinyBridgeVZBridge6VMStubCfD', symObjAddr: 0xA24, symBinAddr: 0x16B4, symSize: 0x24 }
+  - { offset: 0x8B3A2, size: 0x8, addend: 0x0, symName: '_$s18TinyBridgeVZBridgeAAO7versionSSvau', symObjAddr: 0x0, symBinAddr: 0x1894, symSize: 0xC }
+  - { offset: 0x8B3C6, size: 0x8, addend: 0x0, symName: '_$s18TinyBridgeVZBridgeAAO7versionSSvpZ', symObjAddr: 0x90, symBinAddr: 0x1B10, symSize: 0x0 }
+  - { offset: 0x8B3D4, size: 0x8, addend: 0x0, symName: '_$s18TinyBridgeVZBridgeAAO7versionSSvau', symObjAddr: 0x0, symBinAddr: 0x1894, symSize: 0xC }
+  - { offset: 0x8B42A, size: 0x8, addend: 0x0, symName: '_$s18TinyBridgeVZBridgeAAOMa', symObjAddr: 0x28, symBinAddr: 0x18BC, symSize: 0x10 }
+  - { offset: 0x8B466, size: 0x8, addend: 0x0, symName: '_$s18TinyBridgeVZBridgeAAO7versionSSvgZ', symObjAddr: 0xC, symBinAddr: 0x18A0, symSize: 0x14 }
+  - { offset: 0x8B47A, size: 0x8, addend: 0x0, symName: '_$s18TinyBridgeVZBridgeAAO11isAvailableSbvgZ', symObjAddr: 0x20, symBinAddr: 0x18B4, symSize: 0x8 }
+...

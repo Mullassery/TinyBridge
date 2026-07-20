@@ -1,0 +1,16 @@
+[package]
+name    = "tinybridge-vz"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+tinybridge-vz-sys = { workspace = true }
+tinybridge-core    = { workspace = true }
+thiserror          = { workspace = true }
+anyhow             = { workspace = true }
+uuid               = { workspace = true }
+chrono             = { workspace = true }
+tracing            = { workspace = true }

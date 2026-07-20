@@ -1,0 +1,19 @@
+{
+  "": {
+    "dependencies": "/Users/georgimullassery/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridge.build/TinyBridgeVZBridge.d",
+    "object": "/Users/georgimullassery/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridge.build/TinyBridgeVZBridge.o",
+    "swift-dependencies": "/Users/georgimullassery/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridge.build/primary.swiftdeps"
+  },
+  "/Users/georgimullassery/tinybridge/swift/TinyBridgeVZBridge/TinyBridgeVZ.swift": {
+    "object": "/Users/georgimullassery/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridge.build/TinyBridgeVZ.swift.o",
+    "swiftmodule": "/Users/georgimullassery/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridge.build/TinyBridgeVZ~partial.swiftmodule",
+    "swift-dependencies": "/Users/georgimullassery/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridge.build/TinyBridgeVZ.swiftdeps",
+    "diagnostics": "/Users/georgimullassery/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridge.build/TinyBridgeVZ.dia"
+  },
+  "/Users/georgimullassery/tinybridge/swift/TinyBridgeVZBridge/TinyBridgeVZBridge.swift": {
+    "object": "/Users/georgimullassery/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridge.build/TinyBridgeVZBridge.swift.o",
+    "swiftmodule": "/Users/georgimullassery/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridge.build/TinyBridgeVZBridge~partial.swiftmodule",
+    "swift-dependencies": "/Users/georgimullassery/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridge.build/TinyBridgeVZBridge.swiftdeps",
+    "diagnostics": "/Users/georgimullassery/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridge.build/TinyBridgeVZBridge.dia"
+  }
+}
