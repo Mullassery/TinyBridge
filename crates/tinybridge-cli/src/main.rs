@@ -1,6 +1,7 @@
 mod client;
 mod commands;
 mod output;
+mod terminal;
 
 use anyhow::Result;
 use clap::{Parser, Subcommand};

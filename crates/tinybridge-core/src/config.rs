@@ -32,6 +32,16 @@ impl TinyBridgeConfig {
         let home = dirs::home_dir().unwrap_or_else(|| PathBuf::from("."));
         home.join(".tinybridge")
     }
+
+    pub fn shell_socket_path(shell_id: &str) -> PathBuf {
+        let home = dirs::home_dir().unwrap_or_else(|| PathBuf::from("."));
+        home.join(format!(".tinybridge/shells/{}.sock", shell_id))
+    }
+
+    pub fn shells_dir() -> PathBuf {
+        let home = dirs::home_dir().unwrap_or_else(|| PathBuf::from("."));
+        home.join(".tinybridge/shells")
+    }
 }
 
 impl Default for TinyBridgeConfig {

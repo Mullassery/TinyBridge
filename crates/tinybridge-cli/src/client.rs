@@ -94,4 +94,43 @@ impl DaemonClient {
         let result = self.call(methods::ENVIRONMENT_LIST, params).await?;
         Ok(serde_json::from_value(result)?)
     }
+
+    pub async fn open_shell(&mut self, name: &str) -> Result<UnixStream> {
+        let params = json!({
+            "name": name,
+            "interactive": true,
+        });
+
+        // Initiate shell session
+        let result = self.call(methods::ENVIRONMENT_SHELL, params).await?;
+
+        // Extract shell ID from response
+        let shell_id = result
+            .get("shell_id")
+            .and_then(|v| v.as_str())
+            .ok_or_else(|| anyhow!("No shell_id in response"))?;
+
+        // Connect to shell socket
+        let shell_socket_path = tinybridge_core::TinyBridgeConfig::shell_socket_path(shell_id);
+        let socket = UnixStream::connect(&shell_socket_path).map_err(|e| {
+            anyhow!("Failed to connect to shell socket: {}", e)
+        })?;
+
+        Ok(socket)
+    }
+
+    pub async fn shell_command(&mut self, params: Value) -> Result<()> {
+        let result = self.call(methods::ENVIRONMENT_SHELL, params).await?;
+
+        // Get output and print
+        if let Some(output) = result.get("output").and_then(|v| v.as_str()) {
+            println!("{}", output);
+        }
+
+        if let Some(error) = result.get("error").and_then(|v| v.as_str()) {
+            eprintln!("Error: {}", error);
+        }
+
+        Ok(())
+    }
 }
