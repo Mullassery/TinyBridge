@@ -217,10 +217,141 @@ substrate:
 - **Memory**: 512MB-32GB
 - **Disk**: 10GB-500GB (storage available on your Mac)
 
-Resize anytime:
-```bash
-tinybridge scale myenv --cpu 8 --memory 16GB
+---
+
+## Adjusting Resources While Running
+
+You can change CPU and memory allocation for a running environment without losing state. Changes take effect after restart.
+
+### Method 1: Update env.yaml (Recommended)
+
+Edit your `env.yaml` file and change the resource values:
+
+```yaml
+resources:
+  cpu: 4              # Change from 4
+  memory: 8GB         # Change from 8GB
+  disk: 50GB
 ```
+
+To:
+
+```yaml
+resources:
+  cpu: 8              # Now 8 cores
+  memory: 16GB        # Now 16GB RAM
+  disk: 50GB
+```
+
+Then restart the environment:
+
+```bash
+# Stop the environment (preserves all files and state)
+tinybridge down myenv
+
+# Start with new resources
+tinybridge up myenv
+```
+
+Your environment will boot with the new resource allocation. All files remain intact.
+
+### Method 2: Command-Line Update (While Running)
+
+Update resources without stopping the environment:
+
+```bash
+# Check current allocation
+tinybridge status myenv
+
+# Increase CPU to 8 cores
+tinybridge update myenv --cpu 8
+
+# Increase memory to 16GB
+tinybridge update myenv --memory 16GB
+
+# Both at once
+tinybridge update myenv --cpu 8 --memory 16GB
+```
+
+Changes apply immediately to new processes. Running processes keep their original resources until restart.
+
+For a clean restart with new resources:
+```bash
+tinybridge restart myenv
+```
+
+### Verifying Resource Changes
+
+Check the new allocation:
+
+```bash
+# Show environment details
+tinybridge status myenv
+
+# Inside the environment
+tinybridge shell myenv
+ubuntu@myenv:~$ nproc           # Show CPU cores
+8
+ubuntu@myenv:~$ free -h         # Show memory
+              total        used        free      shared  buff/cache   available
+Mem:            16Gi       2.1Gi       12Gi       0.0Gi       1.8Gi       13Gi
+```
+
+### Resource Adjustment Best Practices
+
+**When to increase resources:**
+- Machine learning training is slow → increase CPU + memory
+- Database operations are memory-constrained → increase memory
+- Compilation takes too long → increase CPU cores
+- Running multiple services → increase memory
+
+**When to decrease resources:**
+- Reduce macOS slowdown → free up unused cores
+- Free up RAM for other Mac apps
+- Testing resource-constrained deployments → simulate production limits
+
+**Safe limits:**
+- Keep at least 2 cores and 4GB RAM free on your Mac for macOS
+- Don't allocate more than 75% of your Mac's resources to any one environment
+- Example on 8-core, 16GB Mac: max `cpu: 6` and `memory: 12GB` per environment
+
+### Example: Progressive Resource Allocation
+
+Start small, then scale up as needed:
+
+```bash
+# Phase 1: Initial development (minimal resources)
+tinybridge up myenv  # Uses default: 4 cores, 8GB
+
+# Phase 2: Performance testing (increase resources)
+tinybridge update myenv --cpu 8 --memory 16GB
+
+# Phase 3: Production simulation (match production specs)
+tinybridge update myenv --cpu 16 --memory 32GB
+
+# Phase 4: Back to development (reduce resources)
+tinybridge update myenv --cpu 4 --memory 8GB
+```
+
+### Multiple Environments with Different Resources
+
+You can run multiple environments with different allocations:
+
+```bash
+# Environment 1: ML training (high resources)
+tinybridge up ml-training    # Has: cpu: 8, memory: 16GB (from env.yaml)
+
+# Environment 2: Web development (standard resources)
+tinybridge up backend         # Has: cpu: 4, memory: 8GB (from env.yaml)
+
+# Environment 3: Database testing (memory-heavy)
+tinybridge up database        # Has: cpu: 2, memory: 24GB (from env.yaml)
+
+# All three running simultaneously with their own allocations
+tinybridge list
+```
+
+See [Running Multiple Environments](README.md#-multiple-parallel-environments) for more details.
 
 ---
 
