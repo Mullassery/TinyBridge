@@ -6,7 +6,7 @@ Stop switching between macOS and Linux. Run a full Ubuntu environment on your Ma
 
 ---
 
-## Installation (30 seconds)
+## Installation
 
 ### Option 1: Homebrew (Recommended)
 
@@ -126,7 +126,7 @@ tinybridge up myprojectname  # Uses metadata.name from env.yaml
 No more "works on my machine". Production matches development exactly.
 
 ### ⚡ Instant Linux Shell
-Full Ubuntu with optimized boot. SSH-ready in seconds. All your tools pre-configured. Replace `myprojectname` with your actual project name:
+Full Ubuntu environment with optimized boot. SSH access with all your tools pre-configured. Replace `myprojectname` with your actual project name:
 
 ```bash
 tinybridge up myprojectname
@@ -460,7 +460,6 @@ Run Spark, Postgres, Kafka locally on Linux while writing code on macOS. No Dock
 |---------|---|---|---|
 | **Price** | Free forever | $7/month/user | Free |
 | **Setup** | One YAML file | Multiple configs + registration | YAML + scripts |
-| **Install Time** | 30 seconds | 5 minutes | 10 minutes |
 | **Native Mac App** | ✅ Yes (SwiftUI) | Heavy Electron | CLI only |
 | **Open Source** | ✅ Apache 2.0 | Partial | ✅ Yes |
 
@@ -468,7 +467,7 @@ Run Spark, Postgres, Kafka locally on Linux while writing code on macOS. No Dock
 
 | Feature | TinyBridge | Docker Desktop | Lima |
 |---------|---|---|---|
-| **Boot Time** | Optimized, <5s target | 10-20s | 8-15s |
+| **Boot** | Optimized | Slower | Similar |
 | **File Sync** | Automatic (VirtioFS, >90% native) | Slow (osxfs) | Manual (SSH) |
 | **Parallel Envs** | ✅ Easy (isolated) | ❌ Complex | ❌ Difficult |
 | **Resource Control** | Live adjustment (up/down) | Static allocation | Static allocation |
@@ -543,7 +542,6 @@ Run Spark, Postgres, Kafka locally on Linux while writing code on macOS. No Dock
 | Factor | TinyBridge | Docker Desktop | Lima |
 |---------|---|---|---|
 | **Software License** | $0 | $84/year/user | $0 |
-| **Onboarding Time** | 30 min | 2-3 hours | 1-2 hours |
 | **Learning Curve** | Shallow (YAML) | Steep (Docker ecosystem) | Moderate |
 | **DevOps Overhead** | Low (declarative) | High (image management) | Moderate |
 | **Total Cost (5-person team)** | $0 | $420/year | $0 |
