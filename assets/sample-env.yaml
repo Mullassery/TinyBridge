@@ -1,0 +1,22 @@
+apiVersion: tinybridge/v1
+kind: Environment
+metadata:
+  name: my-project
+  version: "1.0.0"
+  description: "My robotics development environment"
+substrate:
+  os: ubuntu-24.04
+  kernel: "6.6-lts"
+  arch:
+    - arm64
+    - amd64
+resources:
+  cpu: 4
+  memory: 8GB
+  disk: 50GB
+native:
+  tools:
+    - rust@1.87
+    - python@3.11
+    - cmake
+    - docker
