@@ -355,6 +355,286 @@ See [Running Multiple Environments](README.md#-multiple-parallel-environments) f
 
 ---
 
+## Running Multiple Parallel Environments
+
+TinyBridge lets you run multiple isolated Linux environments simultaneously on the same Mac. Each environment has its own:
+- CPU cores and memory allocation
+- Filesystem (~/myprojectname is independent from ~/anotherproject)
+- Network (separate IP addresses)
+- SSH access
+- Running processes
+
+### Quick Start: Run 3 Environments in Parallel
+
+Create 3 separate `env.yaml` files:
+
+**Project 1: Web Backend** (`backend/env.yaml`)
+```yaml
+apiVersion: tinybridge/v1
+kind: Environment
+metadata:
+  name: backend
+substrate:
+  os: ubuntu
+  version: "24.04"
+resources:
+  cpu: 4
+  memory: 8GB
+  disk: 50GB
+```
+
+**Project 2: ML Training** (`ml/env.yaml`)
+```yaml
+apiVersion: tinybridge/v1
+kind: Environment
+metadata:
+  name: ml-training
+substrate:
+  os: ubuntu
+  version: "24.04"
+resources:
+  cpu: 8              # More cores for ML
+  memory: 16GB        # More memory for models
+  disk: 100GB         # Larger disk for datasets
+```
+
+**Project 3: Database** (`database/env.yaml`)
+```yaml
+apiVersion: tinybridge/v1
+kind: Environment
+metadata:
+  name: database
+substrate:
+  os: ubuntu
+  version: "24.04"
+resources:
+  cpu: 2
+  memory: 12GB        # Memory-optimized
+  disk: 50GB
+```
+
+Start all three:
+
+```bash
+# Terminal 1: Start backend
+cd backend && tinybridge up backend
+
+# Terminal 2: Start ML training
+cd ml && tinybridge up ml-training
+
+# Terminal 3: Start database
+cd database && tinybridge up database
+
+# All three are now running simultaneously
+```
+
+Verify all are running:
+
+```bash
+tinybridge list
+```
+
+Output:
+```
+Name              Status          Uptime    IP Address
+backend           ✓ Running       2m30s     192.168.105.2
+ml-training       ✓ Running       1m45s     192.168.105.3
+database          ✓ Running       30s       192.168.105.4
+```
+
+### Working with Multiple Environments
+
+Each environment is independent. Operate on them individually:
+
+```bash
+# Open shell in backend
+tinybridge shell backend
+ubuntu@backend:~$ python app.py
+
+# Open shell in ML training (different terminal)
+tinybridge shell ml-training
+ubuntu@ml-training:~$ python train.py
+
+# Open shell in database (different terminal)
+tinybridge shell database
+ubuntu@database:~$ psql postgres
+```
+
+Files are isolated per environment:
+
+```bash
+# Files in ~/backend are only in backend environment
+echo "backend data" > ~/backend/data.txt
+tinybridge shell backend
+ubuntu@backend:~$ cat ~/data.txt
+backend data
+
+# Files in ~/ml-training are only in ML environment
+echo "ml data" > ~/ml-training/data.txt
+tinybridge shell ml-training
+ubuntu@ml-training:~$ cat ~/data.txt
+ml data
+```
+
+### Managing Multiple Environments
+
+Stop individual environments:
+
+```bash
+# Stop just the backend
+tinybridge down backend
+
+# ml-training and database still running
+tinybridge list
+# Shows: ml-training ✓ Running, database ✓ Running
+
+# Start backend again
+tinybridge up backend
+```
+
+Stop all at once:
+
+```bash
+tinybridge down backend && tinybridge down ml-training && tinybridge down database
+```
+
+Update resources for one environment:
+
+```bash
+# Increase ML training memory (while it's running)
+tinybridge update ml-training --memory 24GB
+
+# Or restart with new resources
+tinybridge restart ml-training
+```
+
+### Resource Planning for Multiple Environments
+
+**On an 8-core, 16GB Mac:**
+
+Good configuration:
+```yaml
+backend:
+  cpu: 3
+  memory: 6GB
+
+ml-training:
+  cpu: 3
+  memory: 6GB
+
+database:
+  cpu: 2
+  memory: 4GB
+
+# Total: 8 cores, 16GB RAM (leaves Mac at minimum)
+```
+
+**On a 10-core, 32GB Mac:**
+
+Aggressive configuration:
+```yaml
+backend:
+  cpu: 4
+  memory: 8GB
+
+ml-training:
+  cpu: 4
+  memory: 16GB
+
+database:
+  cpu: 2
+  memory: 8GB
+
+# Total: 10 cores, 32GB RAM
+# Safe: leaves some headroom
+```
+
+### Networking Between Environments
+
+Environments have separate IP addresses but can communicate:
+
+```bash
+# Find IPs
+tinybridge list
+
+# In backend environment
+tinybridge shell backend
+ubuntu@backend:~$ ping 192.168.105.3  # ML training IP
+ubuntu@backend:~$ curl http://192.168.105.4:5432  # Database IP
+```
+
+### Use Cases for Multiple Environments
+
+**Microservices Development:**
+```bash
+tinybridge up api-service      # 4 cores, 8GB
+tinybridge up frontend-service # 2 cores, 4GB
+tinybridge up database         # 2 cores, 8GB
+# Run and test all services together
+```
+
+**Machine Learning Pipeline:**
+```bash
+tinybridge up data-prep        # 4 cores, 8GB
+tinybridge up model-training   # 8 cores, 16GB
+tinybridge up inference        # 4 cores, 8GB
+# Run data pipeline, training, and inference separately
+```
+
+**Testing Against Multiple OS Versions:**
+```bash
+tinybridge up ubuntu-24.04  # Latest Ubuntu
+tinybridge up ubuntu-22.04  # LTS version
+tinybridge up debian-12     # Debian testing
+# Test code across different distributions
+```
+
+**Team Collaboration:**
+```bash
+tinybridge up alice-env    # Alice's project environment
+tinybridge up bob-env      # Bob's project environment
+# Different devs on same Mac, isolated setups
+```
+
+### Tips for Multiple Environments
+
+**Tip 1: Use Descriptive Names**
+- ✅ Good: `backend`, `ml-training`, `postgres-dev`
+- ❌ Avoid: `env1`, `env2`, `test`
+
+**Tip 2: Monitor Resources**
+```bash
+# Check Mac's resource usage while running environments
+top
+# or
+Activity Monitor  # macOS built-in
+```
+
+**Tip 3: Use Project-Specific Directories**
+```bash
+# Keep env.yaml in each project
+~/backend/env.yaml
+~/ml-training/env.yaml
+~/database/env.yaml
+
+# Navigate before starting
+cd backend && tinybridge up backend
+```
+
+**Tip 4: Automate with Scripts**
+```bash
+#!/bin/bash
+# start-all.sh
+
+cd ~/backend && tinybridge up backend &
+cd ~/ml-training && tinybridge up ml-training &
+cd ~/database && tinybridge up database &
+
+echo "All environments starting..."
+```
+
+---
+
 ## Sharing Environments
 
 Check `env.yaml` into git:
