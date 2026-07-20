@@ -13,6 +13,8 @@ pub struct EnvYaml {
     pub resources: Resources,
     #[serde(default)]
     pub native: NativeSection,
+    #[serde(default)]
+    pub execution: ExecutionProfiles,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -64,6 +66,38 @@ pub struct NativeSection {
 pub struct NativeToolSpec {
     pub name: String,
     pub version: Option<String>,
+}
+
+/// Execution profiles for tier-based workload routing
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct ExecutionProfiles {
+    #[serde(default)]
+    pub default_tier: Option<ExecutionTier>,
+    #[serde(default)]
+    pub profiles: Vec<ExecutionProfile>,
+}
+
+/// Execution tier preference
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum ExecutionTier {
+    /// Run on native macOS if possible
+    Native,
+    /// Run in Linux substrate
+    Linux,
+    /// Run on remote GPU tier
+    RemoteGpu,
+}
+
+/// Tool-level execution profile
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExecutionProfile {
+    /// Tool name pattern (glob)
+    pub tool: String,
+    /// Preferred tier for this tool
+    pub tier: ExecutionTier,
+    #[serde(default)]
+    pub fallback: Option<ExecutionTier>,
 }
 
 impl<'de> Deserialize<'de> for NativeToolSpec {

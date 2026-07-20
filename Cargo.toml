@@ -10,6 +10,9 @@ members = [
     "crates/tinybridge-clipboard",
     "crates/tinybridge-ssh",
     "crates/tinybridge-templates",
+    "crates/tinybridge-tunnel",
+    "crates/tinybridge-dns",
+    "crates/tinybridge-snapshots",
 ]
 
 [workspace.package]
@@ -48,6 +51,8 @@ tempfile           = "3.8"
 ssh-key            = { version = "0.6", features = ["ed25519", "encryption"] }
 regex              = "1.10"
 handlebars         = "5.0"
+sha2               = "0.10"
+hex                = "0.4"
 tinybridge-core       = { path = "crates/tinybridge-core" }
 tinybridge-cli        = { path = "crates/tinybridge-cli" }
 tinybridge-daemon     = { path = "crates/tinybridge-daemon" }
@@ -57,6 +62,9 @@ tinybridge-router     = { path = "crates/tinybridge-router" }
 tinybridge-clipboard  = { path = "crates/tinybridge-clipboard" }
 tinybridge-ssh        = { path = "crates/tinybridge-ssh" }
 tinybridge-templates  = { path = "crates/tinybridge-templates" }
+tinybridge-tunnel     = { path = "crates/tinybridge-tunnel" }
+tinybridge-dns        = { path = "crates/tinybridge-dns" }
+tinybridge-snapshots  = { path = "crates/tinybridge-snapshots" }
 
 [profile.release]
 opt-level = 3
