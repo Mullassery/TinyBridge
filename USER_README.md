@@ -120,7 +120,7 @@ ssh vm@192.168.1.10
 
 TinyBridge uses multi-tier lazy loading:
 
-**Tier 1 (SSH Ready):** Kernel + VirtioFS + networking online. SSH access available.  
+**Tier 1 (SSH Ready):** Boot complete. SSH access available immediately.  
 **Tier 2 (Usable):** Core system services running. Typical development tasks ready.  
 **Tier 3 (Complete):** All services online. System fully initialized.  
 
@@ -1213,7 +1213,7 @@ sleep 3 && ssh vm@192.168.1.10
 
 ### "File changes not syncing"
 
-VirtioFS caches by default. Give it a second or force a sync:
+File changes cache for performance. If you need to force a sync:
 ```bash
 vm@ubuntu:~$ sync
 ```

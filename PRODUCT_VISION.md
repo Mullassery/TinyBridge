@@ -39,7 +39,7 @@ SSH access available within seconds of `tinybridge up`, not minutes like Docker 
 ### What Ships with Every Environment
 
 - **Ubuntu 24.04** Linux
-- **VirtioFS** for transparent file access (same filesystem, 90%+ native speed)
+- **Fast file sharing** — edit on macOS, run in Linux, near-native performance
 - **Rosetta 2** (on Apple Silicon) so AMD64 binaries just work
 - **SSH access** out of the box
 - **Native networking** without Docker's complexity
@@ -101,7 +101,7 @@ Apache 2.0. No license costs. No vendor lock-in. Read the code, contribute, fork
 ### Phase 1: Local Environment (Shipping Now)
 - Optimized boot with lazy-loading of services
 - SSH access available early in startup
-- File sync via VirtioFS
+- Fast file sharing between macOS and Linux
 - Basic resource monitoring
 - Command-line interface
 - Support for multiple Linux distributions and versions (Ubuntu, Debian, Alpine, Fedora)

@@ -466,7 +466,7 @@ Run Spark, Postgres, Kafka locally on Linux while writing code on macOS. No Dock
 | Feature | TinyBridge | Docker Desktop | Lima |
 |---------|---|---|---|
 | **Boot** | Optimized | Slower | Similar |
-| **File Sync** | Automatic (VirtioFS, >90% native) | Slow (osxfs) | Manual (SSH) |
+| **File Sync** | Automatic, near-native speed | Slow (osxfs) | Manual (SSH) |
 | **Parallel Envs** | ✅ Easy (isolated) | ❌ Complex | ❌ Difficult |
 | **Resource Control** | Live adjustment (up/down) | Static allocation | Static allocation |
 | **Memory Efficiency** | Optimized | Heavy footprint | Lightweight |
@@ -747,7 +747,7 @@ TinyBridge's OpenTelemetry integration means:
 
 - ✅ Environment-as-Code (env.yaml)
 - ✅ CLI with full keyboard support
-- ✅ Automatic file sync (VirtioFS)
+- ✅ Automatic file sync (near-native performance)
 - ✅ Multiple parallel environments
 - ✅ OpenTelemetry integration
 - 🔄 Performance benchmarking (architecture validated, metrics collection in progress)

@@ -179,7 +179,7 @@ Private Key Storage:
 Methods (in priority order):
 1. Cloud-init (Ubuntu, Debian, Fedora, CentOS, RHEL, Rocky)
 2. Ignition (CoreOS, Fedora CoreOS)
-3. Custom script via VirtioFS (Alpine, Arch, others)
+3. Custom script delivery (Alpine, Arch, others)
 4. Manual injection (fallback)
 ```
 

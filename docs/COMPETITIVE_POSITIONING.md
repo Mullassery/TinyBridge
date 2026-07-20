@@ -35,7 +35,7 @@ OrbStack is a tightly integrated macOS GUI app combining containers, VMs, SSH, n
 |---------|----------|-----------|----------|-------|
 | **SSH Access** | ✅ | 🔨 | Phase 2a | Just completed comprehensive SSH infrastructure |
 | **Linux VMs** | ✅ | ✅ | Phase 1 | Multi-distro via cloud-init provisioning |
-| **VirtioFS** | ✅ | ✅ | Phase 1 | >90% native I/O performance |
+| **Fast File Sharing** | ✅ | ✅ | Phase 1 | Near-native I/O performance |
 | **Container Runtime** | ✅ (Docker) | 📋 | Phase 4 | Deferred: Focus on quality VM experience first |
 | **DNS/Domains** | ✅ | 📋 | Phase 2 | `.local` TLD + mDNS integration |
 | **Automatic HTTPS** | ✅ | 📋 | Phase 3 | mkcert integration, local CA |
@@ -62,7 +62,7 @@ OrbStack is a tightly integrated macOS GUI app combining containers, VMs, SSH, n
 
 **Parity with OrbStack:**
 - ✅ Linux VMs (Ubuntu, multi-distro via cloud-init)
-- ✅ VirtioFS file sharing (>90% native I/O)
+- ✅ Fast file sharing (near-native I/O performance)
 - ✅ Resource allocation (CPU, memory, disk)
 - ✅ Multi-architecture (arm64 native, x86 Rosetta)
 - ✅ Suspend/Resume (VZ framework)
@@ -135,7 +135,7 @@ OrbStack is a tightly integrated macOS GUI app combining containers, VMs, SSH, n
 
 **Unique to TinyBridge:**
 - 🎯 USB passthrough (camera, serial, audio devices)
-- 🎯 GPU bridge (Vulkan-Metal via VirtioGPU)
+- 🎯 GPU acceleration (native Metal support)
 - 🎯 Plugin architecture (community extensions)
 - 🎯 Cross-environment clipboard (Phase 2: implemented)
 - 🎯 Hardware-backed key support (Secure Enclave, YubiKey, TPM)
@@ -251,7 +251,7 @@ Developer →→ TinyBridge platform
 ### Must-Have (Shipping Phase 1-2)
 1. ✅ SSH (auto key-gen, zero config)
 2. ✅ Linux VMs (multi-distro)
-3. ✅ VirtioFS (fast file sharing)
+3. ✅ Fast file sharing (near-native performance)
 4. 📋 Environment templates
 5. 📋 DNS/domains
 
