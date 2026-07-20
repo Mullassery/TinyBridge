@@ -127,11 +127,7 @@ impl PolicyRule {
     }
 
     /// Create a new block policy rule
-    pub fn block(
-        device_type: DeviceType,
-        level: PolicyLevel,
-        reason: BlockReason,
-    ) -> Self {
+    pub fn block(device_type: DeviceType, level: PolicyLevel, reason: BlockReason) -> Self {
         Self {
             id: Uuid::new_v4(),
             device_type,
@@ -394,7 +390,12 @@ impl PolicyEngine {
     }
 
     /// Grant temporary admin override
-    pub fn grant_override(&mut self, env_id: Option<Uuid>, device_type: DeviceType, duration_secs: u64) {
+    pub fn grant_override(
+        &mut self,
+        env_id: Option<Uuid>,
+        device_type: DeviceType,
+        duration_secs: u64,
+    ) {
         let expiry = Utc::now() + chrono::Duration::seconds(duration_secs as i64);
         self.overrides.insert((env_id, device_type), expiry);
 
@@ -495,7 +496,10 @@ impl AccessResult {
         } else {
             let mut msg = format!(
                 "Device passthrough is blocked: {}",
-                self.reason.as_ref().map(|r| r.to_string()).unwrap_or_default()
+                self.reason
+                    .as_ref()
+                    .map(|r| r.to_string())
+                    .unwrap_or_default()
             );
 
             if let Some(level) = self.policy_level {
@@ -527,11 +531,7 @@ mod tests {
 
     #[test]
     fn test_policy_block_rule() {
-        let rule = PolicyRule::block(
-            DeviceType::Usb,
-            PolicyLevel::Platform,
-            BlockReason::Dlp,
-        );
+        let rule = PolicyRule::block(DeviceType::Usb, PolicyLevel::Platform, BlockReason::Dlp);
         assert_eq!(rule.decision, AccessDecision::Block);
         assert!(rule.block_reason.is_some());
     }
@@ -549,11 +549,7 @@ mod tests {
     #[test]
     fn test_policy_engine_block() {
         let mut engine = PolicyEngine::new();
-        let rule = PolicyRule::block(
-            DeviceType::Usb,
-            PolicyLevel::Platform,
-            BlockReason::Dlp,
-        );
+        let rule = PolicyRule::block(DeviceType::Usb, PolicyLevel::Platform, BlockReason::Dlp);
         engine.add_rule(rule);
 
         let result = engine.check_access(DeviceType::Usb, None, None);
@@ -598,11 +594,8 @@ mod tests {
         let mut engine = PolicyEngine::new();
 
         // Platform policy: block all USB
-        let platform_rule = PolicyRule::block(
-            DeviceType::Usb,
-            PolicyLevel::Platform,
-            BlockReason::Dlp,
-        );
+        let platform_rule =
+            PolicyRule::block(DeviceType::Usb, PolicyLevel::Platform, BlockReason::Dlp);
         engine.add_rule(platform_rule);
 
         // VM-level override: allow this specific VM

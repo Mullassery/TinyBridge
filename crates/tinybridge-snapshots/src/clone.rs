@@ -168,7 +168,12 @@ mod tests {
         let mut manager = CloneManager::new();
         let source_id = Uuid::new_v4();
         let clone_id = Uuid::new_v4();
-        let metadata = CloneMetadata::new(clone_id, source_id, "clone1".to_string(), CloneStrategy::CopyOnWrite);
+        let metadata = CloneMetadata::new(
+            clone_id,
+            source_id,
+            "clone1".to_string(),
+            CloneStrategy::CopyOnWrite,
+        );
 
         manager.create_clone(metadata.clone()).unwrap();
 
@@ -182,8 +187,18 @@ mod tests {
         let mut manager = CloneManager::new();
         let source_id = Uuid::new_v4();
 
-        let c1 = CloneMetadata::new(Uuid::new_v4(), source_id, "c1".to_string(), CloneStrategy::Full);
-        let c2 = CloneMetadata::new(Uuid::new_v4(), source_id, "c2".to_string(), CloneStrategy::CopyOnWrite);
+        let c1 = CloneMetadata::new(
+            Uuid::new_v4(),
+            source_id,
+            "c1".to_string(),
+            CloneStrategy::Full,
+        );
+        let c2 = CloneMetadata::new(
+            Uuid::new_v4(),
+            source_id,
+            "c2".to_string(),
+            CloneStrategy::CopyOnWrite,
+        );
 
         manager.create_clone(c1).unwrap();
         manager.create_clone(c2).unwrap();
@@ -196,7 +211,12 @@ mod tests {
     fn test_delete_clone() {
         let mut manager = CloneManager::new();
         let clone_id = Uuid::new_v4();
-        let metadata = CloneMetadata::new(clone_id, Uuid::new_v4(), "clone".to_string(), CloneStrategy::Full);
+        let metadata = CloneMetadata::new(
+            clone_id,
+            Uuid::new_v4(),
+            "clone".to_string(),
+            CloneStrategy::Full,
+        );
 
         manager.create_clone(metadata).unwrap();
         assert_eq!(manager.list_all().len(), 1);
@@ -210,10 +230,20 @@ mod tests {
         let mut manager = CloneManager::new();
         let source_id = Uuid::new_v4();
 
-        let mut c1 = CloneMetadata::new(Uuid::new_v4(), source_id, "c1".to_string(), CloneStrategy::CopyOnWrite);
+        let mut c1 = CloneMetadata::new(
+            Uuid::new_v4(),
+            source_id,
+            "c1".to_string(),
+            CloneStrategy::CopyOnWrite,
+        );
         c1.size_bytes = 500;
 
-        let mut c2 = CloneMetadata::new(Uuid::new_v4(), source_id, "c2".to_string(), CloneStrategy::Full);
+        let mut c2 = CloneMetadata::new(
+            Uuid::new_v4(),
+            source_id,
+            "c2".to_string(),
+            CloneStrategy::Full,
+        );
         c2.size_bytes = 1500;
 
         manager.create_clone(c1).unwrap();
@@ -227,8 +257,18 @@ mod tests {
         let mut manager = CloneManager::new();
         let source_id = Uuid::new_v4();
 
-        let c1 = CloneMetadata::new(Uuid::new_v4(), source_id, "c1".to_string(), CloneStrategy::Full);
-        let c2 = CloneMetadata::new(Uuid::new_v4(), source_id, "c2".to_string(), CloneStrategy::CopyOnWrite);
+        let c1 = CloneMetadata::new(
+            Uuid::new_v4(),
+            source_id,
+            "c1".to_string(),
+            CloneStrategy::Full,
+        );
+        let c2 = CloneMetadata::new(
+            Uuid::new_v4(),
+            source_id,
+            "c2".to_string(),
+            CloneStrategy::CopyOnWrite,
+        );
 
         manager.create_clone(c1).unwrap();
         std::thread::sleep(std::time::Duration::from_millis(10));

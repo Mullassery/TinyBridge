@@ -1,6 +1,6 @@
 use anyhow::Result;
-use std::path::PathBuf;
 use indicatif::{ProgressBar, ProgressStyle};
+use std::path::PathBuf;
 
 use crate::client::DaemonClient;
 use crate::commands::UpArgs;

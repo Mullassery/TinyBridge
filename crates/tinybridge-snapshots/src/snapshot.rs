@@ -190,7 +190,10 @@ impl SnapshotManager {
 
     /// Count snapshots for an environment
     pub fn count_for_env(&self, env_id: Uuid) -> usize {
-        self.snapshots.values().filter(|s| s.env_id == env_id).count()
+        self.snapshots
+            .values()
+            .filter(|s| s.env_id == env_id)
+            .count()
     }
 }
 

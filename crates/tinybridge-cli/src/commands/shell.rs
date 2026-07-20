@@ -19,11 +19,7 @@ pub async fn execute(args: ShellArgs, socket: Option<PathBuf>) -> Result<()> {
     }
 }
 
-async fn execute_command(
-    cmd: String,
-    env_name: &str,
-    socket: Option<PathBuf>,
-) -> Result<()> {
+async fn execute_command(cmd: String, env_name: &str, socket: Option<PathBuf>) -> Result<()> {
     let mut client = DaemonClient::new(socket)?;
 
     output::print_info(&format!("Executing in {}: {}", env_name, cmd));
@@ -37,11 +33,10 @@ async fn execute_command(
 }
 
 async fn execute_interactive_shell(env_name: &str, socket: Option<PathBuf>) -> Result<()> {
-    output::print_info(&format!(
-        "Opening shell in environment: {}",
-        env_name
-    ));
-    output::print_info("Keyboard support: All keys including arrows, Ctrl+C, Ctrl+D, function keys");
+    output::print_info(&format!("Opening shell in environment: {}", env_name));
+    output::print_info(
+        "Keyboard support: All keys including arrows, Ctrl+C, Ctrl+D, function keys",
+    );
 
     let mut client = DaemonClient::new(socket)?;
 

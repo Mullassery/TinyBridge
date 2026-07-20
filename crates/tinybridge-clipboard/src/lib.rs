@@ -1,7 +1,7 @@
+pub mod bridge;
 pub mod error;
 pub mod linux;
 pub mod macos;
-pub mod bridge;
 
 pub use bridge::ClipboardBridge;
 pub use error::{ClipboardError, Result};

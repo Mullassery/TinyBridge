@@ -167,7 +167,10 @@ impl IpAddressRecord {
 
     /// Get primary IP (preferring IPv4)
     pub fn primary_ip(&self) -> Option<String> {
-        self.network.ipv4.clone().or_else(|| self.network.ipv6.clone())
+        self.network
+            .ipv4
+            .clone()
+            .or_else(|| self.network.ipv6.clone())
     }
 
     /// Check if VM is currently reachable
@@ -187,7 +190,11 @@ impl IpAddressRecord {
             ip_address: self.primary_ip(),
             hostname: format!("{}.local", self.env_name),
             ssh_command: self.primary_ip().map(|ip| format!("ssh ubuntu@{}", ip)),
-            http_url: self.network.ipv4.as_ref().map(|ip| format!("http://{}:8080", ip)),
+            http_url: self
+                .network
+                .ipv4
+                .as_ref()
+                .map(|ip| format!("http://{}:8080", ip)),
             status: self.status,
             network_path: self.network_path,
         }
@@ -223,10 +230,8 @@ impl IpMonitor {
 
     /// Register an environment for monitoring
     pub fn register(&mut self, env_id: Uuid, env_name: String, ssh_alias: String) {
-        self.records.insert(
-            env_id,
-            IpAddressRecord::new(env_id, env_name, ssh_alias),
-        );
+        self.records
+            .insert(env_id, IpAddressRecord::new(env_id, env_name, ssh_alias));
     }
 
     /// Unregister an environment
@@ -386,7 +391,8 @@ mod tests {
 
     #[test]
     fn test_ip_address_record() {
-        let mut record = IpAddressRecord::new(Uuid::new_v4(), "test".to_string(), "alias".to_string());
+        let mut record =
+            IpAddressRecord::new(Uuid::new_v4(), "test".to_string(), "alias".to_string());
         assert_eq!(record.status, ConnectivityStatus::Unknown);
         assert!(record.update_ipv4(Some("192.168.1.100".to_string())));
         assert_eq!(record.primary_ip(), Some("192.168.1.100".to_string()));
@@ -394,7 +400,8 @@ mod tests {
 
     #[test]
     fn test_vm_discovery_metadata() {
-        let mut record = IpAddressRecord::new(Uuid::new_v4(), "myvm".to_string(), "alias".to_string());
+        let mut record =
+            IpAddressRecord::new(Uuid::new_v4(), "myvm".to_string(), "alias".to_string());
         record.update_ipv4(Some("192.168.1.100".to_string()));
         record.set_connectivity_status(ConnectivityStatus::Online);
 

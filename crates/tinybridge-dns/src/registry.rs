@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use uuid::Uuid;
 
-use crate::error::{Result, DnsError};
+use crate::error::{DnsError, Result};
 
 /// DNS entry for an environment
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -85,9 +85,10 @@ impl DnsRegistry {
 
         // Check for FQDN conflicts
         if self.fqdn_to_id.contains_key(&fqdn) {
-            return Err(DnsError::RegistrationError(
-                format!("FQDN {} already registered", fqdn),
-            ));
+            return Err(DnsError::RegistrationError(format!(
+                "FQDN {} already registered",
+                fqdn
+            )));
         }
 
         self.fqdn_to_id.insert(fqdn.clone(), env_id);
@@ -110,10 +111,9 @@ impl DnsRegistry {
 
     /// Unregister a DNS entry
     pub fn unregister(&mut self, env_id: Uuid) -> Result<DnsEntry> {
-        let entry = self
-            .entries
-            .remove(&env_id)
-            .ok_or_else(|| DnsError::RegistrationError(format!("Entry not found for {}", env_id)))?;
+        let entry = self.entries.remove(&env_id).ok_or_else(|| {
+            DnsError::RegistrationError(format!("Entry not found for {}", env_id))
+        })?;
 
         self.fqdn_to_id.remove(&entry.fqdn);
         Ok(entry)
@@ -229,7 +229,9 @@ mod tests {
         let entry = DnsEntry::new(env_id, "myenv".to_string(), "myenv.local".to_string());
 
         registry.register(entry).unwrap();
-        registry.update_ipv4(env_id, "192.168.1.100".to_string()).unwrap();
+        registry
+            .update_ipv4(env_id, "192.168.1.100".to_string())
+            .unwrap();
 
         let retrieved = registry.get_by_env_id(env_id).unwrap();
         assert_eq!(retrieved.ipv4, Some("192.168.1.100".to_string()));

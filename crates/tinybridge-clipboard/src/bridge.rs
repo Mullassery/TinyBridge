@@ -82,7 +82,10 @@ impl ClipboardBridge {
 
     /// Start continuous clipboard sync in background
     pub async fn start_sync(&self) -> Result<()> {
-        debug!("Starting clipboard bridge sync (interval: {:?})", self.sync_interval);
+        debug!(
+            "Starting clipboard bridge sync (interval: {:?})",
+            self.sync_interval
+        );
 
         let mut sync_timer = interval(self.sync_interval);
 

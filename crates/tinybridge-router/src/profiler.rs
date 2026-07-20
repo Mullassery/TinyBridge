@@ -67,10 +67,7 @@ impl RoutingProfiler {
 
     /// Get average execution time for a tier
     pub fn avg_execution_time_for_tier(&self, tier: ExecutionTier) -> u64 {
-        let relevant: Vec<_> = self.metrics
-            .iter()
-            .filter(|m| m.tier == tier)
-            .collect();
+        let relevant: Vec<_> = self.metrics.iter().filter(|m| m.tier == tier).collect();
 
         if relevant.is_empty() {
             return 0;
@@ -103,17 +100,16 @@ impl RoutingProfiler {
     fn tier_stats(&self) -> Vec<TierStat> {
         let mut stats = Vec::new();
 
-        for tier in [ExecutionTier::Native, ExecutionTier::Linux, ExecutionTier::Remote] {
-            let relevant: Vec<_> = self.metrics
-                .iter()
-                .filter(|m| m.tier == tier)
-                .collect();
+        for tier in [
+            ExecutionTier::Native,
+            ExecutionTier::Linux,
+            ExecutionTier::Remote,
+        ] {
+            let relevant: Vec<_> = self.metrics.iter().filter(|m| m.tier == tier).collect();
 
             if !relevant.is_empty() {
-                let avg_time: u64 = relevant
-                    .iter()
-                    .map(|m| m.execution_time_ms)
-                    .sum::<u64>() / relevant.len() as u64;
+                let avg_time: u64 = relevant.iter().map(|m| m.execution_time_ms).sum::<u64>()
+                    / relevant.len() as u64;
 
                 stats.push(TierStat {
                     tier,

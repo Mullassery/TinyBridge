@@ -52,9 +52,7 @@ pub struct RulesEngine {
 impl RulesEngine {
     /// Create a new rules engine
     pub fn new() -> Self {
-        Self {
-            rules: Vec::new(),
-        }
+        Self { rules: Vec::new() }
     }
 
     /// Add a routing rule
@@ -77,8 +75,20 @@ impl RulesEngine {
 
         // Linux-only tools (force Linux tier)
         let linux_tools = vec![
-            "python", "python3", "node", "npm", "pip", "docker", "docker-compose",
-            "systemctl", "apt-get", "dpkg", "rpm", "gcc", "make", "cmake",
+            "python",
+            "python3",
+            "node",
+            "npm",
+            "pip",
+            "docker",
+            "docker-compose",
+            "systemctl",
+            "apt-get",
+            "dpkg",
+            "rpm",
+            "gcc",
+            "make",
+            "cmake",
         ];
 
         for tool in linux_tools {
@@ -142,12 +152,7 @@ impl RulesEngine {
     }
 
     /// Find the best matching rule for a workload
-    pub fn find_tier(
-        &self,
-        command: &str,
-        format: BinaryFormat,
-        has_gpu: bool,
-    ) -> ExecutionTier {
+    pub fn find_tier(&self, command: &str, format: BinaryFormat, has_gpu: bool) -> ExecutionTier {
         // Check each rule in priority order
         for rule in &self.rules {
             if self.matches_criteria(&rule.criteria, command, format, has_gpu) {
@@ -172,12 +177,8 @@ impl RulesEngine {
         has_gpu: bool,
     ) -> bool {
         match criteria {
-            RoutingCriteria::BinaryFormat { format: fmt } => {
-                fmt == &format.to_string()
-            }
-            RoutingCriteria::Command { name } => {
-                command.ends_with(name) || command == name
-            }
+            RoutingCriteria::BinaryFormat { format: fmt } => fmt == &format.to_string(),
+            RoutingCriteria::Command { name } => command.ends_with(name) || command == name,
             RoutingCriteria::Extension { extension } => {
                 command.ends_with(&format!(".{}", extension))
             }
@@ -185,15 +186,13 @@ impl RulesEngine {
                 // Capabilities checked at environment level
                 false
             }
-            RoutingCriteria::Requirements { gpu } => {
-                gpu.is_none() || gpu == &Some(has_gpu)
-            }
-            RoutingCriteria::All { rules } => {
-                rules.iter().all(|r| self.matches_criteria(r, command, format, has_gpu))
-            }
-            RoutingCriteria::Any { rules } => {
-                rules.iter().any(|r| self.matches_criteria(r, command, format, has_gpu))
-            }
+            RoutingCriteria::Requirements { gpu } => gpu.is_none() || gpu == &Some(has_gpu),
+            RoutingCriteria::All { rules } => rules
+                .iter()
+                .all(|r| self.matches_criteria(r, command, format, has_gpu)),
+            RoutingCriteria::Any { rules } => rules
+                .iter()
+                .any(|r| self.matches_criteria(r, command, format, has_gpu)),
         }
     }
 }

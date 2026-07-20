@@ -4,13 +4,13 @@ use crate::error::{ClipboardError, Result};
 #[cfg(target_os = "macos")]
 use objc::msg_send;
 #[cfg(target_os = "macos")]
+use objc::runtime::Class;
+#[cfg(target_os = "macos")]
 use objc::sel;
 #[cfg(target_os = "macos")]
 use objc::sel_impl;
 #[cfg(target_os = "macos")]
-use objc_foundation::{NSString, INSString};
-#[cfg(target_os = "macos")]
-use objc::runtime::Class;
+use objc_foundation::{INSString, NSString};
 
 /// Access macOS pasteboard for clipboard operations
 pub struct MacosPasteboard;
@@ -20,13 +20,17 @@ impl MacosPasteboard {
     /// Read text from the general pasteboard
     pub fn read_text() -> Result<Option<String>> {
         unsafe {
-            let pasteboard_class = Class::get("NSPasteboard")
-                .ok_or_else(|| ClipboardError::PasteboardError("NSPasteboard class not found".to_string()))?;
+            let pasteboard_class = Class::get("NSPasteboard").ok_or_else(|| {
+                ClipboardError::PasteboardError("NSPasteboard class not found".to_string())
+            })?;
 
             // [NSPasteboard generalPasteboard]
-            let pasteboard: *mut objc::runtime::Object = msg_send![pasteboard_class, generalPasteboard];
+            let pasteboard: *mut objc::runtime::Object =
+                msg_send![pasteboard_class, generalPasteboard];
             if pasteboard.is_null() {
-                return Err(ClipboardError::PasteboardError("Failed to get general pasteboard".to_string()));
+                return Err(ClipboardError::PasteboardError(
+                    "Failed to get general pasteboard".to_string(),
+                ));
             }
 
             // [pasteboard stringForType:NSPasteboardTypeString]
@@ -51,13 +55,17 @@ impl MacosPasteboard {
     /// Write text to the general pasteboard
     pub fn write_text(text: &str) -> Result<()> {
         unsafe {
-            let pasteboard_class = Class::get("NSPasteboard")
-                .ok_or_else(|| ClipboardError::PasteboardError("NSPasteboard class not found".to_string()))?;
+            let pasteboard_class = Class::get("NSPasteboard").ok_or_else(|| {
+                ClipboardError::PasteboardError("NSPasteboard class not found".to_string())
+            })?;
 
             // [NSPasteboard generalPasteboard]
-            let pasteboard: *mut objc::runtime::Object = msg_send![pasteboard_class, generalPasteboard];
+            let pasteboard: *mut objc::runtime::Object =
+                msg_send![pasteboard_class, generalPasteboard];
             if pasteboard.is_null() {
-                return Err(ClipboardError::PasteboardError("Failed to get general pasteboard".to_string()));
+                return Err(ClipboardError::PasteboardError(
+                    "Failed to get general pasteboard".to_string(),
+                ));
             }
 
             // [pasteboard clearContents]
@@ -73,7 +81,9 @@ impl MacosPasteboard {
             if success {
                 Ok(())
             } else {
-                Err(ClipboardError::WriteError("Failed to set pasteboard content".to_string()))
+                Err(ClipboardError::WriteError(
+                    "Failed to set pasteboard content".to_string(),
+                ))
             }
         }
     }
@@ -81,13 +91,17 @@ impl MacosPasteboard {
     /// Get the change count of the pasteboard (for detecting changes)
     pub fn change_count() -> Result<u64> {
         unsafe {
-            let pasteboard_class = Class::get("NSPasteboard")
-                .ok_or_else(|| ClipboardError::PasteboardError("NSPasteboard class not found".to_string()))?;
+            let pasteboard_class = Class::get("NSPasteboard").ok_or_else(|| {
+                ClipboardError::PasteboardError("NSPasteboard class not found".to_string())
+            })?;
 
             // [NSPasteboard generalPasteboard]
-            let pasteboard: *mut objc::runtime::Object = msg_send![pasteboard_class, generalPasteboard];
+            let pasteboard: *mut objc::runtime::Object =
+                msg_send![pasteboard_class, generalPasteboard];
             if pasteboard.is_null() {
-                return Err(ClipboardError::PasteboardError("Failed to get general pasteboard".to_string()));
+                return Err(ClipboardError::PasteboardError(
+                    "Failed to get general pasteboard".to_string(),
+                ));
             }
 
             // [pasteboard changeCount]

@@ -1,8 +1,8 @@
 pub mod detector;
 pub mod error;
-pub mod rules;
 pub mod profiler;
 pub mod router;
+pub mod rules;
 
 pub use detector::BinaryFormat;
 pub use error::RouterError;

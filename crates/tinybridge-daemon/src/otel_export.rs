@@ -102,10 +102,7 @@ pub enum ExportBackend {
     Jaeger { endpoint: String },
 
     /// Datadog OTLP HTTP exporter (traces + metrics)
-    Datadog {
-        api_key: String,
-        endpoint: String,
-    },
+    Datadog { api_key: String, endpoint: String },
 
     /// NewRelic OTLP exporter
     NewRelic { api_key: String },
@@ -170,7 +167,10 @@ impl ExportBackend {
                 }
             }
 
-            ExportBackend::Datadog { api_key: _, endpoint } => {
+            ExportBackend::Datadog {
+                api_key: _,
+                endpoint,
+            } => {
                 #[cfg(feature = "otel-datadog")]
                 {
                     let exporter = datadog_exporter::DatadogExporter::new(

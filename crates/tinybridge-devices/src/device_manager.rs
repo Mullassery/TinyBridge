@@ -1,7 +1,7 @@
 use crate::device::Device;
 use crate::device::DeviceType;
 use crate::error::{DeviceError, Result};
-use crate::policy::{PolicyEngine, PolicyAuditEvent};
+use crate::policy::{PolicyAuditEvent, PolicyEngine};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -33,7 +33,7 @@ pub struct ComplianceReport {
 pub struct DeviceManager {
     devices: HashMap<Uuid, Device>,
     host_path_to_id: HashMap<PathBuf, Uuid>, // Reverse lookup
-    policy_engine: PolicyEngine,              // Policy enforcement
+    policy_engine: PolicyEngine,             // Policy enforcement
 }
 
 impl DeviceManager {
@@ -63,9 +63,10 @@ impl DeviceManager {
 
         // Check for duplicate paths
         if self.host_path_to_id.contains_key(&host_path) {
-            return Err(DeviceError::AlreadyAttached(
-                format!("Device at {} already registered", host_path.display()),
-            ));
+            return Err(DeviceError::AlreadyAttached(format!(
+                "Device at {} already registered",
+                host_path.display()
+            )));
         }
 
         self.host_path_to_id.insert(host_path, id);
@@ -103,12 +104,12 @@ impl DeviceManager {
             .ok_or_else(|| DeviceError::DeviceNotFound(device_id.to_string()))?;
 
         // Check policy before attaching
-        let access_result = self.policy_engine.check_access(device.device_type, Some(env_id), user_id);
+        let access_result =
+            self.policy_engine
+                .check_access(device.device_type, Some(env_id), user_id);
 
         if !access_result.allowed {
-            return Err(DeviceError::PermissionDenied(
-                access_result.user_message(),
-            ));
+            return Err(DeviceError::PermissionDenied(access_result.user_message()));
         }
 
         // Policy check passed, proceed with attachment
@@ -117,7 +118,8 @@ impl DeviceManager {
             .get_mut(&device_id)
             .ok_or_else(|| DeviceError::DeviceNotFound(device_id.to_string()))?;
 
-        device.attach(env_id)
+        device
+            .attach(env_id)
             .map_err(|e| DeviceError::AttachError(e))
     }
 
@@ -189,9 +191,23 @@ impl DeviceManager {
     }
 
     /// Check if a device can be attached without actually attaching it
-    pub fn can_attach(&mut self, device_type: DeviceType, env_id: Uuid, user_id: Option<&str>) -> (bool, Option<String>) {
-        let result = self.policy_engine.check_access(device_type, Some(env_id), user_id);
-        (result.allowed, if !result.allowed { Some(result.user_message()) } else { None })
+    pub fn can_attach(
+        &mut self,
+        device_type: DeviceType,
+        env_id: Uuid,
+        user_id: Option<&str>,
+    ) -> (bool, Option<String>) {
+        let result = self
+            .policy_engine
+            .check_access(device_type, Some(env_id), user_id);
+        (
+            result.allowed,
+            if !result.allowed {
+                Some(result.user_message())
+            } else {
+                None
+            },
+        )
     }
 
     /// Get audit log from policy engine
@@ -361,7 +377,9 @@ mod tests {
         let device_id = device.id;
 
         manager.register(device).unwrap();
-        manager.set_error(device_id, "Connection failed".to_string()).unwrap();
+        manager
+            .set_error(device_id, "Connection failed".to_string())
+            .unwrap();
 
         let device = manager.get(device_id).unwrap();
         assert_eq!(device.status, DeviceStatus::Error);

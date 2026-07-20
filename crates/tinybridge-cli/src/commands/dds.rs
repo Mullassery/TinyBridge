@@ -1,6 +1,6 @@
+use crate::client::DaemonClient;
 use anyhow::Result;
 use clap::{Parser, Subcommand};
-use crate::client::DaemonClient;
 use console::{style, Emoji};
 use serde_json::json;
 
@@ -60,7 +60,11 @@ pub async fn execute(args: DdsArgs, client: &mut DaemonClient) -> Result<()> {
             if json {
                 println!("{}", serde_json::to_string_pretty(&response)?);
             } else {
-                println!("\n{} {}", style("DDS Status for").bold(), style(&env).cyan());
+                println!(
+                    "\n{} {}",
+                    style("DDS Status for").bold(),
+                    style(&env).cyan()
+                );
 
                 if let Some(enabled) = response.get("dds_enabled") {
                     let status = if enabled.as_bool().unwrap_or(false) {
@@ -90,7 +94,12 @@ pub async fn execute(args: DdsArgs, client: &mut DaemonClient) -> Result<()> {
             if json {
                 println!("{}", serde_json::to_string_pretty(&response)?);
             } else {
-                println!("\n{}", style("DDS Summary Across All Environments").bold().underlined());
+                println!(
+                    "\n{}",
+                    style("DDS Summary Across All Environments")
+                        .bold()
+                        .underlined()
+                );
 
                 if let Some(total) = response.get("total_environments") {
                     println!("  Total: {}", total);
@@ -107,15 +116,30 @@ pub async fn execute(args: DdsArgs, client: &mut DaemonClient) -> Result<()> {
             Ok(())
         }
 
-        DdsCommand::Enable { env, profile, reason } => {
-            println!("{} Enabling DDS for {} (profile: {})...", INFO, style(&env).cyan(), style(&profile).yellow());
+        DdsCommand::Enable {
+            env,
+            profile,
+            reason,
+        } => {
+            println!(
+                "{} Enabling DDS for {} (profile: {})...",
+                INFO,
+                style(&env).cyan(),
+                style(&profile).yellow()
+            );
 
-            let response = client.call(
-                "dds.enable",
-                json!({"env": env, "profile": profile, "reason": reason})
-            ).await?;
+            let response = client
+                .call(
+                    "dds.enable",
+                    json!({"env": env, "profile": profile, "reason": reason}),
+                )
+                .await?;
 
-            if response.get("success").and_then(|v| v.as_bool()).unwrap_or(false) {
+            if response
+                .get("success")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false)
+            {
                 println!("{} DDS enabled successfully", SUCCESS);
             } else if let Some(error) = response.get("error").and_then(|v| v.as_str()) {
                 println!("{} Failed: {}", WARN, error);
@@ -126,14 +150,25 @@ pub async fn execute(args: DdsArgs, client: &mut DaemonClient) -> Result<()> {
         }
 
         DdsCommand::Disable { env, force, reason } => {
-            println!("{} Disabling DDS for {}{}...", INFO, style(&env).cyan(), if force { " (force)" } else { "" });
+            println!(
+                "{} Disabling DDS for {}{}...",
+                INFO,
+                style(&env).cyan(),
+                if force { " (force)" } else { "" }
+            );
 
-            let response = client.call(
-                "dds.disable",
-                json!({"env": env, "force": force, "reason": reason})
-            ).await?;
+            let response = client
+                .call(
+                    "dds.disable",
+                    json!({"env": env, "force": force, "reason": reason}),
+                )
+                .await?;
 
-            if response.get("success").and_then(|v| v.as_bool()).unwrap_or(false) {
+            if response
+                .get("success")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false)
+            {
                 println!("{} DDS disabled successfully", SUCCESS);
             } else if let Some(error) = response.get("error").and_then(|v| v.as_str()) {
                 println!("{} Failed: {}", WARN, error);

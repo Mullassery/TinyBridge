@@ -11,7 +11,7 @@ use tinybridge_core::{
     DownResponse, Environment, EnvironmentStatus, EnvironmentSummary, ListResponse, StatusResponse,
     UpResponse,
 };
-use tinybridge_ssh::{SshKeyManager, SshConfigManager, SshConfigEntry, KeyType};
+use tinybridge_ssh::{KeyType, SshConfigEntry, SshConfigManager, SshKeyManager};
 
 use crate::boot_tiers::BootTierConfig;
 use crate::clipboard_sync::ClipboardSyncManager;
@@ -118,9 +118,21 @@ impl EnvironmentManager {
         let boot_duration_ms = boot_start.elapsed().as_millis() as u64;
 
         // Determine which boot tier was achieved
-        let tier_1_timeout = self.boot_tiers.timeout_for_tier(1).unwrap_or_default().as_millis() as u64;
-        let tier_2_timeout = self.boot_tiers.timeout_for_tier(2).unwrap_or_default().as_millis() as u64;
-        let tier_3_timeout = self.boot_tiers.timeout_for_tier(3).unwrap_or_default().as_millis() as u64;
+        let tier_1_timeout = self
+            .boot_tiers
+            .timeout_for_tier(1)
+            .unwrap_or_default()
+            .as_millis() as u64;
+        let tier_2_timeout = self
+            .boot_tiers
+            .timeout_for_tier(2)
+            .unwrap_or_default()
+            .as_millis() as u64;
+        let tier_3_timeout = self
+            .boot_tiers
+            .timeout_for_tier(3)
+            .unwrap_or_default()
+            .as_millis() as u64;
 
         let boot_tier = if boot_duration_ms <= tier_1_timeout {
             1
@@ -137,7 +149,11 @@ impl EnvironmentManager {
         env.ip_address = Some("192.168.105.2".to_string());
 
         // Generate SSH key for this environment
-        match self.ssh_key_manager.generate_key(env_id, &env_name, KeyType::Ed25519).await {
+        match self
+            .ssh_key_manager
+            .generate_key(env_id, &env_name, KeyType::Ed25519)
+            .await
+        {
             Ok(keypair) => {
                 tracing::info!("SSH key generated: {}", keypair.fingerprint);
 
@@ -162,12 +178,9 @@ impl EnvironmentManager {
         }
 
         // Start clipboard sync for this environment
-        self.clipboard_sync_manager.start_sync(
-            env_id,
-            "127.0.0.1".to_string(),
-            2222,
-            "user".to_string(),
-        ).await;
+        self.clipboard_sync_manager
+            .start_sync(env_id, "127.0.0.1".to_string(), 2222, "user".to_string())
+            .await;
 
         // Record boot time metric (exported to OTel)
         crate::otel::record_boot_time(&env_name, boot_duration_ms, "success");

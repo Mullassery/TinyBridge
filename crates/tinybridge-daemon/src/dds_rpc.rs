@@ -1,8 +1,8 @@
 use serde_json::{json, Value};
 use std::sync::Arc;
-use uuid::Uuid;
 use tinybridge_core::JsonRpcResponse;
 use tinybridge_dds::DdsManager;
+use uuid::Uuid;
 
 /// DDS RPC handler dispatcher
 pub struct DdsRpcHandler {
@@ -95,7 +95,10 @@ impl DdsRpcHandler {
     fn handle_enable(&self, params: &Value, id: u64) -> Option<JsonRpcResponse> {
         let env_name = params.get("env")?.as_str()?.to_string();
         let profile = params.get("profile")?.as_str().unwrap_or("custom");
-        let reason = params.get("reason").and_then(|v| v.as_str()).map(|s| s.to_string());
+        let reason = params
+            .get("reason")
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_string());
 
         let env_id = Uuid::new_v4();
         let mut manager = self.dds_manager.lock();
@@ -107,7 +110,11 @@ impl DdsRpcHandler {
 
         // Enable DDS
         if let Err(e) = manager.enable_dds(env_id, Some("cli".to_string()), reason) {
-            return Some(JsonRpcResponse::error(id, -32003, format!("Failed to enable DDS: {}", e)));
+            return Some(JsonRpcResponse::error(
+                id,
+                -32003,
+                format!("Failed to enable DDS: {}", e),
+            ));
         }
 
         // Apply profile if specified
@@ -120,7 +127,9 @@ impl DdsRpcHandler {
                 _ => tinybridge_core::DdsProfile::Disabled,
             };
 
-            if let Err(e) = manager.apply_profile(env_id, dds_profile, Some("cli".to_string()), None) {
+            if let Err(e) =
+                manager.apply_profile(env_id, dds_profile, Some("cli".to_string()), None)
+            {
                 return Some(JsonRpcResponse::error(
                     id,
                     -32003,
@@ -140,14 +149,24 @@ impl DdsRpcHandler {
 
     fn handle_disable(&self, params: &Value, id: u64) -> Option<JsonRpcResponse> {
         let env_name = params.get("env")?.as_str()?.to_string();
-        let _force = params.get("force").and_then(|v| v.as_bool()).unwrap_or(false);
-        let reason = params.get("reason").and_then(|v| v.as_str()).map(|s| s.to_string());
+        let _force = params
+            .get("force")
+            .and_then(|v| v.as_bool())
+            .unwrap_or(false);
+        let reason = params
+            .get("reason")
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_string());
 
         let env_id = Uuid::new_v4();
         let mut manager = self.dds_manager.lock();
 
         if let Err(e) = manager.disable_dds(env_id, Some("cli".to_string()), reason) {
-            return Some(JsonRpcResponse::error(id, -32003, format!("Failed to disable DDS: {}", e)));
+            return Some(JsonRpcResponse::error(
+                id,
+                -32003,
+                format!("Failed to disable DDS: {}", e),
+            ));
         }
 
         let response = json!({
@@ -188,7 +207,11 @@ impl DdsRpcHandler {
         let mut manager = self.dds_manager.lock();
 
         if let Err(e) = manager.toggle_feature(env_id, &feature, true, Some("cli".to_string())) {
-            return Some(JsonRpcResponse::error(id, -32003, format!("Failed to enable feature: {}", e)));
+            return Some(JsonRpcResponse::error(
+                id,
+                -32003,
+                format!("Failed to enable feature: {}", e),
+            ));
         }
 
         let response = json!({
@@ -207,7 +230,11 @@ impl DdsRpcHandler {
         let mut manager = self.dds_manager.lock();
 
         if let Err(e) = manager.toggle_feature(env_id, &feature, false, Some("cli".to_string())) {
-            return Some(JsonRpcResponse::error(id, -32003, format!("Failed to disable feature: {}", e)));
+            return Some(JsonRpcResponse::error(
+                id,
+                -32003,
+                format!("Failed to disable feature: {}", e),
+            ));
         }
 
         let response = json!({
@@ -247,7 +274,11 @@ impl DdsRpcHandler {
         };
 
         if let Err(e) = manager.apply_profile(env_id, profile, Some("cli".to_string()), None) {
-            return Some(JsonRpcResponse::error(id, -32003, format!("Failed to apply profile: {}", e)));
+            return Some(JsonRpcResponse::error(
+                id,
+                -32003,
+                format!("Failed to apply profile: {}", e),
+            ));
         }
 
         let response = json!({
@@ -260,8 +291,14 @@ impl DdsRpcHandler {
 
     fn handle_security_enable(&self, params: &Value, id: u64) -> Option<JsonRpcResponse> {
         let env_name = params.get("env")?.as_str()?.to_string();
-        let _encryption = params.get("encryption").and_then(|v| v.as_bool()).unwrap_or(false);
-        let _authentication = params.get("authentication").and_then(|v| v.as_bool()).unwrap_or(false);
+        let _encryption = params
+            .get("encryption")
+            .and_then(|v| v.as_bool())
+            .unwrap_or(false);
+        let _authentication = params
+            .get("authentication")
+            .and_then(|v| v.as_bool())
+            .unwrap_or(false);
 
         let response = json!({
             "success": true,
@@ -305,7 +342,10 @@ impl DdsRpcHandler {
 
     fn handle_audit_export(&self, params: &Value, id: u64) -> Option<JsonRpcResponse> {
         let env_name = params.get("env")?.as_str()?.to_string();
-        let _format = params.get("format").and_then(|v| v.as_str()).unwrap_or("json");
+        let _format = params
+            .get("format")
+            .and_then(|v| v.as_str())
+            .unwrap_or("json");
 
         let env_id = Uuid::new_v4();
         let manager = self.dds_manager.lock();
@@ -340,7 +380,11 @@ impl DdsRpcHandler {
 
                 Some(JsonRpcResponse::success(id, response))
             }
-            Err(e) => Some(JsonRpcResponse::error(id, -32001, format!("Failed to generate report: {}", e))),
+            Err(e) => Some(JsonRpcResponse::error(
+                id,
+                -32001,
+                format!("Failed to generate report: {}", e),
+            )),
         }
     }
 }

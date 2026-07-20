@@ -100,7 +100,8 @@ impl SshConfigManager {
     /// Create a new SSH config manager
     pub fn new(ssh_config_path: impl AsRef<Path>) -> Self {
         let ssh_config_path = ssh_config_path.as_ref().to_path_buf();
-        let tinybridge_config_path = ssh_config_path.parent()
+        let tinybridge_config_path = ssh_config_path
+            .parent()
             .map(|p| p.join("config.d/tinybridge-auto.conf"))
             .unwrap_or_else(|| PathBuf::from("tinybridge-auto.conf"));
 
@@ -122,8 +123,7 @@ impl SshConfigManager {
     pub fn add_entry(&self, entry: &SshConfigEntry) -> Result<()> {
         // Ensure directory exists
         if let Some(parent) = self.tinybridge_config_path.parent() {
-            fs::create_dir_all(parent)
-                .map_err(|e| SshError::ConfigWriteError(e.to_string()))?;
+            fs::create_dir_all(parent).map_err(|e| SshError::ConfigWriteError(e.to_string()))?;
         }
 
         // Read existing entries
@@ -170,7 +170,10 @@ impl SshConfigManager {
             entry.hostname = new_hostname.to_string();
             self.save_entries(&entries)?;
         } else {
-            return Err(SshError::InvalidConfig(format!("Entry not found: {}", alias)));
+            return Err(SshError::InvalidConfig(format!(
+                "Entry not found: {}",
+                alias
+            )));
         }
 
         Ok(())
@@ -195,12 +198,17 @@ impl SshConfigManager {
         for line in content.lines() {
             if let Some(caps) = host_regex.captures(line) {
                 if !current_alias.is_empty() {
-                    if let Ok(entry) = SshConfigEntry::from_config_block(&current_alias, &current_block) {
+                    if let Ok(entry) =
+                        SshConfigEntry::from_config_block(&current_alias, &current_block)
+                    {
                         entries.insert(current_alias.clone(), entry);
                     }
                 }
 
-                current_alias = caps.get(1).map(|m| m.as_str().to_string()).unwrap_or_default();
+                current_alias = caps
+                    .get(1)
+                    .map(|m| m.as_str().to_string())
+                    .unwrap_or_default();
                 current_block = String::new();
             }
 
@@ -240,12 +248,13 @@ impl SshConfigManager {
     }
 
     fn ensure_include(&self) -> Result<()> {
-        let ssh_dir = self.ssh_config_path.parent()
+        let ssh_dir = self
+            .ssh_config_path
+            .parent()
             .ok_or_else(|| SshError::ConfigWriteError("Invalid SSH config path".to_string()))?;
 
         // Ensure .ssh directory exists
-        fs::create_dir_all(ssh_dir)
-            .map_err(|e| SshError::ConfigWriteError(e.to_string()))?;
+        fs::create_dir_all(ssh_dir).map_err(|e| SshError::ConfigWriteError(e.to_string()))?;
 
         // Read main ssh/config
         let config_content = if self.ssh_config_path.exists() {

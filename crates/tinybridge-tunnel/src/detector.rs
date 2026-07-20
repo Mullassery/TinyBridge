@@ -19,8 +19,7 @@ pub enum BinaryFormat {
 impl BinaryFormat {
     /// Detect binary format from a file path
     pub fn detect_from_file<P: AsRef<Path>>(path: P) -> Result<BinaryFormat> {
-        let mut file = std::fs::File::open(path.as_ref())
-            .map_err(|e| TunnelError::IoError(e))?;
+        let mut file = std::fs::File::open(path.as_ref()).map_err(|e| TunnelError::IoError(e))?;
 
         let mut magic = [0u8; 4];
         file.read_exact(&mut magic)
@@ -36,7 +35,12 @@ impl BinaryFormat {
         }
 
         // ELF: 0x7F 'E' 'L' 'F'
-        if bytes.len() >= 4 && bytes[0] == 0x7F && bytes[1] == b'E' && bytes[2] == b'L' && bytes[3] == b'F' {
+        if bytes.len() >= 4
+            && bytes[0] == 0x7F
+            && bytes[1] == b'E'
+            && bytes[2] == b'L'
+            && bytes[3] == b'F'
+        {
             return BinaryFormat::Elf;
         }
 
@@ -48,11 +52,21 @@ impl BinaryFormat {
         }
 
         // Mach-O (little-endian): 0xFE ED FA [CE|CF] reversed
-        if bytes.len() >= 4 && bytes[0] == 0xCE && bytes[1] == 0xFA && bytes[2] == 0xED && bytes[3] == 0xFE {
+        if bytes.len() >= 4
+            && bytes[0] == 0xCE
+            && bytes[1] == 0xFA
+            && bytes[2] == 0xED
+            && bytes[3] == 0xFE
+        {
             return BinaryFormat::MachO;
         }
 
-        if bytes.len() >= 4 && bytes[0] == 0xCF && bytes[1] == 0xFA && bytes[2] == 0xED && bytes[3] == 0xFE {
+        if bytes.len() >= 4
+            && bytes[0] == 0xCF
+            && bytes[1] == 0xFA
+            && bytes[2] == 0xED
+            && bytes[3] == 0xFE
+        {
             return BinaryFormat::MachO;
         }
 
@@ -92,38 +106,59 @@ mod tests {
     #[test]
     fn test_elf_detection() {
         let elf_magic = [0x7F, b'E', b'L', b'F'];
-        assert_eq!(BinaryFormat::from_magic_bytes(&elf_magic), BinaryFormat::Elf);
+        assert_eq!(
+            BinaryFormat::from_magic_bytes(&elf_magic),
+            BinaryFormat::Elf
+        );
     }
 
     #[test]
     fn test_macho_detection() {
         // Big-endian Mach-O 32-bit
         let macho_be_32 = [0xFE, 0xED, 0xFA, 0xCE];
-        assert_eq!(BinaryFormat::from_magic_bytes(&macho_be_32), BinaryFormat::MachO);
+        assert_eq!(
+            BinaryFormat::from_magic_bytes(&macho_be_32),
+            BinaryFormat::MachO
+        );
 
         // Big-endian Mach-O 64-bit
         let macho_be_64 = [0xFE, 0xED, 0xFA, 0xCF];
-        assert_eq!(BinaryFormat::from_magic_bytes(&macho_be_64), BinaryFormat::MachO);
+        assert_eq!(
+            BinaryFormat::from_magic_bytes(&macho_be_64),
+            BinaryFormat::MachO
+        );
 
         // Little-endian Mach-O 32-bit
         let macho_le_32 = [0xCE, 0xFA, 0xED, 0xFE];
-        assert_eq!(BinaryFormat::from_magic_bytes(&macho_le_32), BinaryFormat::MachO);
+        assert_eq!(
+            BinaryFormat::from_magic_bytes(&macho_le_32),
+            BinaryFormat::MachO
+        );
 
         // Little-endian Mach-O 64-bit
         let macho_le_64 = [0xCF, 0xFA, 0xED, 0xFE];
-        assert_eq!(BinaryFormat::from_magic_bytes(&macho_le_64), BinaryFormat::MachO);
+        assert_eq!(
+            BinaryFormat::from_magic_bytes(&macho_le_64),
+            BinaryFormat::MachO
+        );
     }
 
     #[test]
     fn test_shebang_detection() {
         let shebang = [b'#', b'!', b'/', b'b'];
-        assert_eq!(BinaryFormat::from_magic_bytes(&shebang), BinaryFormat::Script);
+        assert_eq!(
+            BinaryFormat::from_magic_bytes(&shebang),
+            BinaryFormat::Script
+        );
     }
 
     #[test]
     fn test_unknown_detection() {
         let unknown = [0xFF, 0xFF, 0xFF, 0xFF];
-        assert_eq!(BinaryFormat::from_magic_bytes(&unknown), BinaryFormat::Unknown);
+        assert_eq!(
+            BinaryFormat::from_magic_bytes(&unknown),
+            BinaryFormat::Unknown
+        );
     }
 
     #[test]

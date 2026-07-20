@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::error::{Result, DnsError};
+use crate::error::{DnsError, Result};
 use crate::registry::DnsEntry;
 
 /// mDNS responder configuration
@@ -26,7 +26,7 @@ impl Default for ResponderConfig {
         Self {
             enabled: true,
             interface: None,
-            ttl: 4500, // 75 minutes
+            ttl: 4500,                  // 75 minutes
             announcement_interval: 300, // 5 minutes
         }
     }
@@ -69,7 +69,9 @@ impl MdnsResponder {
         }
 
         if self.status == ResponderStatus::Running {
-            return Err(DnsError::ResponderError("Responder already running".to_string()));
+            return Err(DnsError::ResponderError(
+                "Responder already running".to_string(),
+            ));
         }
 
         self.status = ResponderStatus::Running;
@@ -81,7 +83,9 @@ impl MdnsResponder {
     /// Stop the responder
     pub fn stop(&mut self) -> Result<()> {
         if self.status == ResponderStatus::Stopped {
-            return Err(DnsError::ResponderError("Responder not running".to_string()));
+            return Err(DnsError::ResponderError(
+                "Responder not running".to_string(),
+            ));
         }
 
         self.status = ResponderStatus::Stopped;
@@ -93,7 +97,9 @@ impl MdnsResponder {
     /// Announce a DNS entry (record that it should be broadcast)
     pub fn announce(&mut self, entry: &DnsEntry) -> Result<()> {
         if self.status != ResponderStatus::Running {
-            return Err(DnsError::ResponderError("Responder not running".to_string()));
+            return Err(DnsError::ResponderError(
+                "Responder not running".to_string(),
+            ));
         }
 
         if entry.ipv4.is_none() && entry.ipv6.is_none() {
@@ -109,7 +115,9 @@ impl MdnsResponder {
     /// Withdraw an announcement
     pub fn withdraw(&mut self, env_id: Uuid) -> Result<()> {
         if self.status != ResponderStatus::Running {
-            return Err(DnsError::ResponderError("Responder not running".to_string()));
+            return Err(DnsError::ResponderError(
+                "Responder not running".to_string(),
+            ));
         }
 
         self.announced_entries.remove(&env_id);
@@ -133,7 +141,8 @@ impl MdnsResponder {
 
     /// Get uptime (if running)
     pub fn uptime_secs(&self) -> Option<i64> {
-        self.started_at.map(|start| (Utc::now() - start).num_seconds())
+        self.started_at
+            .map(|start| (Utc::now() - start).num_seconds())
     }
 }
 

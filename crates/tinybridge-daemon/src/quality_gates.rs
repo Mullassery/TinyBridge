@@ -9,7 +9,7 @@ pub struct QualityGate {
     pub metric_name: String,
     pub threshold: f64,
     pub comparison: GateComparison,
-    pub required: bool,        // Must pass before shipping
+    pub required: bool,         // Must pass before shipping
     pub blocker_for_ship: bool, // Blocks entire Phase if fails
 }
 
@@ -87,10 +87,7 @@ impl QualityGatesValidator {
         ]
     }
 
-    pub fn validate_metrics(
-        metrics: &ProductionMetrics,
-        gates: &[QualityGate],
-    ) -> Vec<GateResult> {
+    pub fn validate_metrics(metrics: &ProductionMetrics, gates: &[QualityGate]) -> Vec<GateResult> {
         gates
             .iter()
             .map(|gate| Self::validate_gate(metrics, gate))
@@ -136,10 +133,7 @@ impl QualityGatesValidator {
     }
 
     pub fn are_all_required_passing(results: &[GateResult]) -> bool {
-        results
-            .iter()
-            .filter(|r| r.gate.required)
-            .all(|r| r.passed)
+        results.iter().filter(|r| r.gate.required).all(|r| r.passed)
     }
 
     pub fn are_blockers_passing(results: &[GateResult]) -> bool {
@@ -200,7 +194,10 @@ mod tests {
         let gates = QualityGatesValidator::phase_1_week_4_gates();
         let results = QualityGatesValidator::validate_metrics(&metrics, &gates);
 
-        let boot_gate = results.iter().find(|r| r.gate.name == "boot_time_slo").unwrap();
+        let boot_gate = results
+            .iter()
+            .find(|r| r.gate.name == "boot_time_slo")
+            .unwrap();
         assert!(boot_gate.passed);
         assert!(boot_gate.margin > 0.0); // Has margin to 5000ms
     }
@@ -212,7 +209,10 @@ mod tests {
         let gates = QualityGatesValidator::phase_1_week_4_gates();
         let results = QualityGatesValidator::validate_metrics(&metrics, &gates);
 
-        let boot_gate = results.iter().find(|r| r.gate.name == "boot_time_slo").unwrap();
+        let boot_gate = results
+            .iter()
+            .find(|r| r.gate.name == "boot_time_slo")
+            .unwrap();
         assert!(!boot_gate.passed);
     }
 

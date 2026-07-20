@@ -39,8 +39,7 @@ pub struct SshKeyPair {
 impl SshKeyPair {
     /// Get the public key content
     pub fn public_key(&self) -> Result<String> {
-        fs::read_to_string(&self.public_key_path)
-            .map_err(|e| SshError::KeyReadError(e.to_string()))
+        fs::read_to_string(&self.public_key_path).map_err(|e| SshError::KeyReadError(e.to_string()))
     }
 
     /// Get the private key content
@@ -80,8 +79,7 @@ impl SshKeyManager {
     ) -> Result<SshKeyPair> {
         // Create environment directory
         let env_dir = self.keys_dir.join(env_id.to_string());
-        fs::create_dir_all(&env_dir)
-            .map_err(|e| SshError::KeyWriteError(e.to_string()))?;
+        fs::create_dir_all(&env_dir).map_err(|e| SshError::KeyWriteError(e.to_string()))?;
 
         // Generate key based on type
         let (private_key, public_key_str, fingerprint) = match key_type {
@@ -91,7 +89,8 @@ impl SshKeyManager {
 
         // Write private key (in PEM format)
         let private_key_path = env_dir.join("id_ed25519");
-        let private_key_pem = private_key.to_openssh(ssh_key::LineEnding::LF)
+        let private_key_pem = private_key
+            .to_openssh(ssh_key::LineEnding::LF)
             .map_err(|e| SshError::KeyWriteError(e.to_string()))?;
         fs::write(&private_key_path, &private_key_pem)
             .map_err(|e| SshError::KeyWriteError(e.to_string()))?;
@@ -134,8 +133,7 @@ impl SshKeyManager {
         let metadata_content = fs::read_to_string(&metadata_path)
             .map_err(|_| SshError::KeyNotFound(env_id.to_string()))?;
 
-        serde_json::from_str(&metadata_content)
-            .map_err(|e| SshError::KeyReadError(e.to_string()))
+        serde_json::from_str(&metadata_content).map_err(|e| SshError::KeyReadError(e.to_string()))
     }
 
     /// List all key pairs
@@ -146,8 +144,8 @@ impl SshKeyManager {
             return Ok(keypairs);
         }
 
-        for entry in fs::read_dir(&self.keys_dir)
-            .map_err(|e| SshError::KeyReadError(e.to_string()))?
+        for entry in
+            fs::read_dir(&self.keys_dir).map_err(|e| SshError::KeyReadError(e.to_string()))?
         {
             let entry = entry.map_err(|e| SshError::KeyReadError(e.to_string()))?;
             let path = entry.path();
@@ -172,7 +170,9 @@ impl SshKeyManager {
         let env_name = keypair.env_name.clone();
 
         // Generate new key
-        let new_keypair = self.generate_key(env_id, &env_name, keypair.key_type).await?;
+        let new_keypair = self
+            .generate_key(env_id, &env_name, keypair.key_type)
+            .await?;
 
         // Update rotation timestamp in new keypair
         let mut updated = new_keypair;
@@ -187,14 +187,12 @@ impl SshKeyManager {
         let env_dir = self.keys_dir.join(env_id.to_string());
         let archive_dir = self.keys_dir.join("archived");
 
-        fs::create_dir_all(&archive_dir)
-            .map_err(|e| SshError::KeyWriteError(e.to_string()))?;
+        fs::create_dir_all(&archive_dir).map_err(|e| SshError::KeyWriteError(e.to_string()))?;
 
         let archived_name = format!("{}-{}", env_id, Utc::now().timestamp());
         let archive_path = archive_dir.join(archived_name);
 
-        fs::rename(&env_dir, &archive_path)
-            .map_err(|e| SshError::KeyWriteError(e.to_string()))?;
+        fs::rename(&env_dir, &archive_path).map_err(|e| SshError::KeyWriteError(e.to_string()))?;
 
         Ok(())
     }
@@ -202,11 +200,13 @@ impl SshKeyManager {
     // Private methods
 
     fn generate_ed25519(&self) -> Result<(PrivateKey, String, String)> {
-        let private_key = ssh_key::PrivateKey::random(&mut rand::thread_rng(), ssh_key::Algorithm::Ed25519)
-            .map_err(|e| SshError::KeyGenerationError(e.to_string()))?;
+        let private_key =
+            ssh_key::PrivateKey::random(&mut rand::thread_rng(), ssh_key::Algorithm::Ed25519)
+                .map_err(|e| SshError::KeyGenerationError(e.to_string()))?;
 
         let public_key = private_key.public_key();
-        let public_key_openssh = public_key.to_openssh()
+        let public_key_openssh = public_key
+            .to_openssh()
             .map_err(|e| SshError::KeyGenerationError(e.to_string()))?;
         let public_key_str = format!("{} {}\n", public_key.algorithm(), public_key_openssh);
 
@@ -223,12 +223,14 @@ impl SshKeyManager {
     }
 
     fn write_metadata(&self, keypair: &SshKeyPair) -> Result<()> {
-        let env_dir = keypair.private_key_path.parent()
+        let env_dir = keypair
+            .private_key_path
+            .parent()
             .ok_or_else(|| SshError::KeyWriteError("Invalid key path".to_string()))?;
 
         let metadata_path = env_dir.join("metadata.json");
-        let metadata_json = serde_json::to_string_pretty(keypair)
-            .map_err(|e| SshError::SerializationError(e))?;
+        let metadata_json =
+            serde_json::to_string_pretty(keypair).map_err(|e| SshError::SerializationError(e))?;
 
         fs::write(&metadata_path, metadata_json)
             .map_err(|e| SshError::KeyWriteError(e.to_string()))?;

@@ -269,7 +269,8 @@ resources:
   memory: 8GB
   disk: 50GB
 "#;
-    let env: EnvYaml = serde_yaml::from_str(yaml).expect("should parse ubuntu without explicit version");
+    let env: EnvYaml =
+        serde_yaml::from_str(yaml).expect("should parse ubuntu without explicit version");
     assert_eq!(env.substrate.os, "ubuntu");
     assert_eq!(env.substrate.version, None); // None means use default/latest
 }

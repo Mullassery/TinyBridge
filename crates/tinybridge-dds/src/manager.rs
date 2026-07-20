@@ -1,11 +1,9 @@
-use std::collections::HashMap;
-use uuid::Uuid;
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use uuid::Uuid;
 
-use tinybridge_core::{
-    DdsAuditEvent, DdsConfig, DdsEventType, DdsProfile,
-};
+use tinybridge_core::{DdsAuditEvent, DdsConfig, DdsEventType, DdsProfile};
 
 /// Error type for DDS operations
 #[derive(Debug, Clone)]
@@ -242,7 +240,12 @@ impl DdsManager {
                 config.features.vpn_integration_enabled = enabled;
                 old.to_string()
             }
-            _ => return Err(DdsError::InvalidConfiguration(format!("Unknown feature: {}", feature))),
+            _ => {
+                return Err(DdsError::InvalidConfiguration(format!(
+                    "Unknown feature: {}",
+                    feature
+                )))
+            }
         };
 
         config.modified_at = Utc::now();
@@ -324,7 +327,11 @@ impl DdsManager {
         Ok(DdsComplianceReport {
             env_id,
             dds_enabled: config.enabled,
-            enabled_features: config.enabled_features().iter().map(|s| s.to_string()).collect(),
+            enabled_features: config
+                .enabled_features()
+                .iter()
+                .map(|s| s.to_string())
+                .collect(),
             total_features_enabled: config.enabled_features().len(),
             security_enabled: config.security.encryption_enabled
                 || config.security.authentication_enabled
@@ -389,7 +396,11 @@ mod tests {
         let env_id = Uuid::new_v4();
         manager.create_config(env_id).unwrap();
         manager
-            .enable_dds(env_id, Some("admin".to_string()), Some("testing".to_string()))
+            .enable_dds(
+                env_id,
+                Some("admin".to_string()),
+                Some("testing".to_string()),
+            )
             .unwrap();
 
         let config = manager.get_config(env_id).unwrap();

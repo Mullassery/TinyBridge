@@ -63,9 +63,7 @@ impl BinaryDetector {
     /// Detect binary type by file extension
     pub fn detect_by_extension(path: impl AsRef<Path>) -> Result<BinaryFormat> {
         let path = path.as_ref();
-        let extension = path.extension()
-            .and_then(|e| e.to_str())
-            .unwrap_or("");
+        let extension = path.extension().and_then(|e| e.to_str()).unwrap_or("");
 
         match extension {
             "sh" | "bash" | "zsh" | "py" | "rb" | "pl" | "js" | "ts" => Ok(BinaryFormat::Script),
@@ -128,7 +126,8 @@ mod tests {
     fn test_detect_elf_format() {
         let mut file = NamedTempFile::new().unwrap();
         // ELF magic bytes
-        file.write_all(&[0x7F, 0x45, 0x4C, 0x46, 0x02, 0x01, 0x01]).unwrap();
+        file.write_all(&[0x7F, 0x45, 0x4C, 0x46, 0x02, 0x01, 0x01])
+            .unwrap();
         file.flush().unwrap();
 
         let result = BinaryDetector::detect_format(file.path()).unwrap();

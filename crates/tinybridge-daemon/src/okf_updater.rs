@@ -218,11 +218,7 @@ impl OkfUpdater {
     }
 
     pub fn export_json(&self) -> serde_json::Value {
-        let snapshots: Vec<_> = self
-            .snapshots
-            .values()
-            .map(|s| s.to_json())
-            .collect();
+        let snapshots: Vec<_> = self.snapshots.values().map(|s| s.to_json()).collect();
 
         json!({
             "updated_at": Utc::now().to_rfc3339(),

@@ -31,10 +31,7 @@ impl LinuxClipboard {
 
     /// Read text from Linux clipboard via SSH (async)
     pub async fn read_text(&self) -> Result<Option<String>> {
-        let ssh_cmd = format!(
-            "{}@{}",
-            self.user, self.host
-        );
+        let ssh_cmd = format!("{}@{}", self.user, self.host);
 
         let output = TokioCommand::new("ssh")
             .arg("-p")
@@ -54,16 +51,15 @@ impl LinuxClipboard {
                 Ok(Some(trimmed))
             }
         } else {
-            Err(ClipboardError::ReadError("Failed to read from Linux clipboard".to_string()))
+            Err(ClipboardError::ReadError(
+                "Failed to read from Linux clipboard".to_string(),
+            ))
         }
     }
 
     /// Write text to Linux clipboard via SSH (async)
     pub async fn write_text(&self, text: &str) -> Result<()> {
-        let ssh_cmd = format!(
-            "{}@{}",
-            self.user, self.host
-        );
+        let ssh_cmd = format!("{}@{}", self.user, self.host);
 
         let mut child = TokioCommand::new("ssh")
             .arg("-p")
@@ -76,7 +72,8 @@ impl LinuxClipboard {
 
         if let Some(mut stdin) = child.stdin.take() {
             use tokio::io::AsyncWriteExt;
-            stdin.write_all(text.as_bytes())
+            stdin
+                .write_all(text.as_bytes())
                 .await
                 .map_err(|e| ClipboardError::WriteError(e.to_string()))?;
         }
@@ -86,10 +83,7 @@ impl LinuxClipboard {
 
     /// Check if xclip or xsel is available
     pub fn is_available(&self) -> Result<bool> {
-        let ssh_cmd = format!(
-            "{}@{}",
-            self.user, self.host
-        );
+        let ssh_cmd = format!("{}@{}", self.user, self.host);
 
         let output = Command::new("ssh")
             .arg("-p")

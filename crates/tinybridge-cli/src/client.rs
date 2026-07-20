@@ -112,9 +112,8 @@ impl DaemonClient {
 
         // Connect to shell socket
         let shell_socket_path = tinybridge_core::TinyBridgeConfig::shell_socket_path(shell_id);
-        let socket = UnixStream::connect(&shell_socket_path).map_err(|e| {
-            anyhow!("Failed to connect to shell socket: {}", e)
-        })?;
+        let socket = UnixStream::connect(&shell_socket_path)
+            .map_err(|e| anyhow!("Failed to connect to shell socket: {}", e))?;
 
         Ok(socket)
     }

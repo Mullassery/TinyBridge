@@ -79,7 +79,9 @@ impl Router {
 
     /// Route a command by name (without file detection)
     pub fn route_command(&self, command: &str) -> RoutingDecision {
-        let tier = self.rules_engine.find_tier(command, BinaryFormat::Unknown, false);
+        let tier = self
+            .rules_engine
+            .find_tier(command, BinaryFormat::Unknown, false);
 
         RoutingDecision {
             tier,

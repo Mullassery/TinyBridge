@@ -105,8 +105,7 @@ impl SshAuditLogger {
     pub fn log_event(&self, event: &AuditEvent) -> Result<()> {
         // Ensure parent directory exists
         if let Some(parent) = self.audit_log_path.parent() {
-            std::fs::create_dir_all(parent)
-                .map_err(|e| SshError::AuditError(e.to_string()))?;
+            std::fs::create_dir_all(parent).map_err(|e| SshError::AuditError(e.to_string()))?;
         }
 
         // Append to log file (JSON lines format)
@@ -161,7 +160,10 @@ impl SshAuditLogger {
     /// Query events by type
     pub fn events_by_type(&self, event_type: AuditEventType) -> Result<Vec<AuditEvent>> {
         let events = self.read_events()?;
-        Ok(events.into_iter().filter(|e| e.event_type == event_type).collect())
+        Ok(events
+            .into_iter()
+            .filter(|e| e.event_type == event_type)
+            .collect())
     }
 
     /// Get events in a time range

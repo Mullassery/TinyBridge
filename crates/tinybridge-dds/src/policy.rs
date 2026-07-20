@@ -1,4 +1,4 @@
-use chrono::{Duration, Utc, DateTime};
+use chrono::{DateTime, Duration, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use uuid::Uuid;
@@ -207,11 +207,7 @@ impl DdsPolicyEngine {
     }
 
     /// Check access to a DDS feature
-    pub fn check_access(
-        &self,
-        env_id: Uuid,
-        feature: &str,
-    ) -> DdsAccessResult {
+    pub fn check_access(&self, env_id: Uuid, feature: &str) -> DdsAccessResult {
         // Check for active override first
         if let Some(override_) = self.overrides.get(&(env_id, feature.to_string())) {
             if override_.expires_at > Utc::now() {

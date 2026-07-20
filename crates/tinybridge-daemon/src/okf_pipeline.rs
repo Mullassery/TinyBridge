@@ -61,7 +61,13 @@ impl OkfPipeline {
         let intrusion_likely = self.detector.is_intrusion_likely(&anomalies);
 
         // Stage 5: Generate summary
-        let summary = self.generate_summary(&metrics, all_gates_pass, blockers_pass, intrusion_likely, &anomalies);
+        let summary = self.generate_summary(
+            &metrics,
+            all_gates_pass,
+            blockers_pass,
+            intrusion_likely,
+            &anomalies,
+        );
 
         tracing::info!(
             env_name = metrics.env_name,
@@ -69,7 +75,8 @@ impl OkfPipeline {
             blockers = blockers_pass,
             anomalies = anomalies.len(),
             intrusion_alert = intrusion_likely,
-            "{}", summary
+            "{}",
+            summary
         );
 
         Ok(PipelineResult {
@@ -114,7 +121,11 @@ impl OkfPipeline {
                 .iter()
                 .filter(|a| a.severity == Severity::Critical)
                 .count();
-            parts.push(format!("⚠ {} anomalies ({} critical)", anomalies.len(), critical_count));
+            parts.push(format!(
+                "⚠ {} anomalies ({} critical)",
+                anomalies.len(),
+                critical_count
+            ));
         }
 
         // Intrusion alert

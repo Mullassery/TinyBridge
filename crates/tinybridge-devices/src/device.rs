@@ -88,11 +88,7 @@ pub struct Device {
 
 impl Device {
     /// Create a new device
-    pub fn new(
-        name: String,
-        device_type: DeviceType,
-        host_path: PathBuf,
-    ) -> Self {
+    pub fn new(name: String, device_type: DeviceType, host_path: PathBuf) -> Self {
         // Auto-determine VM path based on device type and host path
         let vm_path = match device_type {
             DeviceType::Serial => {
@@ -124,12 +120,7 @@ impl Device {
     }
 
     /// Create a USB device with VID/PID
-    pub fn usb(
-        name: String,
-        host_path: PathBuf,
-        vendor_id: u16,
-        product_id: u16,
-    ) -> Self {
+    pub fn usb(name: String, host_path: PathBuf, vendor_id: u16, product_id: u16) -> Self {
         let mut device = Self::new(name, DeviceType::Usb, host_path);
         device.vendor_id = Some(vendor_id);
         device.product_id = Some(product_id);
@@ -137,11 +128,7 @@ impl Device {
     }
 
     /// Create a serial device with baud rate
-    pub fn serial(
-        name: String,
-        host_path: PathBuf,
-        baud_rate: u32,
-    ) -> Self {
+    pub fn serial(name: String, host_path: PathBuf, baud_rate: u32) -> Self {
         let mut device = Self::new(name, DeviceType::Serial, host_path);
         device.baud_rate = Some(baud_rate);
         device
@@ -150,7 +137,10 @@ impl Device {
     /// Attach device to an environment
     pub fn attach(&mut self, env_id: Uuid) -> Result<(), String> {
         if self.status == DeviceStatus::Attached {
-            return Err(format!("Device already attached to {:?}", self.attached_to_env));
+            return Err(format!(
+                "Device already attached to {:?}",
+                self.attached_to_env
+            ));
         }
 
         self.status = DeviceStatus::Attached;
@@ -195,7 +185,12 @@ impl Device {
             DeviceStatus::Available => "Available".to_string(),
             DeviceStatus::Attached => format!("Attached to env {:?}", self.attached_to_env),
             DeviceStatus::Detached => "Detached".to_string(),
-            DeviceStatus::Error => format!("Error: {}", self.error_message.as_ref().unwrap_or(&"Unknown".to_string())),
+            DeviceStatus::Error => format!(
+                "Error: {}",
+                self.error_message
+                    .as_ref()
+                    .unwrap_or(&"Unknown".to_string())
+            ),
         }
     }
 }
@@ -233,11 +228,7 @@ mod tests {
 
     #[test]
     fn test_serial_device() {
-        let device = Device::serial(
-            "FTDI".to_string(),
-            PathBuf::from("/dev/ttyUSB0"),
-            9600,
-        );
+        let device = Device::serial("FTDI".to_string(), PathBuf::from("/dev/ttyUSB0"), 9600);
 
         assert_eq!(device.baud_rate, Some(9600));
     }

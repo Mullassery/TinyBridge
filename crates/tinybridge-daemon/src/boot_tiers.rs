@@ -121,11 +121,13 @@ impl BootTierConfig {
     }
 
     pub fn timeout_for_tier(&self, tier_num: u8) -> Option<Duration> {
-        self.tier(tier_num).map(|t| Duration::from_millis(t.timeout_ms))
+        self.tier(tier_num)
+            .map(|t| Duration::from_millis(t.timeout_ms))
     }
 
     pub fn wait_before_tier(&self, tier_num: u8) -> Option<Duration> {
-        self.tier(tier_num).map(|t| Duration::from_millis(t.start_delay_ms))
+        self.tier(tier_num)
+            .map(|t| Duration::from_millis(t.start_delay_ms))
     }
 }
 

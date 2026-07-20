@@ -126,7 +126,8 @@ impl AnomalyDetector {
                     current.memory_usage_percent - self.memory_baseline
                 ),
                 confidence: 0.88,
-                recommended_action: "Monitor for memory leaks or unauthorized processes".to_string(),
+                recommended_action: "Monitor for memory leaks or unauthorized processes"
+                    .to_string(),
             });
         }
 
@@ -142,7 +143,8 @@ impl AnomalyDetector {
                         trend
                     ),
                     confidence: 0.75,
-                    recommended_action: "Monitor for gradual attacks or runaway processes".to_string(),
+                    recommended_action: "Monitor for gradual attacks or runaway processes"
+                        .to_string(),
                 });
             }
         }
@@ -176,7 +178,10 @@ impl AnomalyDetector {
                 } else {
                     Severity::Info
                 },
-                message: format!("Error rate spike: {:.2}% (baseline: 0.05%)", current.error_rate),
+                message: format!(
+                    "Error rate spike: {:.2}% (baseline: 0.05%)",
+                    current.error_rate
+                ),
                 confidence: 0.92,
                 recommended_action: "Check application logs for errors or service failures"
                     .to_string(),
@@ -186,7 +191,11 @@ impl AnomalyDetector {
         anomalies
     }
 
-    fn calculate_trend(&self, window: &MetricsWindow, getter: impl Fn(&ProductionMetrics) -> f32) -> f32 {
+    fn calculate_trend(
+        &self,
+        window: &MetricsWindow,
+        getter: impl Fn(&ProductionMetrics) -> f32,
+    ) -> f32 {
         if window.samples.len() < 2 {
             return 0.0;
         }
@@ -207,9 +216,16 @@ impl AnomalyDetector {
         // 2. Resource spike + boot time regression
         // 3. Gradual resource drain over time
 
-        let critical_count = anomalies.iter().filter(|a| a.severity == Severity::Critical).count();
-        let resource_spike = anomalies.iter().any(|a| a.anomaly_type == AnomalyType::ResourceSpike);
-        let boot_regression = anomalies.iter().any(|a| a.anomaly_type == AnomalyType::BootTimeRegression);
+        let critical_count = anomalies
+            .iter()
+            .filter(|a| a.severity == Severity::Critical)
+            .count();
+        let resource_spike = anomalies
+            .iter()
+            .any(|a| a.anomaly_type == AnomalyType::ResourceSpike);
+        let boot_regression = anomalies
+            .iter()
+            .any(|a| a.anomaly_type == AnomalyType::BootTimeRegression);
 
         critical_count >= 2 || (resource_spike && boot_regression)
     }
@@ -253,7 +269,9 @@ mod tests {
         // Add metric with regression
         window.add_sample(create_test_metrics(5200, 30.0, 50.0));
         let anomalies = detector.detect_anomalies(&window);
-        assert!(anomalies.iter().any(|a| a.anomaly_type == AnomalyType::BootTimeRegression));
+        assert!(anomalies
+            .iter()
+            .any(|a| a.anomaly_type == AnomalyType::BootTimeRegression));
     }
 
     #[test]
@@ -264,7 +282,9 @@ mod tests {
         window.add_sample(create_test_metrics(4700, 95.0, 50.0)); // 95% CPU is a spike
 
         let anomalies = detector.detect_anomalies(&window);
-        assert!(anomalies.iter().any(|a| a.anomaly_type == AnomalyType::ResourceSpike));
+        assert!(anomalies
+            .iter()
+            .any(|a| a.anomaly_type == AnomalyType::ResourceSpike));
     }
 
     #[test]

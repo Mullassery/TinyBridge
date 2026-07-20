@@ -108,17 +108,13 @@ impl Tunnel {
             TunnelType::LocalForward => {
                 format!(
                     "localhost:{} → {}:{}",
-                    self.config.local_port,
-                    self.config.remote_host,
-                    self.config.remote_port
+                    self.config.local_port, self.config.remote_host, self.config.remote_port
                 )
             }
             TunnelType::RemoteForward => {
                 format!(
                     "{}:{} → localhost:{}",
-                    self.config.remote_host,
-                    self.config.remote_port,
-                    self.config.local_port
+                    self.config.remote_host, self.config.remote_port, self.config.local_port
                 )
             }
             TunnelType::SocksProxy => {
@@ -158,10 +154,13 @@ impl TunnelManager {
 
         // Check for port conflicts
         for tunnel in self.tunnels.values() {
-            if tunnel.config.local_port == config.local_port && tunnel.status == TunnelStatus::Active {
-                return Err(TunnelError::PortBindError(
-                    format!("Port {} already in use", config.local_port),
-                ));
+            if tunnel.config.local_port == config.local_port
+                && tunnel.status == TunnelStatus::Active
+            {
+                return Err(TunnelError::PortBindError(format!(
+                    "Port {} already in use",
+                    config.local_port
+                )));
             }
         }
 
@@ -289,7 +288,9 @@ mod tests {
         };
 
         let tunnel1 = manager.create_tunnel(config1).unwrap();
-        manager.set_status(tunnel1.id, TunnelStatus::Active).unwrap();
+        manager
+            .set_status(tunnel1.id, TunnelStatus::Active)
+            .unwrap();
 
         let config2 = TunnelConfig {
             env_id,
