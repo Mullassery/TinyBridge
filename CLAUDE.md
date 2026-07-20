@@ -2,16 +2,16 @@
 
 ## Project Overview
 
-**TinyBridge** is an open-source macOS native application that bridges Linux and macOS development. It intelligently routes workloads to the appropriate execution tier (native macOS, minimal Linux substrate, or remote GPU), with declarative Environment-as-Code at the core.
+**TinyBridge** is an open-source, cross-platform Linux development substrate. Native Rust core (all platforms) + platform-specific UI (Swift on macOS). Intelligently routes workloads to the appropriate execution tier (native, containerized Linux, or remote GPU), with declarative Environment-as-Code at the core.
 
 **Owner:** Georgi Mammen Mullassery
 **License:** Apache 2.0
 **Repository:** Private (Mullassery/tinybridge on GitHub)
-**Status:** Phase 1 (In development)
+**Status:** Phase 1 (In development) — macOS version shipping first, Windows/Linux in Phase 2
 
 ## Vision
 
-Replace Docker Desktop, OrbStack, and Lima as the preferred Linux development substrate for macOS developers, especially those building robotics, AI/ML, and data engineering systems.
+Replace Docker Desktop, OrbStack, and Lima as the preferred Linux development substrate. Initially for macOS (Phase 1-4), expanding to Windows/Linux (Phase 2+) with native performance on each platform.
 
 ### Key Differentiators
 - **Open source** (vs. OrbStack's closed proprietary)
@@ -28,15 +28,25 @@ Replace Docker Desktop, OrbStack, and Lima as the preferred Linux development su
 
 ## Technology Stack
 
-### Core
-- **Daemon + CLI:** Rust + tokio (performance, safety, single binary)
-- **macOS App:** Swift + SwiftUI (native UI, system integration)
-- **VZ Bridge:** Minimal C FFI only (Apple Virtualization Framework access)
-- **Linux Substrate:** Apple VZ Framework, minimal kernel, VirtioFS, Rosetta 2
+### Dual-Platform Strategy: Rust-Maximized
+
+**Philosophy:** Rust for all platforms (performance, safety). Platform-specific UIs only where native integration needed (Swift on macOS).
+
+**macOS (Phase 1-4):**
+- **Daemon + CLI:** Rust + tokio
+- **UI:** Swift + SwiftUI (menu bar app, native system integration)
+- **VM Backend:** Apple VZ Framework via C FFI (~500 lines; unavoidable for system APIs)
+- **VM Substrate:** Minimal Linux kernel, VirtioFS, Rosetta 2
+
+**Windows/Linux (Phase 2+):**
+- **Daemon + CLI:** Rust + tokio (same core as macOS)
+- **UI:** Headless CLI + optional Tauri/egui desktop app
+- **VM Backend:** QEMU or KVM native bindings (pure Rust via rust-qemu or libvirt crates)
+- **VM Substrate:** Standard Linux minimal kernel, virtio, KVM support
 
 ### No C++. Period.
 
-The only C is a thin FFI header (~500 lines) connecting Swift VZ bindings to Rust. This is unavoidable and standard practice (Lima, Podman Machine use the same pattern).
+Minimize C entirely. macOS uses a thin FFI header for VZ Framework (unavoidable system API access, same pattern as Lima/Podman). Windows/Linux uses pure Rust VM bindings where available.
 
 ### Build System
 - **Rust:** Cargo workspace, universal binary (arm64 + x86_64 via Rosetta)
@@ -47,26 +57,46 @@ The only C is a thin FFI header (~500 lines) connecting Swift VZ bindings to Rus
 
 See `docs/ARCHITECTURE.md` for complete details.
 
-**High-level:**
+**High-level (macOS):**
 ```
-Tier 1 (Native macOS)  ← default, zero overhead
+Tier 1 (Native macOS arm64/x86_64)  ← default, zero overhead
     ↓
 Tier 2 (Linux Substrate via Apple VZ Framework)  ← for Linux-only workloads
     ↓
 Tier 3 (Remote Linux with GPU)  ← for CUDA/training
 ```
 
-Routing is **transparent** — developers never specify a tier. The platform decides based on workload requirements.
+**High-level (Windows/Linux):**
+```
+Tier 1 (Native Windows/Linux amd64)  ← default, zero overhead
+    ↓
+Tier 2 (Containerized Linux via QEMU/KVM)  ← for isolated workloads
+    ↓
+Tier 3 (Remote Linux with GPU)  ← for CUDA/training
+```
+
+Routing is **transparent** — developers never specify a tier or OS. The platform decides based on workload + host OS.
 
 ## Implementation Phases
 
+### macOS (Phase 1-5): Primary ship vehicle
+
 | Phase | Duration | Goal | Deliverable |
 |-------|----------|------|-------------|
-| 1 | Weeks 1-6 | Core VM + CLI | Alpha: <5s boot, basic env management |
+| 1 | Weeks 1-6 | Core VM + CLI + daemon | Alpha: <5s boot, basic env management |
 | 2 | Weeks 7-12 | Execution routing + templates | Beta: Full dev workflow possible |
-| 3 | Weeks 13-18 | Hardware + DDS networking | v1.0: Robotics-grade, stable |
+| 3 | Weeks 13-18 | Hardware + DDS networking | v1.0: Robotics-grade macOS release |
 | 4 | Weeks 19-24 | Remote GPU routing | v1.1: AI/ML workflows complete |
-| 5 | Weeks 25-34 | GPU bridge + plugins | v2.0: Universal substrate |
+| 5 | Weeks 25-34 | GPU bridge + plugins | v2.0: macOS feature-complete |
+
+### Windows/Linux (Phase 2+): Parallel development starts Week 7
+
+| Phase | Duration | Goal | Deliverable |
+|-------|----------|------|-------------|
+| 2+ | Weeks 7-12 | QEMU/KVM Rust backend + CLI | Beta: Windows/Linux CLI working |
+| 3+ | Weeks 13-18 | Hardware + DDS networking | v1.0: Windows/Linux feature-parity |
+| 4+ | Weeks 19-24 | Remote GPU routing | v1.1: Cross-platform GPU support |
+| 5+ | Weeks 25-34 | Optional TUI/egui app | v2.0: Full feature parity |
 
 ## Code Style & Conventions
 
@@ -170,13 +200,13 @@ cargo test --test integration_tests -- --include-ignored
 
 ## Critical Decisions
 
-1. **Apple VZ Framework over QEMU** — Better performance on macOS, native integration
-2. **Minimal Linux kernel** — Only curated modules needed for robotics/AI; fast boot
-3. **Rust for daemon/CLI** — Safety, performance, single binary distribution
-4. **Swift for app** — Native macOS UX, system integration (camera, USB permissions)
-5. **VirtioFS over SSHFS** — >90% native I/O performance
-6. **Homebrew-only distribution (Phase 1-3)** — Simpler than Mac App Store, reaches developers
-7. **DDS-aware networking** — No workarounds for ROS 2; multicast passes through
+1. **Rust for core (all platforms)** — Fastest, safest; single compilation model across macOS/Windows/Linux
+2. **Apple VZ on macOS, QEMU/KVM on Windows/Linux** — Native VM backend per platform, not cross-platform abstraction
+3. **Swift UI on macOS only** — System integration (camera, USB, menu bar) worth the effort; headless CLI sufficient elsewhere
+4. **Minimal Linux kernel** — Only curated modules needed for robotics/AI; fast boot
+5. **VirtioFS over SSHFS** — >90% native I/O performance on macOS; virtiofs on Linux
+6. **Homebrew (macOS) + MSI/scoop/snap (Windows/Linux)** — Platform-native installers
+7. **DDS-aware networking** — No workarounds for ROS 2; multicast passes through on all platforms
 8. **Parallel environments** — CoW snapshots enable AI agent workflows
 
 ## Integration with Existing Portfolio
@@ -190,21 +220,26 @@ These are plugins/templates, not hard dependencies.
 
 ## Distribution
 
-**Phase 1-3:** Homebrew only (see `docs/HOMEBREW.md`)
-**Phase 4+:** Optional Mac App Store tier
+**macOS (Phase 1-4):** Homebrew only (see `docs/HOMEBREW.md`)  
+**macOS (Phase 5+):** Optional Mac App Store tier  
+**Windows (Phase 2+):** MSI + Scoop/Chocolatey  
+**Linux (Phase 2+):** snap + APT/RPM packages
 
 ## Known Limitations & Future Work
 
-### Current (Phase 1-4)
+### Current (Phase 1-5 macOS)
 - No GPU passthrough to Linux substrate (routes to remote instead)
-- No Windows/Linux host support (macOS only through Phase 4)
 - No devcontainers support yet (Phase 2)
+- No TUI alternative to Swift app (Phase 5+)
 
-### Phase 5 Roadmap
-- Vulkan-to-Metal GPU bridge (VirtioGPU Venus + MoltenVK)
-- Metal Compute forwarding (MLX/PyTorch-MPS)
-- WASM plugin architecture
-- Cross-platform support (Linux/Windows hosts)
+### Current (Phase 2+ Windows/Linux)
+- CLI-only initially (Phase 2); Tauri/egui desktop app in Phase 5+
+- QEMU/KVM performance not as optimized as Apple VZ (Phase 3+)
+
+### Future Roadmap
+- **macOS Phase 5:** Vulkan-to-Metal GPU bridge (VirtioGPU Venus + MoltenVK), Metal Compute forwarding (MLX/PyTorch-MPS)
+- **Windows/Linux Phase 2+:** QEMU/KVM optimizations, optional Tauri desktop app
+- **All platforms Phase 5+:** WASM plugin architecture, devcontainers support
 
 ## Troubleshooting
 
