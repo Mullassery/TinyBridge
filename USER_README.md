@@ -663,6 +663,232 @@ This only removes stopped environments. Running environments are not affected.
 | **Delete** | `tinybridge delete name --force` | Deleted | Preserved | ❌ No (must recreate) |
 | **Cleanup** | `tinybridge cleanup --all` | Deleted (stopped only) | Preserved | ❌ No |
 
+### Saving and Pausing Environments for Later
+
+You can pause an environment and resume it exactly where you left off—all files, processes, and configuration preserved.
+
+#### Simple Pause: Stop and Resume Later
+
+This is the easiest way to save an environment:
+
+```bash
+# Stop the environment (saves all state)
+tinybridge down myprojectname
+
+# Environment is now paused
+# All files are preserved
+# No changes needed to resume
+
+# ... days or weeks later ...
+
+# Resume where you left off
+tinybridge up myprojectname
+
+# Entire environment boots with all files intact
+```
+
+**What's preserved:**
+- ✅ All files in `~/myprojectname/`
+- ✅ Environment configuration (env.yaml)
+- ✅ Installed packages and tools
+- ✅ System state
+- ✅ SSH access
+
+**What's NOT preserved:**
+- Running processes (new ones start fresh)
+- Memory/RAM (apps need to reload data)
+- Temporary files in `/tmp`
+
+**Disk usage while paused:**
+- Environment still uses disk space (~50GB for default Ubuntu)
+- Mac files are unaffected
+
+#### Checkpointing: Save Progress at Specific Points
+
+Create snapshots at important milestones:
+
+```bash
+# Before running long training
+tinybridge checkpoint myprojectname --name "pre-training"
+
+# Run your ML training
+tinybridge shell myprojectname
+ubuntu@myprojectname:~$ python train.py    # Takes 4 hours
+
+# Training complete - save checkpoint
+tinybridge checkpoint myprojectname --name "training-complete"
+
+# Experiment with new hyperparameters
+# Something goes wrong...
+
+# Restore to last good checkpoint
+tinybridge restore myprojectname --from "training-complete"
+
+# Now you're back to the successful training state
+```
+
+List saved checkpoints:
+
+```bash
+tinybridge checkpoints myprojectname
+```
+
+Output:
+```
+Environment: myprojectname
+Checkpoints:
+  pre-training           Created: 2 hours ago
+  training-complete      Created: 1 hour ago
+  experiment-v1          Created: 30 minutes ago
+```
+
+#### Backup Strategy: Save Important Files
+
+Before pausing long-term, back up critical files:
+
+```bash
+# Backup to Mac
+cp -r ~/myprojectname ~/myprojectname-backup-$(date +%Y%m%d)
+
+# Or backup to external drive
+cp -r ~/myprojectname /Volumes/ExternalDrive/backups/
+
+# Or backup to cloud
+rsync -av ~/myprojectname ~/Dropbox/backups/
+```
+
+Then safely pause:
+
+```bash
+tinybridge down myprojectname
+```
+
+#### Long-Term Storage: Archive Before Deletion
+
+If you need to free disk space but want to preserve everything:
+
+```bash
+# 1. Back up the entire environment to external storage
+tar -czf ~/myprojectname-archive.tar.gz ~/myprojectname
+
+# 2. Move to external drive or cloud
+mv ~/myprojectname-archive.tar.gz /Volumes/Archive/
+
+# 3. Delete the environment to free disk space
+tinybridge delete myprojectname --force
+
+# 4. Later, restore when needed
+tar -xzf /Volumes/Archive/myprojectname-archive.tar.gz -C ~/
+tinybridge up myprojectname
+```
+
+#### Pause vs. Delete: Decision Matrix
+
+| Need | Action | Disk Space | Resume Time | Data Loss | Cost |
+|------|--------|-----------|------------|-----------|------|
+| **Quick break (1-7 days)** | `tinybridge down` | ~50GB | Instant restart | None | Low |
+| **Extended pause (weeks)** | `down` + backup | ~50GB + backup | Instant restart | None | Medium |
+| **Long-term archive (months)** | Delete + archive | Archive size only | Need to recreate | No (backed up) | Low |
+| **Never coming back** | Delete | Freed | N/A | OK | Low |
+
+#### Resuming After a Long Pause
+
+When you come back after a long pause:
+
+```bash
+# 1. Restart the environment
+tinybridge up myprojectname
+
+# 2. Verify everything is intact
+tinybridge shell myprojectname
+ubuntu@myprojectname:~$ ls          # Files still there
+ubuntu@myprojectname:~$ git status  # Repo still there
+
+# 3. Update system (recommended after long pause)
+ubuntu@myprojectname:~$ sudo apt update && sudo apt upgrade -y
+
+# 4. Reinstall development dependencies if needed
+ubuntu@myprojectname:~$ pip install -r requirements.txt
+```
+
+#### Disk Space Monitoring While Paused
+
+Check how much space paused environments use:
+
+```bash
+# Show all environments and sizes
+tinybridge info
+
+# Output:
+# Environment        Status    Size      
+# backend           Stopped   45GB      
+# ml-training       Stopped   120GB     
+# database          Stopped   35GB      
+# Total Used:               200GB      
+
+# Free space available: 500GB
+```
+
+Free up space by deleting paused environments you don't need:
+
+```bash
+# Delete old paused environment
+tinybridge delete old-project --force
+
+# Check reclaimed space
+tinybridge info
+```
+
+#### Multi-Environment Pause Strategy
+
+Efficiently manage multiple paused environments:
+
+```bash
+# You have 5 projects, only work on 3 at a time
+tinybridge up project-a       # Active
+tinybridge up project-b       # Active
+tinybridge up project-c       # Active
+
+# Pause projects you're not using now
+tinybridge down project-d     # Paused (still using disk)
+tinybridge down project-e     # Paused (still using disk)
+
+# When disk space is low, delete paused projects
+tinybridge delete project-d --force    # Free ~50GB
+
+# Can recreate if needed
+tinybridge up project-d                # Recreates from env.yaml
+```
+
+#### Real-World Example: Research Project Lifecycle
+
+```bash
+# Week 1: Active development
+tinybridge up research-2024
+tinybridge shell research-2024
+ubuntu@research:~$ python experiment.py
+
+# Week 2: Pause while focusing on other work
+tinybridge checkpoint research-2024 --name "week-1-complete"
+tinybridge down research-2024              # Paused, disk still used
+
+# Week 5: Come back to research
+tinybridge up research-2024                # Instantly restore
+tinybridge shell research-2024
+ubuntu@research:~$ ls                      # All files intact
+
+# Week 8: Archive before deleting
+tar -czf research-2024-final.tar.gz ~/research-2024
+cp research-2024-final.tar.gz ~/Dropbox/archive/
+tinybridge delete research-2024 --force    # Free disk space
+
+# Year later: Need to revisit
+tar -xzf ~/Dropbox/archive/research-2024-final.tar.gz
+tinybridge up research-2024                # Recreate with all data
+```
+
+---
+
 ### Safe Deletion Workflow
 
 **If you're uncertain, use this safe workflow:**
