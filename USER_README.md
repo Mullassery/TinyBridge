@@ -1314,13 +1314,12 @@ tinybridge watch myenv
 - Service discovery
 - Network policies
 
-### Phase 4: GPU Support (Q1 2027)
-- Transparent CUDA routing to local GPU
-- Remote GPU fallback
-- ML workload optimization
-- Train models locally at production scale
+### Phase 4: Advanced Networking & Device Support
+- Hardware passthrough (USB, serial devices)
+- Advanced network policies
+- Device isolation
 
-### Phase 5: Ecosystem (Q2 2027)
+### Phase 5: Ecosystem
 - Plugin SDK
 - Community packages
 - Advanced orchestration
@@ -1350,9 +1349,6 @@ A: Phase 1 is stable for development. Not recommended for hosting services yet.
 
 **Q: Can I use this with CI/CD?**  
 A: Yes. Run `tinybridge up` in your CI pipeline. Each build gets a fresh environment.
-
-**Q: What about GPU support?**  
-A: Coming in Phase 4. Track [the roadmap](./PRODUCT_VISION.md) for updates.
 
 **Q: How do I contribute?**  
 A: TinyBridge is Apache 2.0 open source. Contributions welcome at [GitHub](https://github.com/Mullassery/tinybridge).
