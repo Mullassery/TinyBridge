@@ -11,34 +11,34 @@
 Open-source macOS Linux development substrate with intelligent VM orchestration, device passthrough governance, and enterprise compliance automation. Stop switching between macOS and Linux. Run a full Ubuntu environment on your MacBook with zero configuration overhead, zero vendor lock-in, and zero waiting.
 
 **Use TinyBridge for:**
-- 🚀 **Development**: Python, Node.js, Go, Rust in native Linux
-- 🤖 **Robotics**: ROS 2 with DDS networking out of the box
-- 🏢 **Enterprise**: Hardware passthrough, compliance reporting, audit trails
-- 🔬 **ML/AI**: CUDA routing to remote GPUs, data science workflows
-- 📦 **DevOps**: Alternative to Docker Desktop, lightweight and fast
+- **Development**: Python, Node.js, Go, Rust in native Linux
+- **Robotics**: ROS 2 with DDS networking out of the box
+- **Enterprise**: Hardware passthrough, compliance reporting, audit trails
+- **ML/AI**: CUDA routing to remote GPUs, data science workflows
+- **DevOps**: Alternative to Docker Desktop, lightweight and fast
 
 ---
 
 ## Key Features
 
-### ⚡ Performance
+### Performance
 - **<5s boot time** with multi-tier lazy loading
 - **90%+ native I/O** performance via VirtioFS
 - **Zero overhead** on macOS—native Swift integration
 
-### 🔒 Enterprise-Ready
+### Enterprise-Ready
 - **Hardware passthrough governance** with policy hierarchy (Platform > Project > VM > User)
 - **Immutable audit trails** for compliance (SOC 2, ISO 27001, PCI-DSS)
 - **Device passthrough controls** with 15+ independent toggles
 - **Compliance scoring** with automated remediation
 
-### 🤖 Robotics & AI
+### Robotics & AI
 - **ROS 2 native** with DDS multicast networking
 - **CUDA routing** to remote GPUs (Phase 4)
 - **Parallel environments** for AI agent workflows
 - **Automatic topology discovery** with mDNS
 
-### 🛠️ Developer Experience
+### Developer Experience
 - **Zero configuration**: Single `env.yaml` file = entire environment
 - **CLI-first**: Fully scriptable, automation-ready
 - **No vendor lock-in**: 100% open-source (Apache 2.0)
@@ -46,7 +46,7 @@ Open-source macOS Linux development substrate with intelligent VM orchestration,
 - **Built-in SSH**: Auto-configured with zero manual setup
 - **Intelligent routing**: Automatic native/Linux tier selection
 
-### 🏗️ Architecture
+### Architecture
 - **100% Rust core** + Swift UI + minimal C FFI (only for VZ Framework)
 - **Pluggable backends**: PostgreSQL, BigQuery, S3, Neo4j, Redis, Prometheus, Jaeger, Datadog
 - **OpenTelemetry integration**: Vendor-agnostic observability
@@ -60,12 +60,12 @@ Open-source macOS Linux development substrate with intelligent VM orchestration,
 |---------|-----------|-----------------|------|
 | **Cost** | Free | Paid | Free |
 | **Boot time** | <5s | 30s+ | 10s+ |
-| **Device passthrough** | ✅ Complete | ❌ None | ❌ None |
-| **Compliance reporting** | ✅ Enterprise | ❌ None | ❌ None |
-| **ROS 2 DDS** | ✅ Native | ❌ Broken | ❌ None |
-| **GPU routing** | ✅ Phase 4 | ❌ No | ❌ No |
-| **Open source** | ✅ Apache 2.0 | Partial | ✅ Yes |
-| **Audit trails** | ✅ Immutable | ❌ None | ❌ None |
+| **Device passthrough** | Complete | None | None |
+| **Compliance reporting** | Enterprise | None | None |
+| **ROS 2 DDS** | Native | Broken | None |
+| **GPU routing** | Phase 4 | No | No |
+| **Open source** | Apache 2.0 | Partial | Yes |
+| **Audit trails** | Immutable | None | None |
 
 ---
 
@@ -116,18 +116,18 @@ In your project directory, create a file named `env.yaml`. **Replace `myprojectn
 apiVersion: tinybridge/v1
 kind: Environment
 metadata:
-  name: myprojectname
+ name: myprojectname
 substrate:
-  os: ubuntu
-  version: "24.04"
+ os: ubuntu
+ version: "24.04"
 resources:
-  cpu: 4
-  memory: 8GB
-  disk: 50GB
+ cpu: 4
+ memory: 8GB
+ disk: 50GB
 native:
-  tools:
-    - python@3.11
-    - nodejs@20
+ tools:
+ - python@3.11
+ - nodejs@20
 ```
 
 Save this file in your project root. That's your entire environment definition.
@@ -143,8 +143,8 @@ tinybridge up myprojectname
 
 First run downloads the Linux image (~500MB, one-time). You'll see:
 ```
-⟳ Starting environment: myprojectname
-✓ Environment myprojectname is ready
+ Starting environment: myprojectname
+ Environment myprojectname is ready
 ```
 
 ### Step 3: Enter the Linux Shell
@@ -172,7 +172,7 @@ ubuntu@myprojectname:~$ ls
 
 ## What You Get
 
-### 📝 Environment-as-Code
+### Environment-as-Code
 Define your entire Linux setup in one YAML file. Check it into git. Everyone on your team gets the identical environment.
 
 ```bash
@@ -182,12 +182,12 @@ git push
 
 # Your teammates get the same environment:
 git pull
-tinybridge up myprojectname  # Uses metadata.name from env.yaml
+tinybridge up myprojectname # Uses metadata.name from env.yaml
 ```
 
 No more "works on my machine". Production matches development exactly.
 
-### ⚡ Instant Linux Shell
+### Instant Linux Shell
 Full Ubuntu environment with optimized boot. SSH access with all your tools pre-configured. Replace `myprojectname` with your actual project name:
 
 ```bash
@@ -196,7 +196,7 @@ tinybridge shell myprojectname
 ubuntu@myprojectname:~$ docker run ubuntu:24.04 bash
 ```
 
-### 🔄 Automatic File Sync
+### Automatic File Sync
 Files on macOS instantly appear in Linux. Edit on your Mac, run in Linux. No mounting. No configuration. Replace `myprojectname` with your project name:
 
 ```bash
@@ -208,7 +208,7 @@ $ cat ~/test.txt
 hello
 ```
 
-### 🔌 Intelligent Port Forwarding
+### Intelligent Port Forwarding
 Services inside your VMs are automatically accessible from your workstation—no manual configuration required. TinyBridge detects services running inside environments and securely exposes them through the host network. Access applications, SSH servers, APIs, databases, and web services without manual NAT or network configuration.
 
 Continue using enterprise VPNs, firewalls, proxies, and security monitoring tools—TinyBridge integrates transparently:
@@ -229,13 +229,13 @@ psql -h localhost -U user -d mydb
 
 **No firewall exceptions needed.** Traffic routes through the same network paths as your enterprise monitoring. Full security compliance maintained.
 
-### 🚀 Multiple Parallel Environments
+### Multiple Parallel Environments
 Run multiple projects simultaneously. Each isolated and independent. Replace these with YOUR actual project names:
 
 ```bash
-tinybridge up frontend        # Your frontend project name
-tinybridge up backend         # Your backend project name
-tinybridge up database        # Your database project name
+tinybridge up frontend # Your frontend project name
+tinybridge up backend # Your backend project name
+tinybridge up database # Your database project name
 # All three running at once
 
 # Forward ports for all three simultaneously
@@ -244,7 +244,7 @@ tinybridge forward backend 8000:8000
 tinybridge forward database 5432:5432
 ```
 
-### 📈 Scales Naturally: Dev → Team → Organization
+### Scales Naturally: Dev  Team  Organization
 
 **Single developer:** (replace `myprojectname` with your project)
 ```bash
@@ -256,37 +256,37 @@ tinybridge up myprojectname
 ```bash
 # Commit env.yaml to git, teammates run:
 git pull
-tinybridge up myprojectname  # Same name as metadata.name in env.yaml
+tinybridge up myprojectname # Same name as metadata.name in env.yaml
 ```
 
 **Organization scale:**
 ```bash
 # Use templates for common stacks
-tinybridge create --template backend   # Python + Postgres
-tinybridge create --template ml        # PyTorch + Jupyter
-tinybridge create --template robotics  # ROS 2 + tools
+tinybridge create --template backend # Python + Postgres
+tinybridge create --template ml # PyTorch + Jupyter
+tinybridge create --template robotics # ROS 2 + tools
 ```
 
 No infrastructure changes. Same `env.yaml` approach at every scale.
 
-### 🎯 Match Production Exactly
+### Match Production Exactly
 
 Your production runs Ubuntu 24.04? Your development environment runs Ubuntu 24.04. Same OS, same tools, same behavior.
 
 Supports: Ubuntu, Debian, Alpine, Fedora (any version).
 
-### 🛡️ Built-In Anomaly Detection
+### Built-In Anomaly Detection
 
 Automatic monitoring detects issues before they break workflows:
 - **Boot regression** — track boot time changes
-- **Resource spikes** — detect CPU/memory anomalies  
+- **Resource spikes** — detect CPU/memory anomalies 
 - **Availability breaches** — know when SSH stops responding
 - **Error trends** — identify unusual error patterns
 - **Intrusion detection** — suspicious activity patterns
 
 All logged to an immutable audit trail for reproducibility.
 
-### 🔒 Enterprise-Grade Security
+### Enterprise-Grade Security
 
 Self-aware security built on OpenTelemetry:
 - **Tamper-evident logs** — all environment changes tracked
@@ -294,15 +294,15 @@ Self-aware security built on OpenTelemetry:
 - **Complete observability** — every environment action recorded
 - **Compliance ready** — structured event logging for audits
 
-### 📊 OpenTelemetry Integration (Zero Vendor Lock-in)
+### OpenTelemetry Integration (Zero Vendor Lock-in)
 
 Full observability with choice of backends. Switch providers anytime without code changes:
 
 ```bash
 # In env.yaml
 observability:
-  backend: datadog    # or: prometheus, jaeger, honeycomb, newrelic, splunk, dynatrace, grafana
-  sample_rate: 1.0
+ backend: datadog # or: prometheus, jaeger, honeycomb, newrelic, splunk, dynatrace, grafana
+ sample_rate: 1.0
 ```
 
 **Standard OTel metrics:**
@@ -320,7 +320,7 @@ observability:
 
 **No lock-in:** All metrics are standard OpenTelemetry format. Switch backends anytime—no code changes required. Run on your infrastructure, not a vendor's.
 
-### 🔐 Open Source, Forever Free
+### Open Source, Forever Free
 
 Apache 2.0 licensed. No subscriptions. No license costs. Read the code. Fork it. Run it forever.
 
@@ -439,8 +439,8 @@ tinybridge shell myprojectname
 tinybridge up backend
 
 # Forward API and database ports
-tinybridge forward backend 8000:8000  # API server
-tinybridge forward backend 5432:5432  # PostgreSQL
+tinybridge forward backend 8000:8000 # API server
+tinybridge forward backend 5432:5432 # PostgreSQL
 
 # Access from macOS tools while maintaining firewall/VPN
 curl http://localhost:8000/api/health
@@ -575,7 +575,7 @@ Run Spark, Postgres, Kafka locally on Linux while writing code on macOS. No Dock
 |---------|---|---|---|
 | **Price** | Free forever | $7/month/user | Free |
 | **Setup** | One YAML file | Multiple configs + registration | YAML + scripts |
-| **Open Source** | ✅ Apache 2.0 | Partial | ✅ Yes |
+| **Open Source** | Apache 2.0 | Partial | Yes |
 
 ### Performance & Operations
 
@@ -583,7 +583,7 @@ Run Spark, Postgres, Kafka locally on Linux while writing code on macOS. No Dock
 |---------|---|---|---|
 | **Boot** | Optimized | Slower | Similar |
 | **File Sync** | Automatic, near-native speed | Slow (osxfs) | Manual (SSH) |
-| **Parallel Envs** | ✅ Easy (isolated) | ❌ Complex | ❌ Difficult |
+| **Parallel Envs** | Easy (isolated) | Complex | Difficult |
 | **Resource Control** | Live adjustment (up/down) | Static allocation | Static allocation |
 | **Memory Efficiency** | Optimized | Heavy footprint | Lightweight |
 | **CPU Cores** | Full allocation | Shared pool | Shared pool |
@@ -592,64 +592,64 @@ Run Spark, Postgres, Kafka locally on Linux while writing code on macOS. No Dock
 
 | Feature | TinyBridge | Docker Desktop | Lima |
 |---------|---|---|---|
-| **Audit Logging** | ✅ Tamper-evident logs | ❌ No | ❌ No |
-| **Anomaly Detection** | ✅ 6 types + intrusion detection | ❌ No | ❌ No |
-| **Security Monitoring** | ✅ Boot regression, resource spikes, availability breaches | ❌ No | ❌ No |
-| **Forensics/Replay** | ✅ Environment state replay | ❌ No | ❌ No |
-| **Compliance Ready** | ✅ Structured event logging | ❌ No | ❌ No |
-| **Cost Visibility** | ✅ Resource tracking | ❌ No | ❌ No |
+| **Audit Logging** | Tamper-evident logs | No | No |
+| **Anomaly Detection** | 6 types + intrusion detection | No | No |
+| **Security Monitoring** | Boot regression, resource spikes, availability breaches | No | No |
+| **Forensics/Replay** | Environment state replay | No | No |
+| **Compliance Ready** | Structured event logging | No | No |
+| **Cost Visibility** | Resource tracking | No | No |
 
 ### Developer Experience
 
 | Feature | TinyBridge | Docker Desktop | Lima |
 |---------|---|---|---|
-| **Keyboard Support** | ✅ Full (arrows, Ctrl+C, function keys, Alt combos) | ✅ Full | ✅ Full |
-| **Shell Access** | ✅ SSH + PTY passthrough | ✅ Bash | ✅ SSH |
-| **Environment File** | ✅ Single env.yaml | ❌ Multiple files (Dockerfile, compose) | ❌ YAML + shell scripts |
-| **Version Control** | ✅ Git-versioned env.yaml | ⚠️ Indirect (via files) | ⚠️ Indirect (via files) |
-| **Team Collaboration** | ✅ Declarative (env.yaml) | ⚠️ Image sharing overhead | ⚠️ Manual setup sync |
-| **Reproducibility** | ✅ Complete (OS + tools + versions) | ✅ Good (images locked) | ⚠️ Partial (script variation) |
+| **Keyboard Support** | Full (arrows, Ctrl+C, function keys, Alt combos) | Full | Full |
+| **Shell Access** | SSH + PTY passthrough | Bash | SSH |
+| **Environment File** | Single env.yaml | Multiple files (Dockerfile, compose) | YAML + shell scripts |
+| **Version Control** | Git-versioned env.yaml | Indirect (via files) | Indirect (via files) |
+| **Team Collaboration** | Declarative (env.yaml) | Image sharing overhead | Manual setup sync |
+| **Reproducibility** | Complete (OS + tools + versions) | Good (images locked) | Partial (script variation) |
 
 ### Production & Infrastructure
 
 | Feature | TinyBridge | Docker Desktop | Lima |
 |---------|---|---|---|
-| **Distro Options** | ✅ Ubuntu, Debian, Alpine, Fedora (any version) | ✅ Any Linux image | ✅ Ubuntu focus |
-| **Production Parity** | ✅ Exact OS matching | ✅ Good | ⚠️ Partial |
-| **Multi-OS Testing** | ✅ Easy (switch distros in env.yaml) | ✅ Easy | ⚠️ Manual |
-| **Rosetta 2 Support** | ✅ AMD64 on Apple Silicon | ⚠️ Via emulation | ✅ Yes |
+| **Distro Options** | Ubuntu, Debian, Alpine, Fedora (any version) | Any Linux image | Ubuntu focus |
+| **Production Parity** | Exact OS matching | Good | Partial |
+| **Multi-OS Testing** | Easy (switch distros in env.yaml) | Easy | Manual |
+| **Rosetta 2 Support** | AMD64 on Apple Silicon | Via emulation | Yes |
 
 ### Observability & Intelligence
 
 | Feature | TinyBridge | Docker Desktop | Lima |
 |---------|---|---|---|
-| **Observability Built-in** | ✅ OpenTelemetry (traces, metrics, logs) | ❌ Manual setup | ❌ Manual setup |
-| **Backend Agnostic** | ✅ Multiple open source backends | ⚠️ Limited integrations | ❌ No built-in |
-| **Zero Vendor Lock-in** | ✅ Standard OTel format | ❌ Tied to Docker Hub | ❌ Manual collection |
-| **Cost Tracking** | ✅ Resource usage per environment | ⚠️ Indirect | ❌ No |
-| **Performance Insights** | ✅ Boot regression, latency, error trends | ❌ No | ❌ No |
+| **Observability Built-in** | OpenTelemetry (traces, metrics, logs) | Manual setup | Manual setup |
+| **Backend Agnostic** | Multiple open source backends | Limited integrations | No built-in |
+| **Zero Vendor Lock-in** | Standard OTel format | Tied to Docker Hub | Manual collection |
+| **Cost Tracking** | Resource usage per environment | Indirect | No |
+| **Performance Insights** | Boot regression, latency, error trends | No | No |
 
 ### Team & Scaling
 
 | Feature | TinyBridge | Docker Desktop | Lima |
 |---------|---|---|---|
-| **Single Source of Truth** | ✅ env.yaml in git | ⚠️ Distributed images | ⚠️ Manual coordination |
-| **Development to Production** | ✅ Zero environment drift | ✅ Good | ⚠️ Manual sync |
-| **Onboarding New Devs** | ✅ `git pull && tinybridge up` (1 command) | ⚠️ Pull image, configure | ⚠️ Manual setup |
-| **Environment Templates** | ✅ Yes (backend, ML, robotics, etc.) | ⚠️ Requires image library | ❌ No built-in |
-| **Multi-Project Support** | ✅ Native (parallel envs) | ⚠️ Resource sharing issues | ⚠️ Manual setup |
-| **Org-Scale Deployment** | ✅ Declarative at every level | ⚠️ Complex orchestration needed | ⚠️ Manual at scale |
+| **Single Source of Truth** | env.yaml in git | Distributed images | Manual coordination |
+| **Development to Production** | Zero environment drift | Good | Manual sync |
+| **Onboarding New Devs** | `git pull && tinybridge up` (1 command) | Pull image, configure | Manual setup |
+| **Environment Templates** | Yes (backend, ML, robotics, etc.) | Requires image library | No built-in |
+| **Multi-Project Support** | Native (parallel envs) | Resource sharing issues | Manual setup |
+| **Org-Scale Deployment** | Declarative at every level | Complex orchestration needed | Manual at scale |
 
 ### Advanced Capabilities
 
 | Feature | TinyBridge | Docker Desktop | Lima |
 |---------|---|---|---|
-| **Checkpointing** | ✅ Save progress at milestones | ❌ No | ❌ No |
-| **Environment Snapshots** | ✅ Instant pause/resume | ⚠️ Via images | ⚠️ Manual |
-| **Live Resource Updates** | ✅ Adjust CPU/memory while running | ❌ Requires restart | ❌ Requires restart |
-| **Network Isolation** | ✅ Per-environment IP | ✅ Built-in | ✅ Built-in |
-| **Cross-Environment Networking** | ✅ Environment-to-environment | ✅ Via Docker network | ❌ Requires SSH |
-| **ROS 2 DDS Support** | ✅ Native multicast (Phase 3) | ⚠️ Requires special setup | ❌ No |
+| **Checkpointing** | Save progress at milestones | No | No |
+| **Environment Snapshots** | Instant pause/resume | Via images | Manual |
+| **Live Resource Updates** | Adjust CPU/memory while running | Requires restart | Requires restart |
+| **Network Isolation** | Per-environment IP | Built-in | Built-in |
+| **Cross-Environment Networking** | Environment-to-environment | Via Docker network | Requires SSH |
+| **ROS 2 DDS Support** | Native multicast (Phase 3) | Requires special setup | No |
 
 ### Cost of Ownership (12 months)
 
@@ -663,13 +663,13 @@ Run Spark, Postgres, Kafka locally on Linux while writing code on macOS. No Dock
 ### Bottom Line
 
 **Choose TinyBridge if you want:**
-- ✅ Production-grade security (tamper-evident logs, anomaly detection, forensics)
-- ✅ Enterprise observability (OpenTelemetry, 8+ backends, zero lock-in)
-- ✅ Environment-as-Code that scales (single file, team-shareable, git-versionable)
-- ✅ Multiple isolated environments running simultaneously
-- ✅ Fast onboarding ("git pull && tinybridge up")
-- ✅ Complete development/production parity
-- ✅ Zero vendor lock-in and cost constraints
+- Production-grade security (tamper-evident logs, anomaly detection, forensics)
+- Enterprise observability (OpenTelemetry, 8+ backends, zero lock-in)
+- Environment-as-Code that scales (single file, team-shareable, git-versionable)
+- Multiple isolated environments running simultaneously
+- Fast onboarding ("git pull && tinybridge up")
+- Complete development/production parity
+- Zero vendor lock-in and cost constraints
 
 **Choose Docker Desktop if you want:**
 - GUI with extensive Docker ecosystem
@@ -682,25 +682,25 @@ Run Spark, Postgres, Kafka locally on Linux while writing code on macOS. No Dock
 
 ---
 
-## 🎯 OpenTelemetry: The Strategic Advantage
+## OpenTelemetry: The Strategic Advantage
 
 TinyBridge's **OpenTelemetry-first architecture** is a game-changer for teams that don't want to be locked into a single vendor.
 
 ### Why OTel Matters
 
 Traditional tools lock you into one observability platform:
-- Docker Desktop → Docker Hub and Docker Swarm only
-- Lima → manual logging setup
-- Most dev tools → vendor-specific formats
+- Docker Desktop  Docker Hub and Docker Swarm only
+- Lima  manual logging setup
+- Most dev tools  vendor-specific formats
 
 **TinyBridge uses industry-standard OpenTelemetry**, meaning:
 
 ```
 TinyBridge Metrics (Standard OTel Format)
-    ↓
-    ├─ Send to Prometheus (self-hosted metrics)
-    ├─ Send to Jaeger (self-hosted tracing)
-    └─ Send to Grafana (self-hosted dashboards & visualization)
+ 
+ Send to Prometheus (self-hosted metrics)
+ Send to Jaeger (self-hosted tracing)
+ Send to Grafana (self-hosted dashboards & visualization)
 ```
 
 **No code changes. No agent changes. Just point to a different backend.**
@@ -711,25 +711,25 @@ TinyBridge Metrics (Standard OTel Format)
 ```yaml
 # env.yaml - use free Prometheus
 observability:
-  backend: prometheus
-  sample_rate: 1.0
+ backend: prometheus
+ sample_rate: 1.0
 ```
 
 **Month 6: Growing company (still free)**
 ```yaml
 # Same env.yaml - switch to Jaeger for distributed tracing
 observability:
-  backend: jaeger
-  sample_rate: 1.0
-  # Same metrics, same format, different backend
+ backend: jaeger
+ sample_rate: 1.0
+ # Same metrics, same format, different backend
 ```
 
 **Year 2: Advanced observability (still open source)**
 ```yaml
 # Switch to Grafana for complete visualization stack
 observability:
-  backend: grafana
-  # Complete portability, no vendor lock-in
+ backend: grafana
+ # Complete portability, no vendor lock-in
 ```
 
 **No surprise bills:** All backends are open source. Run them yourself, on your infrastructure.
@@ -763,25 +763,25 @@ TinyBridge captures everything:
 **Prometheus** (Self-Hosted, Open Source)
 ```yaml
 observability:
-  backend: prometheus
-  prometheus_scrape_interval: 15s
+ backend: prometheus
+ prometheus_scrape_interval: 15s
 ```
 Pull-based metrics. Run on your infrastructure. Zero cost.
 
 **Jaeger** (Distributed Tracing, Open Source)
 ```yaml
 observability:
-  backend: jaeger
-  jaeger_endpoint: http://localhost:14268/api/traces
+ backend: jaeger
+ jaeger_endpoint: http://localhost:14268/api/traces
 ```
 Specialized for tracing. Free. Self-hosted.
 
 **Grafana Stack** (Open Source, Complete)
 ```yaml
 observability:
-  backend: grafana
-  grafana_loki: http://loki:3100
-  grafana_prometheus: http://prometheus:9090
+ backend: grafana
+ grafana_loki: http://loki:3100
+ grafana_prometheus: http://prometheus:9090
 ```
 Prometheus metrics + Loki logs + Grafana dashboards. Fully open source. Zero licensing cost.
 
@@ -789,13 +789,13 @@ Prometheus metrics + Loki logs + Grafana dashboards. Fully open source. Zero lic
 
 | Aspect | Docker | Lima | TinyBridge |
 |--------|--------|------|-----------|
-| **Built-in Observability** | ❌ No | ❌ No | ✅ Yes (OTel) |
-| **Standard Format** | ❌ Proprietary | ❌ Manual | ✅ OpenTelemetry |
-| **Vendor Lock-in** | ✅ Locked to Docker | ⚠️ Manual setup | ❌ None (8+ options) |
-| **Switch Backends** | 🔴 Requires rebuild | 🔴 Requires rewrite | 🟢 Config change only |
-| **Cost Control** | 🔴 Vendor's pricing | ⚠️ Tool dependent | 🟢 Choose your price |
-| **Compliance Logging** | ❌ No audit trail | ❌ No audit trail | ✅ Tamper-evident logs |
-| **Anomaly Detection** | ❌ No | ❌ No | ✅ 6 types + intrusion |
+| **Built-in Observability** | No | No | Yes (OTel) |
+| **Standard Format** | Proprietary | Manual | OpenTelemetry |
+| **Vendor Lock-in** | Locked to Docker | Manual setup | None (8+ options) |
+| **Switch Backends** | Requires rebuild | Requires rewrite | Config change only |
+| **Cost Control** | Vendor's pricing | Tool dependent | Choose your price |
+| **Compliance Logging** | No audit trail | No audit trail | Tamper-evident logs |
+| **Anomaly Detection** | No | No | 6 types + intrusion |
 
 ### Why Startups & Enterprises Love This
 
@@ -815,11 +815,11 @@ Prometheus metrics + Loki logs + Grafana dashboards. Fully open source. Zero lic
 ### The Bottom Line on OTel
 
 TinyBridge's OpenTelemetry integration means:
-- ✅ **No vendor lock-in** — your observability data is portable
-- ✅ **Future-proof** — OTel is industry standard (CNCF, AWS, Google, Microsoft backing)
-- ✅ **Cost control** — switch backends to optimize price/value
-- ✅ **Flexibility** — 8+ backend options, pick the best for your needs
-- ✅ **Enterprise-grade** — compliance, audit, forensics built-in
+- **No vendor lock-in** — your observability data is portable
+- **Future-proof** — OTel is industry standard (CNCF, AWS, Google, Microsoft backing)
+- **Cost control** — switch backends to optimize price/value
+- **Flexibility** — 8+ backend options, pick the best for your needs
+- **Enterprise-grade** — compliance, audit, forensics built-in
 
 **In short: OTel support isn't a feature. It's an architectural guarantee that TinyBridge will never lock you in.**
 
@@ -839,43 +839,43 @@ TinyBridge's OpenTelemetry integration means:
 
 **Phase 1 (Current):** Core VM + CLI + daemon. Boot-optimized Linux environments on macOS.
 
-- ✅ Environment-as-Code (env.yaml)
-- ✅ CLI with full keyboard support
-- ✅ Automatic file sync (near-native performance)
-- ✅ Multiple parallel environments
-- ✅ OpenTelemetry integration
-- 🔄 Performance benchmarking (architecture validated, metrics collection in progress)
+- Environment-as-Code (env.yaml)
+- CLI with full keyboard support
+- Automatic file sync (near-native performance)
+- Multiple parallel environments
+- OpenTelemetry integration
+- Performance benchmarking (architecture validated, metrics collection in progress)
 
 **Phase 2 (In Development):** Intelligent service exposure and execution routing.
 
-- ✅ SSH tunneling framework (local forward, remote forward, SOCKS proxy)
-- ✅ Intelligent port forwarding (auto-detect services, secure exposure)
-- ✅ IP change detection & auto-update SSH config
-- ✅ DNS/mDNS support (.local TLD domains)
-- ✅ Environment snapshots & CoW cloning
-- ✅ Execution profiles (tier-based routing)
-- 🔄 Phase 2 networking and templates (coming soon)
+- SSH tunneling framework (local forward, remote forward, SOCKS proxy)
+- Intelligent port forwarding (auto-detect services, secure exposure)
+- IP change detection & auto-update SSH config
+- DNS/mDNS support (.local TLD domains)
+- Environment snapshots & CoW cloning
+- Execution profiles (tier-based routing)
+- Phase 2 networking and templates (coming soon)
 
 **Phase 3 (Shipping Next):** Hardware device passthrough & enterprise governance.
 
-- ✅ Device passthrough manager (USB, serial, camera, audio)
-- ✅ Policy hierarchy (Platform > Project > VM > User)
-- ✅ DDS networking for ROS 2 (opt-in, default-disabled)
-- ✅ Immutable audit trails (every action logged)
-- ✅ Compliance automation (SOC 2, ISO 27001, PCI-DSS ready)
-- 🔄 Compliance scoring & automated remediation (weeks 19-26)
+- Device passthrough manager (USB, serial, camera, audio)
+- Policy hierarchy (Platform > Project > VM > User)
+- DDS networking for ROS 2 (opt-in, default-disabled)
+- Immutable audit trails (every action logged)
+- Compliance automation (SOC 2, ISO 27001, PCI-DSS ready)
+- Compliance scoring & automated remediation (weeks 19-26)
 
 **Phase 4 (Planned):** Advanced GPU routing and networking.
 
-- 🔄 CUDA routing to remote GPUs
-- 🔄 Cross-network DDS bridges
-- 🔄 WAN and VPN optimization
+- CUDA routing to remote GPUs
+- Cross-network DDS bridges
+- WAN and VPN optimization
 
 **Phase 5 (Planned):** Vulkan-to-Metal GPU bridge and plugin ecosystem.
 
-- 🔄 GPU bridge (Vulkan → Metal)
-- 🔄 WASM plugin architecture
-- 🔄 Enterprise templates
+- GPU bridge (Vulkan  Metal)
+- WASM plugin architecture
+- Enterprise templates
 
 ---
 
