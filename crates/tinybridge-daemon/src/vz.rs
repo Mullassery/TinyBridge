@@ -64,6 +64,7 @@ impl VmManager {
         Ok(())
     }
 
+    #[allow(dead_code)]
     pub fn vm_exists(&self, id: Uuid) -> bool {
         self.vms.contains_key(&id)
     }

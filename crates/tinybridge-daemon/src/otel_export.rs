@@ -4,6 +4,7 @@ use anyhow::Result;
 pub mod prometheus_exporter {
     use anyhow::Result;
 
+    #[allow(dead_code)]
     pub struct PrometheusExporter {
         endpoint: String,
     }
@@ -37,6 +38,7 @@ pub mod prometheus_exporter {
 pub mod jaeger_exporter {
     use anyhow::Result;
 
+    #[allow(dead_code)]
     pub struct JaegerExporter {
         endpoint: String,
     }
@@ -70,6 +72,7 @@ pub mod jaeger_exporter {
 pub mod datadog_exporter {
     use anyhow::Result;
 
+    #[allow(dead_code)]
     pub struct DatadogExporter {
         api_key: String,
         endpoint: String,
@@ -93,6 +96,7 @@ pub mod datadog_exporter {
 }
 
 /// Configuration for OTel export backends
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub enum ExportBackend {
     /// Prometheus OTLP receiver (metrics)
