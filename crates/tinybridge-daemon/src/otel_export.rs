@@ -1,10 +1,8 @@
 use anyhow::Result;
 
-#[cfg(feature = "otel-prometheus")]
 pub mod prometheus_exporter {
     use anyhow::Result;
 
-    #[allow(dead_code)]
     pub struct PrometheusExporter {
         endpoint: String,
     }
@@ -18,27 +16,36 @@ pub mod prometheus_exporter {
 
         pub fn start(&self) -> Result<()> {
             tracing::info!("Starting Prometheus exporter on {}", self.endpoint);
-            // In Phase 2: Initialize OTLP HTTP receiver for Prometheus
-            // For now: placeholder
+            // Initialize OTLP HTTP exporter for Prometheus
+            // In Phase 2: Wire up real metrics export
+            // For now: log configuration
+            tracing::info!(
+                "Prometheus exporter configured for endpoint: {}",
+                self.endpoint
+            );
             Ok(())
         }
 
         pub fn export_boot_time(&self, env_name: &str, duration_ms: u64) -> Result<()> {
-            tracing::debug!(
+            // Export boot_time_ms metric to Prometheus
+            tracing::info!(
                 env_name = env_name,
                 duration_ms = duration_ms,
-                "Prometheus: boot_time metric"
+                target = "prometheus",
+                "boot_time_ms metric recorded"
             );
+
+            // In production: Send via OTLP HTTP to Prometheus remote write endpoint
+            // Placeholder for Phase 2 implementation
+
             Ok(())
         }
     }
 }
 
-#[cfg(feature = "otel-jaeger")]
 pub mod jaeger_exporter {
     use anyhow::Result;
 
-    #[allow(dead_code)]
     pub struct JaegerExporter {
         endpoint: String,
     }
@@ -52,17 +59,25 @@ pub mod jaeger_exporter {
 
         pub fn start(&self) -> Result<()> {
             tracing::info!("Starting Jaeger exporter on {}", self.endpoint);
-            // In Phase 2: Initialize OTLP gRPC exporter for Jaeger
-            // For now: placeholder
+            // Initialize OTLP gRPC exporter for Jaeger
+            // In Phase 2: Wire up real trace export
+            // For now: log configuration
+            tracing::info!("Jaeger exporter configured for endpoint: {}", self.endpoint);
             Ok(())
         }
 
         pub fn export_trace(&self, trace_id: &str, span_count: u32) -> Result<()> {
-            tracing::debug!(
+            // Export traces to Jaeger
+            tracing::info!(
                 trace_id = trace_id,
                 span_count = span_count,
-                "Jaeger: trace exported"
+                target = "jaeger",
+                "trace exported"
             );
+
+            // In production: Send via OTLP gRPC to Jaeger collector
+            // Placeholder for Phase 2 implementation
+
             Ok(())
         }
     }
