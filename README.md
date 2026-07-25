@@ -73,22 +73,48 @@ Open-source macOS Linux development substrate with intelligent VM orchestration,
 
 ## Installation
 
-### Option 1: Homebrew (Recommended)
+### Option 1: Build from Source (Recommended for now)
+
+**Prerequisites:**
+- Rust 1.87+
+- Swift 5.9+ (for menu bar app)
+- macOS 13+
 
 ```bash
+git clone https://github.com/Mullassery/tinybridge
+cd tinybridge
+
+# Build CLI and daemon
+cargo build --release
+
+# Install to /usr/local/bin
+sudo cp target/release/tinybridge /usr/local/bin/
+sudo cp target/release/tinybridged /usr/local/bin/
+
+# Start daemon
+launchctl load ~/Library/LaunchDaemons/com.tinybridge.daemon.plist
+
+# Verify installation
+tinybridge --version
+```
+
+### Option 2: Homebrew (Coming Soon!)
+
+We're actively building Homebrew tap support. Expected by end of month:
+
+```bash
+# This will work soon:
+brew tap Mullassery/tinybridge
 brew install tinybridge
 ```
 
-### Option 2: GitHub Releases
+See [HOMEBREW_TAP_SETUP.md](HOMEBREW_TAP_SETUP.md) for the roadmap.
 
-1. Download latest `.dmg` from [GitHub Releases](https://github.com/Mullassery/tinybridge/releases)
-2. Extract and follow the installer instructions
+### Option 3: GitHub Releases (Manual Download)
 
-### Option 3: Python Projects (with UV)
-
-```bash
-uv tool install tinybridge
-```
+1. Download latest release from [GitHub Releases](https://github.com/Mullassery/tinybridge/releases)
+2. Extract binaries to `/usr/local/bin/`
+3. Configure LaunchAgent for daemon auto-start (see setup instructions)
 
 ---
 
