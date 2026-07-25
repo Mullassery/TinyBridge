@@ -2,7 +2,8 @@
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen)](https://github.com/Mullassery/TinyBridge/actions)
-[![Tests Passing](https://img.shields.io/badge/Tests-34%2F34-brightgreen)](https://github.com/Mullassery/TinyBridge/actions)
+[![Tests Passing](https://img.shields.io/badge/Tests-120%2B-brightgreen)](https://github.com/Mullassery/TinyBridge/actions)
+[![Phase](https://img.shields.io/badge/Phase-2%2B3-blue)](https://github.com/Mullassery/TinyBridge)
 [![Rust](https://img.shields.io/badge/Made%20with-Rust-CE4E2C)](https://www.rust-lang.org/)
 [![Swift](https://img.shields.io/badge/UI-Swift-FA7343)](https://developer.apple.com/swift/)
 
@@ -846,36 +847,47 @@ TinyBridge's OpenTelemetry integration means:
 - OpenTelemetry integration
 - Performance benchmarking (architecture validated, metrics collection in progress)
 
-**Phase 2 (In Development):** Intelligent service exposure and execution routing.
+**Phase 2 (Complete - 2026-07-25):** CLI Polish & Developer Experience.
 
-- SSH tunneling framework (local forward, remote forward, SOCKS proxy)
-- Intelligent port forwarding (auto-detect services, secure exposure)
-- IP change detection & auto-update SSH config
-- DNS/mDNS support (.local TLD domains)
-- Environment snapshots & CoW cloning
-- Execution profiles (tier-based routing)
-- Phase 2 networking and templates (coming soon)
+- ✅ New `launch` command with smart defaults
+- ✅ 10 built-in templates (Rust, Python, Node, Go, ROS2, AI/ML)
+- ✅ Comprehensive diagnostics system (`tinybridge doctor`)
+- ✅ User-friendly error messages with recovery suggestions
+- ✅ Progress indicators for long operations
+- ✅ SSH tunneling framework (local forward, remote forward, SOCKS proxy)
+- ✅ Intelligent port forwarding (auto-detect services, secure exposure)
+- ✅ Environment snapshots & CoW cloning
+- ✅ Execution profiles (tier-based routing)
 
-**Phase 3 (Shipping Next):** Hardware device passthrough & enterprise governance.
+**Phase 3 (In Development - 2026-07-25):** Daemon Integration & Error Propagation.
+
+- ✅ Error propagation layer (BridgeError → JSON-RPC with full context)
+- ✅ Health check system (4 resource checks with aggregation)
+- ✅ Structured logging with correlation IDs
+- ✅ Graceful shutdown coordination
+- 🔄 Signal handler integration (SIGTERM/SIGINT)
+- 🔄 Server.rs wiring (operation tracking, health endpoint)
+- 🔄 End-to-end testing (error flow, shutdown, health checks)
+- 🔄 OTel span integration for production observability
+
+**Phase 4 (Planned - Q4 2026):** Hardware Passthrough & Configuration Management.
 
 - Device passthrough manager (USB, serial, camera, audio)
 - Policy hierarchy (Platform > Project > VM > User)
 - DDS networking for ROS 2 (opt-in, default-disabled)
+- Config profiles (dev/staging/production)
 - Immutable audit trails (every action logged)
 - Compliance automation (SOC 2, ISO 27001, PCI-DSS ready)
-- Compliance scoring & automated remediation (weeks 19-26)
 
-**Phase 4 (Planned):** Advanced GPU routing and networking.
+**Phase 5 (Planned - 2027):** Advanced GPU Routing & Plugin Ecosystem.
 
+- GPU bridge (Vulkan ↔ Metal)
 - CUDA routing to remote GPUs
 - Cross-network DDS bridges
 - WAN and VPN optimization
-
-**Phase 5 (Planned):** Vulkan-to-Metal GPU bridge and plugin ecosystem.
-
-- GPU bridge (Vulkan  Metal)
 - WASM plugin architecture
 - Enterprise templates
+- Template marketplace integration
 
 ---
 
