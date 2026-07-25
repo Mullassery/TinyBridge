@@ -1,5 +1,7 @@
 mod client;
 mod commands;
+mod interactive;
+mod keyboard;
 mod output;
 mod terminal;
 
