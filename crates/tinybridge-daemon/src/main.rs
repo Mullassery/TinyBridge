@@ -5,6 +5,7 @@ mod boot_tiers;
 mod clipboard_sync;
 mod daemon;
 mod dds_rpc;
+mod error_propagation;
 mod ip_monitor;
 mod manager;
 mod okf_pipeline;
