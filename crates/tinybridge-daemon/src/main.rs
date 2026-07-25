@@ -9,6 +9,7 @@ mod dds_rpc;
 mod error_propagation;
 mod graceful_shutdown;
 mod health;
+mod integration_tests;
 mod ip_monitor;
 mod manager;
 mod okf_pipeline;
