@@ -2,8 +2,8 @@
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen)](https://github.com/Mullassery/TinyBridge/actions)
-[![Tests Passing](https://img.shields.io/badge/Tests-198%2B-brightgreen)](https://github.com/Mullassery/TinyBridge/actions)
-[![Phase](https://img.shields.io/badge/Phase-1%2D4-blue)](https://github.com/Mullassery/TinyBridge)
+[![Tests Passing](https://img.shields.io/badge/Tests-242%2B-brightgreen)](https://github.com/Mullassery/TinyBridge/actions)
+[![Phase](https://img.shields.io/badge/Phase-1%2D4.0.3-blue)](https://github.com/Mullassery/TinyBridge)
 [![Version](https://img.shields.io/badge/Version-0.3.0-blue.svg)](https://github.com/Mullassery/TinyBridge/releases)
 [![Rust](https://img.shields.io/badge/Made%20with-Rust-CE4E2C)](https://www.rust-lang.org/)
 [![Swift](https://img.shields.io/badge/UI-Swift-FA7343)](https://developer.apple.com/swift/)
@@ -859,9 +859,9 @@ TinyBridge's OpenTelemetry integration means:
 - ✅ End-to-end testing (error flow, shutdown, health checks)
 - **128+ tests, ~5,500 LOC**
 
-**Phase 4 (In Progress - 2026-07-25):** Hardware Passthrough & Policy Engine
+**Phase 4 (In Progress - 2026-07-25):** Hardware Passthrough, Policies & ROS 2 Networking
 
-**Phase 4.0.1-4.0.2 (Complete):** Device Management & Access Control
+**Phase 4.0.1-4.0.3 (Complete):** Device Management, Policy Engine & Audit
 
 - ✅ Device Manager (USB, serial, camera, audio enumeration)
 - ✅ Device discovery (macOS system_profiler integration)
@@ -869,18 +869,22 @@ TinyBridge's OpenTelemetry integration means:
 - ✅ Hierarchical policy engine (Platform > Project > Environment)
 - ✅ Access decision enforcement (Allow/Deny/Inherit)
 - ✅ Whitelist/blacklist support
-- ✅ Policy audit trails with decision reasoning
+- ✅ Policy audit logging (tamper-evident compliance trail)
 - ✅ Access control integration with device manager
 - ✅ Device filtering by policy
-- ✅ 70+ integration tests
-- **~2,600 LOC new, 198+ tests total**
+- ✅ DDS networking configuration for ROS 2 (multicast/TCP)
+- ✅ ROS 2 node and topic discovery
+- ✅ Compliance reporting (SOC 2, ISO 27001, PCI-DSS ready)
+- ✅ 118+ integration tests
+- **~4,150 LOC new, 242+ tests total**
 
-**Phase 4.0.3 (Planned):** Device Hotplug & Compliance
+**Phase 4.0.4-4.0.5 (Planned):** Device Hotplug & Config Profiles
 
 - Device hotplug detection (automatic add/remove)
-- Policy audit logging (every decision logged)
-- DDS networking for ROS 2 (opt-in, default-disabled)
-- Compliance reporting (SOC 2, ISO 27001, PCI-DSS)
+- Dynamic policy updates without restart
+- Config profiles (dev/staging/production per-environment)
+- Multi-tenant isolation
+- Environment-specific settings
 
 **Phase 4.0.4-4.0.5 (Planned):** Config Profiles & Immutable Audit
 
