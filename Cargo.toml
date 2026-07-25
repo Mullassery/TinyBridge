@@ -5,6 +5,7 @@ members = [
     "crates/tinybridge-cli",
     "crates/tinybridge-daemon",
     "crates/tinybridge-diagnostics",
+    "crates/tinybridge-template-engine",
     "crates/tinybridge-vz-sys",
     "crates/tinybridge-vz",
     "crates/tinybridge-router",
@@ -57,15 +58,16 @@ handlebars         = "5.0"
 sha2               = "0.10"
 hex                = "0.4"
 parking_lot        = "0.12"
-tinybridge-core           = { path = "crates/tinybridge-core" }
-tinybridge-cli            = { path = "crates/tinybridge-cli" }
-tinybridge-daemon         = { path = "crates/tinybridge-daemon" }
-tinybridge-diagnostics    = { path = "crates/tinybridge-diagnostics" }
-tinybridge-dds            = { path = "crates/tinybridge-dds" }
-tinybridge-vz-sys         = { path = "crates/tinybridge-vz-sys" }
-tinybridge-vz             = { path = "crates/tinybridge-vz" }
-tinybridge-router         = { path = "crates/tinybridge-router" }
-tinybridge-clipboard      = { path = "crates/tinybridge-clipboard" }
+tinybridge-core              = { path = "crates/tinybridge-core" }
+tinybridge-cli               = { path = "crates/tinybridge-cli" }
+tinybridge-daemon            = { path = "crates/tinybridge-daemon" }
+tinybridge-diagnostics       = { path = "crates/tinybridge-diagnostics" }
+tinybridge-template-engine   = { path = "crates/tinybridge-template-engine" }
+tinybridge-dds               = { path = "crates/tinybridge-dds" }
+tinybridge-vz-sys            = { path = "crates/tinybridge-vz-sys" }
+tinybridge-vz                = { path = "crates/tinybridge-vz" }
+tinybridge-router            = { path = "crates/tinybridge-router" }
+tinybridge-clipboard         = { path = "crates/tinybridge-clipboard" }
 tinybridge-ssh        = { path = "crates/tinybridge-ssh" }
 tinybridge-templates  = { path = "crates/tinybridge-templates" }
 tinybridge-tunnel     = { path = "crates/tinybridge-tunnel" }

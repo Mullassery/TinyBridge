@@ -2135,6 +2135,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "tinybridge-template-engine"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "thiserror 2.0.19",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "tinybridge-templates"
 version = "0.1.0"
 dependencies = [
