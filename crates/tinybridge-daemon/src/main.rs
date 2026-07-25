@@ -4,6 +4,7 @@ mod anomaly_detector;
 mod boot_tiers;
 mod clipboard_sync;
 mod daemon;
+mod daemon_init;
 mod dds_rpc;
 mod error_propagation;
 mod graceful_shutdown;
@@ -15,6 +16,7 @@ mod okf_updater;
 mod otel;
 mod otel_export;
 mod quality_gates;
+mod rpc_methods;
 mod server;
 mod state;
 mod structured_logging;
@@ -53,7 +55,7 @@ async fn main() -> Result<()> {
     // Initialize OTel tracing (exports to Jaeger if available, falls back gracefully)
     let _ = otel::init_tracing("tinybridged");
 
-    // Standard tracing subscriber (OTel layer will be added in Phase 2)
+    // Standard tracing subscriber (OTel layer will be added in Phase 3)
     tracing_subscriber::fmt()
         .with_env_filter(
             EnvFilter::try_from_default_env()
@@ -67,6 +69,9 @@ async fn main() -> Result<()> {
 
     tracing::info!("TinyBridge daemon starting");
     tracing::info!("Socket: {:?}", socket);
+
+    // Initialize daemon state (signal handlers, health checker, shutdown coordinator)
+    let _daemon_state = daemon_init::DaemonState::initialize().await?;
 
     daemon::run(socket).await
 }
