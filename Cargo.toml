@@ -6,6 +6,7 @@ members = [
     "crates/tinybridge-daemon",
     "crates/tinybridge-diagnostics",
     "crates/tinybridge-template-engine",
+    "crates/tinybridge-error",
     "crates/tinybridge-vz-sys",
     "crates/tinybridge-vz",
     "crates/tinybridge-router",
@@ -63,6 +64,7 @@ tinybridge-cli               = { path = "crates/tinybridge-cli" }
 tinybridge-daemon            = { path = "crates/tinybridge-daemon" }
 tinybridge-diagnostics       = { path = "crates/tinybridge-diagnostics" }
 tinybridge-template-engine   = { path = "crates/tinybridge-template-engine" }
+tinybridge-error             = { path = "crates/tinybridge-error" }
 tinybridge-dds               = { path = "crates/tinybridge-dds" }
 tinybridge-vz-sys            = { path = "crates/tinybridge-vz-sys" }
 tinybridge-vz                = { path = "crates/tinybridge-vz" }

@@ -2081,6 +2081,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "tinybridge-error"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "serde",
+ "thiserror 2.0.19",
+]
+
+[[package]]
 name = "tinybridge-router"
 version = "0.1.0"
 dependencies = [
