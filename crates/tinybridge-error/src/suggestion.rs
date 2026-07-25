@@ -31,10 +31,7 @@ impl RecoverySuggestion {
 
     pub fn increase_memory(required_mb: u32) -> Self {
         Self::new(vec![
-            format!(
-                "Increase allocated memory to at least {}MB",
-                required_mb
-            ),
+            format!("Increase allocated memory to at least {}MB", required_mb),
             "Use: tinybridge config set memory {}".to_string(),
             "Restart the VM: tinybridge restart".to_string(),
         ])
@@ -113,10 +110,7 @@ mod tests {
 
     #[test]
     fn test_suggestion_creation() {
-        let sugg = RecoverySuggestion::new(vec![
-            "Step 1".to_string(),
-            "Step 2".to_string(),
-        ]);
+        let sugg = RecoverySuggestion::new(vec!["Step 1".to_string(), "Step 2".to_string()]);
         assert_eq!(sugg.steps.len(), 2);
     }
 

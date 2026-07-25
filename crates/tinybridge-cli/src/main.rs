@@ -3,7 +3,6 @@ mod commands;
 mod output;
 mod terminal;
 
-use anyhow::Result;
 use clap::{Parser, Subcommand};
 use std::path::PathBuf;
 use tracing_subscriber::EnvFilter;
@@ -69,7 +68,7 @@ enum Commands {
 }
 
 #[tokio::main]
-async fn main() -> Result<()> {
+async fn main() {
     let cli = Cli::parse();
 
     let log_level = match cli.verbose {
@@ -87,7 +86,7 @@ async fn main() -> Result<()> {
 
     let socket = cli.socket.clone();
 
-    match cli.command {
+    let result = match cli.command {
         Commands::Launch(args) => commands::launch::execute(args, socket).await,
         Commands::Up(args) => commands::up::execute(args, socket).await,
         Commands::Down(args) => commands::down::execute(args, socket).await,
@@ -100,9 +99,17 @@ async fn main() -> Result<()> {
         Commands::Doctor(args) => commands::doctor::execute(args, socket).await,
         Commands::Templates(args) => commands::templates::execute(args, socket).await,
         Commands::Images(args) => commands::images::execute(args, socket).await,
-        Commands::Dds(args) => {
-            let mut client = client::DaemonClient::new(socket)?;
-            commands::dds::execute(args, &mut client).await
+        Commands::Dds(args) => match client::DaemonClient::new(socket) {
+            Ok(mut client) => commands::dds::execute(args, &mut client).await,
+            Err(e) => Err(e),
+        },
+    };
+
+    match result {
+        Ok(()) => std::process::exit(0),
+        Err(e) => {
+            output::print_error(&format!("{}", e));
+            std::process::exit(1);
         }
     }
 }

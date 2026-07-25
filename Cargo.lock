@@ -1963,6 +1963,8 @@ dependencies = [
  "thiserror 2.0.19",
  "tinybridge-core",
  "tinybridge-diagnostics",
+ "tinybridge-error",
+ "tinybridge-template-engine",
  "tokio",
  "tracing",
  "tracing-subscriber",

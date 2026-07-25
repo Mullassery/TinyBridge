@@ -1,12 +1,12 @@
-pub mod error;
 pub mod context;
-pub mod suggestion;
+pub mod error;
 pub mod severity;
+pub mod suggestion;
 
-pub use error::{BridgeError, ErrorKind};
 pub use context::ErrorContext;
-pub use suggestion::RecoverySuggestion;
+pub use error::{BridgeError, ErrorKind};
 pub use severity::ErrorSeverity;
+pub use suggestion::RecoverySuggestion;
 
 #[cfg(test)]
 mod tests {

@@ -20,6 +20,8 @@ tracing            = { workspace = true }
 tracing-subscriber = { workspace = true }
 tinybridge-core    = { workspace = true }
 tinybridge-diagnostics = { workspace = true }
+tinybridge-error   = { workspace = true }
+tinybridge-template-engine = { workspace = true }
 anyhow             = { workspace = true }
 crossterm          = { workspace = true }
 indicatif          = { workspace = true }

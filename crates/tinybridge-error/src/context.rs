@@ -101,8 +101,7 @@ mod tests {
 
     #[test]
     fn test_context_display() {
-        let ctx = ErrorContext::new()
-            .with_detail("Key".to_string(), "Value".to_string());
+        let ctx = ErrorContext::new().with_detail("Key".to_string(), "Value".to_string());
         let display = ctx.to_string();
         assert!(display.contains("Key: Value"));
     }
