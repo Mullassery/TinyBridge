@@ -30,6 +30,7 @@ chrono             = { workspace = true }
 futures            = { workspace = true }
 dirs               = { workspace = true }
 parking_lot        = { version = "0.12" }
+libc               = { version = "0.2" }
 # OTel dependencies for Phase 2 (framework added, full implementation in progress)
 # opentelemetry       = { version = "0.24", features = ["trace", "metrics"] }
 # opentelemetry-http  = { version = "0.13" }

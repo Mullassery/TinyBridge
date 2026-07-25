@@ -131,7 +131,7 @@ impl HealthChecker {
         #[cfg(target_os = "macos")]
         {
             let available_mb = unsafe {
-                let mut page_count: u32 = 0;
+                let page_count: u32 = 0;
                 let result = libc::sysctl(
                     &mut [libc::CTL_HW, libc::HW_MEMSIZE] as *mut i32,
                     2,

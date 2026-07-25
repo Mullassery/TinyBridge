@@ -23,7 +23,7 @@ fn handle_health_check(request_id: i64, health_checker: &HealthChecker) -> Optio
     let report = health_checker.check_all();
 
     Some(JsonRpcResponse::success(
-        request_id,
+        request_id as u64,
         json!({
             "status": report.status,
             "uptime_seconds": report.uptime_seconds,
@@ -39,7 +39,10 @@ fn handle_full_health_check(
     health_checker: &HealthChecker,
 ) -> Option<JsonRpcResponse> {
     let report = health_checker.check_all();
-    Some(JsonRpcResponse::success(request_id, report))
+    Some(JsonRpcResponse::success(
+        request_id as u64,
+        serde_json::to_value(report).unwrap_or(json!({})),
+    ))
 }
 
 /// Convert a BridgeError to JSON-RPC error response
@@ -47,9 +50,9 @@ pub fn error_to_response(error: BridgeError, request_id: i64) -> JsonRpcResponse
     let (code, message, data) = ErrorPropagator::to_json_rpc_error(&error);
 
     if let Some(error_data) = data {
-        JsonRpcResponse::error_with_data(request_id, code, &message, error_data)
+        JsonRpcResponse::error_with_data(request_id as u64, code, &message, error_data)
     } else {
-        JsonRpcResponse::error(request_id, code, &message)
+        JsonRpcResponse::error(request_id as u64, code, &message)
     }
 }
 
