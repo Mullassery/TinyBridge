@@ -6,6 +6,7 @@ mod clipboard_sync;
 mod daemon;
 mod dds_rpc;
 mod error_propagation;
+mod health;
 mod ip_monitor;
 mod manager;
 mod okf_pipeline;
@@ -15,6 +16,7 @@ mod otel_export;
 mod quality_gates;
 mod server;
 mod state;
+mod structured_logging;
 mod vz;
 
 use anyhow::Result;
