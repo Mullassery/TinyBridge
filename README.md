@@ -2,8 +2,9 @@
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen)](https://github.com/Mullassery/TinyBridge/actions)
-[![Tests Passing](https://img.shields.io/badge/Tests-120%2B-brightgreen)](https://github.com/Mullassery/TinyBridge/actions)
-[![Phase](https://img.shields.io/badge/Phase-2%2B3-blue)](https://github.com/Mullassery/TinyBridge)
+[![Tests Passing](https://img.shields.io/badge/Tests-198%2B-brightgreen)](https://github.com/Mullassery/TinyBridge/actions)
+[![Phase](https://img.shields.io/badge/Phase-1%2D4-blue)](https://github.com/Mullassery/TinyBridge)
+[![Version](https://img.shields.io/badge/Version-0.3.0-blue.svg)](https://github.com/Mullassery/TinyBridge/releases)
 [![Rust](https://img.shields.io/badge/Made%20with-Rust-CE4E2C)](https://www.rust-lang.org/)
 [![Swift](https://img.shields.io/badge/UI-Swift-FA7343)](https://developer.apple.com/swift/)
 
@@ -96,11 +97,15 @@ uv tool install tinybridge
 ```bash
 # Check CLI is accessible
 tinybridge --version
-# Should output: tinybridge 0.1.0
+# Should output: tinybridge 0.3.0
 
 # Verify daemon starts automatically
 ps aux | grep tinybridged
 # Should show: /Applications/TinyBridge.app/Contents/MacOS/tinybridged
+
+# Check hardware passthrough support
+tinybridge doctor
+# Should include: Device manager, Policy engine, Access control
 ```
 
 If `tinybridge --version` fails, restart Terminal. The daemon starts automatically when needed.
@@ -838,48 +843,53 @@ TinyBridge's OpenTelemetry integration means:
 
 ## Status
 
-**Phase 1 (Current):** Core VM + CLI + daemon. Boot-optimized Linux environments on macOS.
+**Phase 1-3 (Complete - 2026-07-25):** Core VM, CLI, Daemon, Error Handling
 
-- Environment-as-Code (env.yaml)
-- CLI with full keyboard support
-- Automatic file sync (near-native performance)
-- Multiple parallel environments
-- OpenTelemetry integration
-- Performance benchmarking (architecture validated, metrics collection in progress)
-
-**Phase 2 (Complete - 2026-07-25):** CLI Polish & Developer Experience.
-
-- ✅ New `launch` command with smart defaults
-- ✅ 10 built-in templates (Rust, Python, Node, Go, ROS2, AI/ML)
-- ✅ Comprehensive diagnostics system (`tinybridge doctor`)
-- ✅ User-friendly error messages with recovery suggestions
-- ✅ Progress indicators for long operations
-- ✅ SSH tunneling framework (local forward, remote forward, SOCKS proxy)
-- ✅ Intelligent port forwarding (auto-detect services, secure exposure)
-- ✅ Environment snapshots & CoW cloning
-- ✅ Execution profiles (tier-based routing)
-
-**Phase 3 (In Development - 2026-07-25):** Daemon Integration & Error Propagation.
-
-- ✅ Error propagation layer (BridgeError → JSON-RPC with full context)
+- ✅ Environment-as-Code (env.yaml)
+- ✅ CLI with full keyboard support
+- ✅ Automatic file sync (near-native performance)
+- ✅ Multiple parallel environments
+- ✅ OpenTelemetry integration
+- ✅ Boot optimization (<5s multi-tier lazy loading)
+- ✅ Error propagation layer (full context through JSON-RPC)
 - ✅ Health check system (4 resource checks with aggregation)
 - ✅ Structured logging with correlation IDs
 - ✅ Graceful shutdown coordination
-- 🔄 Signal handler integration (SIGTERM/SIGINT)
-- 🔄 Server.rs wiring (operation tracking, health endpoint)
-- 🔄 End-to-end testing (error flow, shutdown, health checks)
-- 🔄 OTel span integration for production observability
+- ✅ Signal handler integration (SIGTERM/SIGINT)
+- ✅ End-to-end testing (error flow, shutdown, health checks)
+- **128+ tests, ~5,500 LOC**
 
-**Phase 4 (Planned - Q4 2026):** Hardware Passthrough & Configuration Management.
+**Phase 4 (In Progress - 2026-07-25):** Hardware Passthrough & Policy Engine
 
-- Device passthrough manager (USB, serial, camera, audio)
-- Policy hierarchy (Platform > Project > VM > User)
+**Phase 4.0.1-4.0.2 (Complete):** Device Management & Access Control
+
+- ✅ Device Manager (USB, serial, camera, audio enumeration)
+- ✅ Device discovery (macOS system_profiler integration)
+- ✅ Passthrough allocation with device isolation
+- ✅ Hierarchical policy engine (Platform > Project > Environment)
+- ✅ Access decision enforcement (Allow/Deny/Inherit)
+- ✅ Whitelist/blacklist support
+- ✅ Policy audit trails with decision reasoning
+- ✅ Access control integration with device manager
+- ✅ Device filtering by policy
+- ✅ 70+ integration tests
+- **~2,600 LOC new, 198+ tests total**
+
+**Phase 4.0.3 (Planned):** Device Hotplug & Compliance
+
+- Device hotplug detection (automatic add/remove)
+- Policy audit logging (every decision logged)
 - DDS networking for ROS 2 (opt-in, default-disabled)
-- Config profiles (dev/staging/production)
-- Immutable audit trails (every action logged)
-- Compliance automation (SOC 2, ISO 27001, PCI-DSS ready)
+- Compliance reporting (SOC 2, ISO 27001, PCI-DSS)
 
-**Phase 5 (Planned - 2027):** Advanced GPU Routing & Plugin Ecosystem.
+**Phase 4.0.4-4.0.5 (Planned):** Config Profiles & Immutable Audit
+
+- Config profiles (dev/staging/production per-environment)
+- Immutable audit trails (tamper-evident logging)
+- Multi-tenant policy management
+- Compliance automation
+
+**Phase 5 (Planned - 2027):** GPU Routing & Plugin Ecosystem
 
 - GPU bridge (Vulkan ↔ Metal)
 - CUDA routing to remote GPUs

@@ -1950,7 +1950,7 @@ dependencies = [
 
 [[package]]
 name = "tinybridge-cli"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "clap",
@@ -1972,7 +1972,7 @@ dependencies = [
 
 [[package]]
 name = "tinybridge-clipboard"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "core-foundation",
  "objc",
@@ -1987,7 +1987,7 @@ dependencies = [
 
 [[package]]
 name = "tinybridge-core"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "chrono",
  "dirs",
@@ -2001,7 +2001,7 @@ dependencies = [
 
 [[package]]
 name = "tinybridge-daemon"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -2027,7 +2027,7 @@ dependencies = [
 
 [[package]]
 name = "tinybridge-dds"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -2041,7 +2041,7 @@ dependencies = [
 
 [[package]]
 name = "tinybridge-devices"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -2056,7 +2056,7 @@ dependencies = [
 
 [[package]]
 name = "tinybridge-diagnostics"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -2071,7 +2071,7 @@ dependencies = [
 
 [[package]]
 name = "tinybridge-dns"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -2086,7 +2086,7 @@ dependencies = [
 
 [[package]]
 name = "tinybridge-error"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "serde",
@@ -2112,7 +2112,7 @@ dependencies = [
 
 [[package]]
 name = "tinybridge-snapshots"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -2129,7 +2129,7 @@ dependencies = [
 
 [[package]]
 name = "tinybridge-ssh"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -2149,7 +2149,7 @@ dependencies = [
 
 [[package]]
 name = "tinybridge-template-engine"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "serde",
@@ -2162,7 +2162,7 @@ dependencies = [
 
 [[package]]
 name = "tinybridge-templates"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "serde",
@@ -2174,7 +2174,7 @@ dependencies = [
 
 [[package]]
 name = "tinybridge-tunnel"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -2189,7 +2189,7 @@ dependencies = [
 
 [[package]]
 name = "tinybridge-vz"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -2202,7 +2202,7 @@ dependencies = [
 
 [[package]]
 name = "tinybridge-vz-sys"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "bindgen",
 ]
