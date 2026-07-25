@@ -6,6 +6,7 @@ mod clipboard_sync;
 mod daemon;
 mod dds_rpc;
 mod error_propagation;
+mod graceful_shutdown;
 mod health;
 mod ip_monitor;
 mod manager;
