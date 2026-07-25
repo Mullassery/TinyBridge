@@ -47,6 +47,73 @@ pub fn print_info(text: &str) {
     println!("{} {}", style("→").blue(), text);
 }
 
+pub fn print_warning(text: &str) {
+    println!("{} {}", style("⚠").yellow(), text);
+}
+
+pub fn print_config(key: &str, value: &str) {
+    println!("  {} {}: {}", style("•").yellow(), key, style(value).cyan());
+}
+
+pub fn print_template(name: &str, description: &str) {
+    println!(
+        "  {} {} - {}",
+        style("▪").cyan(),
+        style(name).bold(),
+        description
+    );
+}
+
+pub fn print_image(name: &str, version: &str, size_mb: u32, arch: &str) {
+    println!(
+        "  {} {} {} ({} MB, {})",
+        style("▪").cyan(),
+        style(name).bold(),
+        style(version).dim(),
+        size_mb,
+        arch
+    );
+}
+
+pub fn print_check_pass(text: &str) {
+    println!("{} {}", style("✓").green(), text);
+}
+
+pub fn print_check_warning(text: &str) {
+    println!("{} {}", style("⚠").yellow(), text);
+}
+
+pub fn print_check_fail(text: &str) {
+    println!("{} {}", style("✗").red(), text);
+}
+
+pub fn print_summary(total: usize, warnings: usize, failures: usize) {
+    if failures > 0 {
+        println!(
+            "{} Diagnostics: {}/{} passed, {} warning(s), {} failure(s)",
+            style("Summary").bold(),
+            total - warnings - failures,
+            total,
+            warnings,
+            failures
+        );
+    } else if warnings > 0 {
+        println!(
+            "{} Diagnostics: {}/{} passed, {} warning(s)",
+            style("Summary").bold(),
+            total - warnings,
+            total,
+            warnings
+        );
+    } else {
+        println!(
+            "{} All {} check(s) passed ✓",
+            style("Summary").bold(),
+            total
+        );
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
