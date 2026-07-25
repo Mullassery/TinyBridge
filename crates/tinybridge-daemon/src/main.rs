@@ -1,3 +1,5 @@
+#![allow(unused_imports, unused_variables, unexpected_cfgs, dead_code)]
+
 mod anomaly_detector;
 mod boot_tiers;
 mod clipboard_sync;

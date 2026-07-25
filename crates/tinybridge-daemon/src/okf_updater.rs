@@ -199,7 +199,7 @@ impl OkfUpdater {
 
     #[allow(dead_code)]
     pub fn update_from_metrics(&mut self, metrics: ProductionMetrics) -> Result<()> {
-        let phase = format!("okr_phase_1_week_4");
+        let phase = "okr_phase_1_week_4".to_string();
 
         let snapshot = self
             .snapshots
