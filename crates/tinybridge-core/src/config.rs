@@ -19,28 +19,34 @@ pub struct DefaultResources {
 }
 
 impl TinyBridgeConfig {
-    pub fn socket_path() -> PathBuf {
-        if cfg!(unix) {
-            PathBuf::from("/var/run/tinybridge.sock")
-        } else {
-            let home = dirs::home_dir().unwrap_or_else(|| PathBuf::from("."));
-            home.join(".tinybridge/tinybridge.sock")
-        }
+    pub fn data_dir() -> PathBuf {
+        dirs::data_dir()
+            .unwrap_or_else(|| PathBuf::from("."))
+            .join("TinyBridge")
     }
 
-    pub fn data_dir() -> PathBuf {
-        let home = dirs::home_dir().unwrap_or_else(|| PathBuf::from("."));
-        home.join(".tinybridge")
+    pub fn cache_dir() -> PathBuf {
+        dirs::cache_dir()
+            .unwrap_or_else(|| PathBuf::from("."))
+            .join("TinyBridge")
+    }
+
+    pub fn logs_dir() -> PathBuf {
+        dirs::home_dir()
+            .unwrap_or_else(|| PathBuf::from("."))
+            .join("Library/Logs/TinyBridge")
+    }
+
+    pub fn socket_path() -> PathBuf {
+        Self::data_dir().join("tinybridge.sock")
     }
 
     pub fn shell_socket_path(shell_id: &str) -> PathBuf {
-        let home = dirs::home_dir().unwrap_or_else(|| PathBuf::from("."));
-        home.join(format!(".tinybridge/shells/{}.sock", shell_id))
+        Self::data_dir().join(format!("shells/{}.sock", shell_id))
     }
 
     pub fn shells_dir() -> PathBuf {
-        let home = dirs::home_dir().unwrap_or_else(|| PathBuf::from("."));
-        home.join(".tinybridge/shells")
+        Self::data_dir().join("shells")
     }
 }
 
@@ -50,8 +56,8 @@ impl Default for TinyBridgeConfig {
             socket_path: Self::socket_path(),
             data_dir: Self::data_dir(),
             log_level: "info".to_string(),
-            kernel_path: PathBuf::from("/usr/local/bin/tinybridge-kernel"),
-            initrd_path: PathBuf::from("/usr/local/bin/tinybridge-initrd"),
+            kernel_path: Self::cache_dir().join("assets/vmlinux"),
+            initrd_path: Self::cache_dir().join("assets/initrd"),
             default_resources: DefaultResources {
                 cpu: 2,
                 memory_gb: 4,

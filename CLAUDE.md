@@ -5,7 +5,7 @@
 **TinyBridge** is an open-source, cross-platform Linux development substrate. Native Rust core (all platforms) + platform-specific UI (Swift on macOS). Intelligently routes workloads to the appropriate execution tier (native, containerized Linux, or remote GPU), with declarative Environment-as-Code at the core.
 
 **Owner:** Georgi Mammen Mullassery
-**License:** Apache 2.0
+**License:** Proprietary
 **Repository:** Private (Mullassery/tinybridge on GitHub)
 **Status:** Phase 1 (In development) — macOS version shipping first
 

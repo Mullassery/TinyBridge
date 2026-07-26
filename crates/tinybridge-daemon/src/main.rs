@@ -60,6 +60,12 @@ async fn main() -> Result<()> {
         .unwrap_or_else(tinybridge_core::TinyBridgeConfig::socket_path);
 
     tracing::info!("TinyBridge daemon starting");
+
+    // Run idempotent migration from legacy paths to Apple conventions (non-fatal errors logged)
+    if let Err(e) = tinybridge_core::migration::migrate_legacy_layout() {
+        tracing::warn!("Legacy migration warning (non-blocking): {}", e);
+    }
+
     tracing::info!("Socket: {:?}", socket);
 
     daemon::run(socket).await

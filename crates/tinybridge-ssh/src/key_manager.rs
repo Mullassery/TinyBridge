@@ -5,6 +5,7 @@ use ssh_key::PrivateKey;
 use std::fs;
 use std::path::{Path, PathBuf};
 use uuid::Uuid;
+use tinybridge_core::TinyBridgeConfig;
 
 /// SSH key type
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
@@ -62,11 +63,9 @@ impl SshKeyManager {
         }
     }
 
-    /// Create key manager with default path (~/.tinybridge/keys)
+    /// Create key manager with default path (~/Library/Application Support/TinyBridge/keys)
     pub fn new_default() -> Result<Self> {
-        let home = dirs::home_dir()
-            .ok_or_else(|| SshError::InvalidEnvironment("HOME directory not found".to_string()))?;
-        let keys_dir = home.join(".tinybridge/keys");
+        let keys_dir = TinyBridgeConfig::data_dir().join("keys");
         Ok(Self::new(keys_dir))
     }
 

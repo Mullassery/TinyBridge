@@ -5,6 +5,7 @@ use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use uuid::Uuid;
+use tinybridge_core::TinyBridgeConfig;
 
 /// Type of SSH audit event
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -93,11 +94,9 @@ impl SshAuditLogger {
         }
     }
 
-    /// Create logger with default path (~/.tinybridge/ssh/audit.log)
+    /// Create logger with default path (~/Library/Application Support/TinyBridge/ssh/audit.log)
     pub fn new_default() -> Result<Self> {
-        let home = dirs::home_dir()
-            .ok_or_else(|| SshError::InvalidEnvironment("HOME directory not found".to_string()))?;
-        let audit_log_path = home.join(".tinybridge/ssh/audit.log");
+        let audit_log_path = TinyBridgeConfig::data_dir().join("ssh/audit.log");
         Ok(Self::new(audit_log_path))
     }
 

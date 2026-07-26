@@ -9,7 +9,7 @@ use uuid::Uuid;
 
 use tinybridge_core::{
     DownResponse, Environment, EnvironmentStatus, EnvironmentSummary, ListResponse, StatusResponse,
-    UpResponse,
+    UpResponse, TinyBridgeConfig,
 };
 use tinybridge_ssh::{KeyType, SshConfigEntry, SshConfigManager, SshKeyManager};
 
@@ -30,8 +30,8 @@ pub struct EnvironmentManager {
 impl EnvironmentManager {
     pub fn new() -> Self {
         let home = dirs::home_dir().unwrap_or_else(|| PathBuf::from("."));
-        let assets_dir = home.join(".tinybridge/assets");
-        let keys_dir = home.join(".tinybridge/keys");
+        let assets_dir = TinyBridgeConfig::cache_dir().join("assets");
+        let keys_dir = TinyBridgeConfig::data_dir().join("keys");
         let ssh_config_path = home.join(".ssh/config");
 
         EnvironmentManager {

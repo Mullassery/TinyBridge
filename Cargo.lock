@@ -1974,6 +1974,7 @@ dependencies = [
 name = "tinybridge-core"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "chrono",
  "dirs",
  "semver",
@@ -1981,6 +1982,7 @@ dependencies = [
  "serde_json",
  "serde_yaml",
  "thiserror 2.0.19",
+ "tracing",
  "uuid",
 ]
 
@@ -2101,6 +2103,7 @@ dependencies = [
  "ssh-key",
  "tempfile",
  "thiserror 2.0.19",
+ "tinybridge-core",
  "tokio",
  "tracing",
  "uuid",

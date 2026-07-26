@@ -15,3 +15,5 @@ semver          = { workspace = true }
 uuid            = { workspace = true }
 chrono          = { workspace = true }
 dirs            = { workspace = true }
+anyhow          = { workspace = true }
+tracing         = { workspace = true }

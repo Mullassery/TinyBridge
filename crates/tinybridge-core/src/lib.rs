@@ -3,6 +3,7 @@ pub mod dds;
 pub mod environment;
 pub mod error;
 pub mod ipc;
+pub mod migration;
 
 pub use config::{DefaultResources, TinyBridgeConfig};
 pub use dds::{

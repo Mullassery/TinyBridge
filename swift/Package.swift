@@ -12,6 +12,10 @@ let package = Package(
             type: .dynamic,
             targets: ["TinyBridgeVZBridge"]
         ),
+        .executable(
+            name: "TinyBridgeApp",
+            targets: ["TinyBridgeApp"]
+        ),
     ],
     targets: [
         .target(
@@ -27,6 +31,14 @@ let package = Package(
         .testTarget(
             name: "TinyBridgeVZBridgeTests",
             dependencies: ["TinyBridgeVZBridge"]
+        ),
+        .executableTarget(
+            name: "TinyBridgeApp",
+            path: "TinyBridgeApp",
+            linkerSettings: [
+                .linkedFramework("AppKit"),
+                .linkedFramework("Foundation"),
+            ]
         ),
     ]
 )
