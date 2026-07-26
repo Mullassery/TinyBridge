@@ -42,6 +42,9 @@ enum Commands {
     /// Restart an environment
     Restart(commands::RestartArgs),
 
+    /// Repair an environment
+    Repair(commands::RepairArgs),
+
     /// Destroy an environment
     Destroy(commands::DestroyArgs),
 
@@ -94,6 +97,7 @@ async fn main() {
         Some(Commands::Up(args)) => commands::up::execute(args, socket).await,
         Some(Commands::Down(args)) => commands::down::execute(args, socket).await,
         Some(Commands::Restart(args)) => commands::restart::execute(args, socket).await,
+        Some(Commands::Repair(args)) => commands::repair::execute(args, socket).await,
         Some(Commands::Destroy(args)) => commands::destroy::execute(args, socket).await,
         Some(Commands::Status(args)) => commands::status::execute(args, socket).await,
         Some(Commands::List(args)) => commands::list::execute(args, socket).await,

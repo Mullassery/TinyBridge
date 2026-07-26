@@ -99,6 +99,8 @@ pub mod methods {
     pub const ENVIRONMENT_STATUS: &str = "environment.status";
     pub const ENVIRONMENT_LIST: &str = "environment.list";
     pub const ENVIRONMENT_SHELL: &str = "environment.shell";
+    pub const ENVIRONMENT_DOCTOR: &str = "environment.doctor";
+    pub const ENVIRONMENT_REPAIR: &str = "environment.repair";
 
     pub const DDS_STATUS: &str = "dds.status";
     pub const DDS_LIST: &str = "dds.list";

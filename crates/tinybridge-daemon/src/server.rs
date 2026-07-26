@@ -135,6 +135,30 @@ async fn process_request(
             mgr.shell(name).await
         }
 
+        methods::ENVIRONMENT_DOCTOR => {
+            let name = request
+                .params
+                .get("name")
+                .and_then(|v| v.as_str())
+                .map(|s| s.to_string());
+
+            let mgr = manager.lock().await;
+            mgr.validate_environment(name.as_deref().unwrap_or("default"))
+                .await
+                .map(|validation| serde_json::json!({ "validation": validation }))
+        }
+
+        methods::ENVIRONMENT_REPAIR => {
+            let name = request
+                .params
+                .get("name")
+                .and_then(|v| v.as_str())
+                .map(|s| s.to_string());
+
+            let mut mgr = manager.lock().await;
+            mgr.repair(name).await
+        }
+
         _ => Err(anyhow::anyhow!("Unknown method")),
     };
 

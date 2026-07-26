@@ -3,7 +3,9 @@ use chrono::Utc;
 use serde_json::json;
 use std::collections::HashMap;
 use std::path::PathBuf;
+use std::sync::Arc;
 use std::time::Instant;
+use tokio::sync::RwLock;
 use tracing::instrument;
 use uuid::Uuid;
 
@@ -17,8 +19,16 @@ use crate::boot_tiers::BootTierConfig;
 use crate::clipboard_sync::ClipboardSyncManager;
 use crate::vz::VmManager;
 
+#[derive(Debug, Clone)]
+struct ShellSession {
+    id: String,
+    env_id: Uuid,
+    created_at: chrono::DateTime<chrono::Utc>,
+}
+
 pub struct EnvironmentManager {
     environments: HashMap<String, Environment>,
+    shell_sessions: Arc<RwLock<HashMap<String, ShellSession>>>,
     vm_manager: VmManager,
     ssh_key_manager: SshKeyManager,
     ssh_config_manager: SshConfigManager,
@@ -36,6 +46,7 @@ impl EnvironmentManager {
 
         EnvironmentManager {
             environments: HashMap::new(),
+            shell_sessions: Arc::new(RwLock::new(HashMap::new())),
             vm_manager: VmManager::new(),
             ssh_key_manager: SshKeyManager::new(&keys_dir),
             ssh_config_manager: SshConfigManager::new(&ssh_config_path),
@@ -82,8 +93,8 @@ impl EnvironmentManager {
             resources.clone(),
         )?;
 
-        let env = self
-            .environments
+        // Create environment entry
+        self.environments
             .entry(env_name.clone())
             .or_insert_with(|| Environment {
                 id: env_id,
@@ -102,17 +113,26 @@ impl EnvironmentManager {
                 created_at: Utc::now(),
                 started_at: None,
                 ip_address: None,
+                dds_configured: false,
+                dds_configured_at: None,
+                shell_capable: false,
+                ssh_configured: false,
             });
 
-        env.status = EnvironmentStatus::Starting { progress_pct: 0 };
+        // Update environment status - starting
+        if let Some(env) = self.environments.get_mut(&env_name) {
+            env.status = EnvironmentStatus::Starting { progress_pct: 0 };
+        }
 
         // Start the VM
-        self.vm_manager.start_vm(env.id)?;
+        self.vm_manager.start_vm(env_id)?;
 
         // Simulate boot progress while VM starts
         for pct in [25, 50, 75, 100] {
             tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
-            env.status = EnvironmentStatus::Starting { progress_pct: pct };
+            if let Some(env) = self.environments.get_mut(&env_name) {
+                env.status = EnvironmentStatus::Starting { progress_pct: pct };
+            }
         }
 
         let boot_duration_ms = boot_start.elapsed().as_millis() as u64;
@@ -144,11 +164,15 @@ impl EnvironmentManager {
             4
         };
 
-        env.status = EnvironmentStatus::Running { uptime_secs: 0 };
-        env.started_at = Some(Utc::now());
-        env.ip_address = Some("192.168.105.2".to_string());
+        // Update environment status - running
+        if let Some(env) = self.environments.get_mut(&env_name) {
+            env.status = EnvironmentStatus::Running { uptime_secs: 0 };
+            env.started_at = Some(Utc::now());
+            env.ip_address = Some("192.168.105.2".to_string());
+        }
 
         // Generate SSH key for this environment
+        let mut ssh_configured = false;
         match self
             .ssh_key_manager
             .generate_key(env_id, &env_name, KeyType::Ed25519)
@@ -170,11 +194,37 @@ impl EnvironmentManager {
 
                 if let Err(e) = self.ssh_config_manager.add_entry(&ssh_entry) {
                     tracing::warn!("Failed to add SSH config entry: {}", e);
+                } else {
+                    ssh_configured = true;
+                    tracing::debug!("SSH configuration registered");
                 }
             }
             Err(e) => {
                 tracing::warn!("Failed to generate SSH key: {}", e);
             }
+        }
+
+        // Provision DDS configuration for this environment
+        let mut dds_configured = false;
+        let mut dds_configured_at = None;
+        match self.provision_dds(&env_name, env_id).await {
+            Ok(_) => {
+                dds_configured = true;
+                dds_configured_at = Some(Utc::now());
+                tracing::info!("DDS configuration provisioned");
+            }
+            Err(e) => {
+                tracing::warn!("Failed to provision DDS configuration: {}", e);
+                tracing::info!("Note: Environment may still work, but shell access may be limited");
+            }
+        }
+
+        // Now update the environment with the results
+        if let Some(env) = self.environments.get_mut(&env_name) {
+            env.ssh_configured = ssh_configured;
+            env.dds_configured = dds_configured;
+            env.dds_configured_at = dds_configured_at;
+            env.shell_capable = dds_configured;
         }
 
         // Start clipboard sync for this environment
@@ -195,9 +245,10 @@ impl EnvironmentManager {
             "Environment up complete"
         );
 
+        let environment = &self.environments[&env_name];
         Ok(serde_json::to_value(UpResponse {
-            id: env.id.to_string(),
-            name: env.name.clone(),
+            id: environment.id.to_string(),
+            name: environment.name.clone(),
             status: "running".to_string(),
             ip_address: Some("192.168.105.2".to_string()),
         })?)
@@ -209,17 +260,24 @@ impl EnvironmentManager {
 
         tracing::debug!("Environment down requested");
 
-        let env = self
-            .environments
-            .get_mut(&env_name)
-            .ok_or_else(|| anyhow!("Environment not found"))?;
+        // Check environment exists and get ID
+        let env_id = {
+            let env = self
+                .environments
+                .get(&env_name)
+                .ok_or_else(|| anyhow!("Environment not found"))?;
 
-        if !env.status.is_running() {
-            return Err(anyhow!("Environment not running"));
+            if !env.status.is_running() {
+                return Err(anyhow!("Environment not running"));
+            }
+
+            env.id
+        };
+
+        // Mark as stopping
+        if let Some(env) = self.environments.get_mut(&env_name) {
+            env.status = EnvironmentStatus::Stopping;
         }
-
-        env.status = EnvironmentStatus::Stopping;
-        let env_id = env.id;
 
         // Stop clipboard sync
         self.clipboard_sync_manager.stop_sync(env_id).await;
@@ -237,24 +295,29 @@ impl EnvironmentManager {
         // Stop the actual VM
         if force {
             tracing::info!("Force stopping environment");
-            self.vm_manager.force_stop_vm(env.id)?;
+            self.vm_manager.force_stop_vm(env_id)?;
         } else {
             tracing::info!("Gracefully stopping environment");
-            self.vm_manager.stop_vm(env.id)?;
+            self.vm_manager.stop_vm(env_id)?;
         }
 
         tokio::time::sleep(tokio::time::Duration::from_millis(200)).await;
-        env.status = EnvironmentStatus::Stopped;
-        env.started_at = None;
-        env.ip_address = None;
+
+        // Mark as stopped
+        if let Some(env) = self.environments.get_mut(&env_name) {
+            env.status = EnvironmentStatus::Stopped;
+            env.started_at = None;
+            env.ip_address = None;
+        }
 
         // Clean up VM handle
-        self.vm_manager.destroy_vm(env.id)?;
+        self.vm_manager.destroy_vm(env_id)?;
 
         tracing::info!("Environment down complete");
 
+        let environment = &self.environments[&env_name];
         Ok(serde_json::to_value(DownResponse {
-            name: env.name.clone(),
+            name: environment.name.clone(),
             status: "stopped".to_string(),
         })?)
     }
@@ -286,8 +349,225 @@ impl EnvironmentManager {
         Ok(serde_json::to_value(ListResponse { environments: envs })?)
     }
 
-    pub async fn shell(&self, _name: Option<String>) -> Result<serde_json::Value> {
-        Ok(json!({"shell": "bash", "status": "connecting"}))
+    pub async fn shell(&self, name: Option<String>) -> Result<serde_json::Value> {
+        let env_name = name.as_deref().unwrap_or("default");
+
+        // Verify environment exists
+        let env = self
+            .environments
+            .get(env_name)
+            .ok_or_else(|| anyhow!("Environment '{}' not found", env_name))?;
+
+        // Verify environment is running
+        if !env.status.is_running() {
+            return Err(anyhow!(
+                "Environment '{}' is not running (status: {:?})",
+                env_name,
+                env.status
+            ));
+        }
+
+        // Verify SSH is configured
+        if !env.ssh_configured {
+            return Err(anyhow!(
+                "SSH not configured for environment '{}'. Try running: tinybridge repair {}",
+                env_name, env_name
+            ));
+        }
+
+        // Verify DDS is configured
+        if !env.dds_configured {
+            return Err(anyhow!(
+                "DDS configuration missing for environment '{}'. Try running: tinybridge repair {}",
+                env_name, env_name
+            ));
+        }
+
+        // Create shell session
+        let shell_id = Uuid::new_v4().to_string();
+        let session = ShellSession {
+            id: shell_id.clone(),
+            env_id: env.id,
+            created_at: Utc::now(),
+        };
+
+        {
+            let mut sessions = self.shell_sessions.write().await;
+            sessions.insert(shell_id.clone(), session);
+        }
+
+        tracing::info!(
+            shell_id = %shell_id,
+            environment = env_name,
+            "Shell session created"
+        );
+
+        Ok(json!({
+            "shell_id": shell_id,
+            "shell": "bash",
+            "environment": env_name,
+            "status": "ready",
+            "socket_path": TinyBridgeConfig::shell_socket_path(&shell_id),
+        }))
+    }
+
+    async fn provision_dds(&self, env_name: &str, env_id: Uuid) -> Result<()> {
+        tracing::info!("Provisioning DDS configuration for environment '{}'", env_name);
+
+        let dds_dir = TinyBridgeConfig::data_dir().join("dds").join(env_name);
+        std::fs::create_dir_all(&dds_dir)?;
+
+        let dds_config_path = dds_dir.join("dds_config.yaml");
+        let dds_config = format!(
+            r#"environment: {}
+env_id: {}
+configured_at: {}
+multicast_enabled: true
+domain_id: 0
+"#,
+            env_name,
+            env_id,
+            Utc::now().to_rfc3339()
+        );
+
+        std::fs::write(&dds_config_path, dds_config)?;
+        tracing::debug!(
+            config_path = %dds_config_path.display(),
+            "DDS configuration written"
+        );
+
+        Ok(())
+    }
+
+    pub async fn repair(&mut self, name: Option<String>) -> Result<serde_json::Value> {
+        let env_name = name.as_deref().unwrap_or("default");
+
+        tracing::info!("Repairing environment '{}'", env_name);
+
+        // Check environment exists and is running
+        {
+            let env = self
+                .environments
+                .get(env_name)
+                .ok_or_else(|| anyhow!("Environment '{}' not found", env_name))?;
+
+            if !env.status.is_running() {
+                return Err(anyhow!(
+                    "Cannot repair stopped environment. Start it first with: tinybridge up {}",
+                    env_name
+                ));
+            }
+        }
+
+        // Re-establish SSH configuration if needed
+        {
+            let env = self.environments.get(env_name).unwrap();
+            if !env.ssh_configured {
+                tracing::info!("Re-establishing SSH configuration...");
+                match self
+                    .ssh_key_manager
+                    .generate_key(env.id, env_name, KeyType::Ed25519)
+                    .await
+                {
+                    Ok(keypair) => {
+                        let ssh_entry = SshConfigEntry {
+                            env_id: env.id,
+                            alias: env_name.to_string(),
+                            hostname: env.ip_address.clone().unwrap_or_else(|| "192.168.105.2".to_string()),
+                            user: "user".to_string(),
+                            port: 22,
+                            identity_file: keypair.private_key_path,
+                            options: Default::default(),
+                        };
+
+                        self.ssh_config_manager.add_entry(&ssh_entry)?;
+                        tracing::info!("SSH configuration restored");
+                    }
+                    Err(e) => {
+                        return Err(anyhow!("Failed to restore SSH configuration: {}", e));
+                    }
+                }
+            }
+        }
+
+        // Re-provision DDS configuration if needed
+        {
+            let env = self.environments.get(env_name).unwrap();
+            if !env.dds_configured {
+                tracing::info!("Re-provisioning DDS configuration...");
+                self.provision_dds(env_name, env.id).await?;
+                tracing::info!("DDS configuration restored");
+            }
+        }
+
+        // Update environment metadata
+        if let Some(env) = self.environments.get_mut(env_name) {
+            env.ssh_configured = true;
+            env.dds_configured = true;
+            env.dds_configured_at = Some(Utc::now());
+            env.shell_capable = true;
+        }
+
+        // Validate repair was successful
+        match self.validate_environment(env_name).await {
+            Ok(validation) => {
+                let env = self.environments.get(env_name).unwrap();
+                tracing::info!("Environment validation result: {}", validation);
+                Ok(json!({
+                    "status": "repaired",
+                    "environment": env_name,
+                    "ssh_configured": env.ssh_configured,
+                    "dds_configured": env.dds_configured,
+                    "shell_capable": env.shell_capable,
+                    "validation": validation,
+                }))
+            }
+            Err(e) => {
+                tracing::warn!("Validation after repair failed: {}", e);
+                Ok(json!({
+                    "status": "repaired_with_warnings",
+                    "environment": env_name,
+                    "warning": e.to_string(),
+                }))
+            }
+        }
+    }
+
+    pub async fn validate_environment(&self, name: &str) -> Result<String> {
+        let env = self
+            .environments
+            .get(name)
+            .ok_or_else(|| anyhow!("Environment not found"))?;
+
+        if !env.status.is_running() {
+            return Err(anyhow!("Environment is not running"));
+        }
+
+        let mut checks = vec![];
+
+        if env.status.is_running() {
+            checks.push("✓ VM running");
+        }
+
+        if env.ssh_configured {
+            checks.push("✓ SSH configured");
+        } else {
+            checks.push("✗ SSH not configured");
+        }
+
+        if env.dds_configured {
+            checks.push("✓ DDS configured");
+        } else {
+            checks.push("✗ DDS not configured");
+        }
+
+        if env.shell_capable {
+            checks.push("✓ Shell sessions available");
+        } else {
+            checks.push("✗ Shell sessions unavailable");
+        }
+
+        Ok(checks.join("\n"))
     }
 
     pub fn boot_tier_info(&self) -> Result<serde_json::Value> {

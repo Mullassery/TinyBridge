@@ -131,6 +131,14 @@ pub struct Environment {
     pub created_at: DateTime<Utc>,
     pub started_at: Option<DateTime<Utc>>,
     pub ip_address: Option<String>,
+    #[serde(default)]
+    pub dds_configured: bool,
+    #[serde(default)]
+    pub dds_configured_at: Option<DateTime<Utc>>,
+    #[serde(default)]
+    pub shell_capable: bool,
+    #[serde(default)]
+    pub ssh_configured: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
