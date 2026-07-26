@@ -14,7 +14,8 @@ use tracing_subscriber::EnvFilter;
     name = "tinybridge",
     version,
     about = "macOS Linux development substrate",
-    long_about = "TinyBridge: Open-source Linux development environment for macOS with intelligent tier routing"
+    long_about = "TinyBridge: Open-source Linux development environment for macOS with intelligent tier routing",
+    subcommand_required = false
 )]
 struct Cli {
     #[arg(long, env = "TINYBRIDGE_SOCKET", global = true)]
@@ -24,7 +25,7 @@ struct Cli {
     verbose: u8,
 
     #[command(subcommand)]
-    command: Commands,
+    command: Option<Commands>,
 }
 
 #[derive(Subcommand)]
@@ -89,22 +90,26 @@ async fn main() {
     let socket = cli.socket.clone();
 
     let result = match cli.command {
-        Commands::Launch(args) => commands::launch::execute(args, socket).await,
-        Commands::Up(args) => commands::up::execute(args, socket).await,
-        Commands::Down(args) => commands::down::execute(args, socket).await,
-        Commands::Restart(args) => commands::restart::execute(args, socket).await,
-        Commands::Destroy(args) => commands::destroy::execute(args, socket).await,
-        Commands::Status(args) => commands::status::execute(args, socket).await,
-        Commands::List(args) => commands::list::execute(args, socket).await,
-        Commands::Shell(args) => commands::shell::execute(args, socket).await,
-        Commands::Logs(args) => commands::logs::execute(args, socket).await,
-        Commands::Doctor(args) => commands::doctor::execute(args, socket).await,
-        Commands::Templates(args) => commands::templates::execute(args, socket).await,
-        Commands::Images(args) => commands::images::execute(args, socket).await,
-        Commands::Dds(args) => match client::DaemonClient::new(socket) {
+        Some(Commands::Launch(args)) => commands::launch::execute(args, socket).await,
+        Some(Commands::Up(args)) => commands::up::execute(args, socket).await,
+        Some(Commands::Down(args)) => commands::down::execute(args, socket).await,
+        Some(Commands::Restart(args)) => commands::restart::execute(args, socket).await,
+        Some(Commands::Destroy(args)) => commands::destroy::execute(args, socket).await,
+        Some(Commands::Status(args)) => commands::status::execute(args, socket).await,
+        Some(Commands::List(args)) => commands::list::execute(args, socket).await,
+        Some(Commands::Shell(args)) => commands::shell::execute(args, socket).await,
+        Some(Commands::Logs(args)) => commands::logs::execute(args, socket).await,
+        Some(Commands::Doctor(args)) => commands::doctor::execute(args, socket).await,
+        Some(Commands::Templates(args)) => commands::templates::execute(args, socket).await,
+        Some(Commands::Images(args)) => commands::images::execute(args, socket).await,
+        Some(Commands::Dds(args)) => match client::DaemonClient::new(socket) {
             Ok(mut client) => commands::dds::execute(args, &mut client).await,
             Err(e) => Err(e),
         },
+        None => {
+            println!("No subcommand specified. Use 'tinybridge --help' for usage information.");
+            Ok(())
+        }
     };
 
     match result {
