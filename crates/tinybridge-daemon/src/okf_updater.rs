@@ -82,6 +82,7 @@ impl MetricsWindow {
 }
 
 /// OKF file representation (production data snapshot)
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct OkfSnapshot {
     pub phase: String,
@@ -91,6 +92,7 @@ pub struct OkfSnapshot {
     pub status: OkfStatus,
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Clone, PartialEq)]
 pub enum OkfStatus {
     Healthy,
@@ -100,6 +102,7 @@ pub enum OkfStatus {
 }
 
 impl OkfSnapshot {
+    #[allow(dead_code)]
     pub fn new(phase: String, metrics: ProductionMetrics) -> Self {
         OkfSnapshot {
             phase,
@@ -110,6 +113,7 @@ impl OkfSnapshot {
         }
     }
 
+    #[allow(dead_code)]
     pub fn update(&mut self, metrics: ProductionMetrics) {
         self.updated_at = Utc::now();
         self.metrics = metrics.clone();
@@ -124,6 +128,7 @@ impl OkfSnapshot {
         self.status = self.calculate_status();
     }
 
+    #[allow(dead_code)]
     fn calculate_status(&self) -> OkfStatus {
         // Boot time SLO check (4.9s target)
         if self.metrics.boot_time_ms > 5000 {
@@ -155,6 +160,7 @@ impl OkfSnapshot {
         OkfStatus::Healthy
     }
 
+    #[allow(dead_code)]
     pub fn to_json(&self) -> serde_json::Value {
         json!({
             "phase": self.phase,
@@ -176,12 +182,14 @@ impl OkfSnapshot {
 }
 
 /// OKF Updater - maintains live production state
+#[allow(dead_code)]
 pub struct OkfUpdater {
     okf_dir: PathBuf,
     snapshots: std::collections::HashMap<String, OkfSnapshot>,
 }
 
 impl OkfUpdater {
+    #[allow(dead_code)]
     pub fn new(okf_dir: PathBuf) -> Self {
         OkfUpdater {
             okf_dir,
@@ -189,8 +197,9 @@ impl OkfUpdater {
         }
     }
 
+    #[allow(dead_code)]
     pub fn update_from_metrics(&mut self, metrics: ProductionMetrics) -> Result<()> {
-        let phase = format!("okr_phase_1_week_4");
+        let phase = "okr_phase_1_week_4".to_string();
 
         let snapshot = self
             .snapshots
@@ -209,14 +218,17 @@ impl OkfUpdater {
         Ok(())
     }
 
+    #[allow(dead_code)]
     pub fn get_snapshot(&self, env_name: &str) -> Option<&OkfSnapshot> {
         self.snapshots.get(env_name)
     }
 
+    #[allow(dead_code)]
     pub fn all_snapshots(&self) -> Vec<&OkfSnapshot> {
         self.snapshots.values().collect()
     }
 
+    #[allow(dead_code)]
     pub fn export_json(&self) -> serde_json::Value {
         let snapshots: Vec<_> = self.snapshots.values().map(|s| s.to_json()).collect();
 

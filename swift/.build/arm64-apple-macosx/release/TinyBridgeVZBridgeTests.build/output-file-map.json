@@ -1,0 +1,13 @@
+{
+  "": {
+    "dependencies": "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridgeTests.build/TinyBridgeVZBridgeTests.d",
+    "object": "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridgeTests.build/TinyBridgeVZBridgeTests.o",
+    "swift-dependencies": "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridgeTests.build/primary.swiftdeps"
+  },
+  "/private/tmp/tinybridge/swift/Tests/TinyBridgeVZBridgeTests/TinyBridgeVZBridgeTests.swift": {
+    "object": "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridgeTests.build/TinyBridgeVZBridgeTests.swift.o",
+    "swiftmodule": "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridgeTests.build/TinyBridgeVZBridgeTests~partial.swiftmodule",
+    "swift-dependencies": "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridgeTests.build/TinyBridgeVZBridgeTests.swiftdeps",
+    "diagnostics": "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridgeTests.build/TinyBridgeVZBridgeTests.dia"
+  }
+}

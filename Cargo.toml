@@ -4,6 +4,9 @@ members = [
     "crates/tinybridge-core",
     "crates/tinybridge-cli",
     "crates/tinybridge-daemon",
+    "crates/tinybridge-diagnostics",
+    "crates/tinybridge-template-engine",
+    "crates/tinybridge-error",
     "crates/tinybridge-vz-sys",
     "crates/tinybridge-vz",
     "crates/tinybridge-router",
@@ -18,7 +21,7 @@ members = [
 ]
 
 [workspace.package]
-version       = "0.1.0"
+version       = "0.3.0"
 edition       = "2021"
 rust-version  = "1.87"
 authors       = ["Georgi Mammen Mullassery <mullassery@gmail.com>"]
@@ -56,14 +59,17 @@ handlebars         = "5.0"
 sha2               = "0.10"
 hex                = "0.4"
 parking_lot        = "0.12"
-tinybridge-core       = { path = "crates/tinybridge-core" }
-tinybridge-cli        = { path = "crates/tinybridge-cli" }
-tinybridge-daemon     = { path = "crates/tinybridge-daemon" }
-tinybridge-dds        = { path = "crates/tinybridge-dds" }
-tinybridge-vz-sys     = { path = "crates/tinybridge-vz-sys" }
-tinybridge-vz         = { path = "crates/tinybridge-vz" }
-tinybridge-router     = { path = "crates/tinybridge-router" }
-tinybridge-clipboard  = { path = "crates/tinybridge-clipboard" }
+tinybridge-core              = { path = "crates/tinybridge-core" }
+tinybridge-cli               = { path = "crates/tinybridge-cli" }
+tinybridge-daemon            = { path = "crates/tinybridge-daemon" }
+tinybridge-diagnostics       = { path = "crates/tinybridge-diagnostics" }
+tinybridge-template-engine   = { path = "crates/tinybridge-template-engine" }
+tinybridge-error             = { path = "crates/tinybridge-error" }
+tinybridge-dds               = { path = "crates/tinybridge-dds" }
+tinybridge-vz-sys            = { path = "crates/tinybridge-vz-sys" }
+tinybridge-vz                = { path = "crates/tinybridge-vz" }
+tinybridge-router            = { path = "crates/tinybridge-router" }
+tinybridge-clipboard         = { path = "crates/tinybridge-clipboard" }
 tinybridge-ssh        = { path = "crates/tinybridge-ssh" }
 tinybridge-templates  = { path = "crates/tinybridge-templates" }
 tinybridge-tunnel     = { path = "crates/tinybridge-tunnel" }

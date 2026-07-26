@@ -1,0 +1,18 @@
+[package]
+name    = "tinybridge-template-engine"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+serde              = { workspace = true, features = ["derive"] }
+serde_json         = { workspace = true }
+serde_yaml         = { workspace = true }
+anyhow             = { workspace = true }
+thiserror          = { workspace = true }
+tokio              = { workspace = true, features = ["fs", "io-util"] }
+tracing            = { workspace = true }
+
+[dev-dependencies]

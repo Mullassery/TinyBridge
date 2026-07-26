@@ -19,6 +19,7 @@ pub fn record_boot_time(env_name: &str, duration_ms: u64, status: &str) {
     );
 }
 
+#[allow(dead_code)]
 pub fn record_resource_usage(env_name: &str, cpu_pct: f32, memory_pct: f32, disk_pct: f32) {
     // Records resource usage as OTel metrics
     tracing::debug!(

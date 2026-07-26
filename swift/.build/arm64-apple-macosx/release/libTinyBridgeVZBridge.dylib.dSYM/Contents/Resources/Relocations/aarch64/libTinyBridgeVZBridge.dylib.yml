@@ -1,6 +1,6 @@
 ---
 triple:          'arm64-apple-darwin'
-binary-path:     '/Users/georgimullassery/tinybridge/swift/.build/arm64-apple-macosx/release/libTinyBridgeVZBridge.dylib'
+binary-path:     '/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/libTinyBridgeVZBridge.dylib'
 relocations:
   - { offset: 0x8A3C6, size: 0x8, addend: 0x0, symName: _tb_version, symObjAddr: 0x0, symBinAddr: 0xC90, symSize: 0x4 }
   - { offset: 0x8A3E2, size: 0x8, addend: 0x0, symName: '_$s18TinyBridgeVZBridge10tb_versionSPys4Int8VGyF', symObjAddr: 0x4, symBinAddr: 0xC94, symSize: 0x54 }

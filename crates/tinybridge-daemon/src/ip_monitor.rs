@@ -17,7 +17,7 @@ pub enum ConnectivityStatus {
 }
 
 /// Network configuration for an environment
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct NetworkConfig {
     /// Primary IP address (IPv4)
     pub ipv4: Option<String>,
@@ -29,18 +29,6 @@ pub struct NetworkConfig {
     pub gateway: Option<String>,
     /// Subnet mask (CIDR notation)
     pub subnet: Option<String>,
-}
-
-impl Default for NetworkConfig {
-    fn default() -> Self {
-        Self {
-            ipv4: None,
-            ipv6: None,
-            dns_servers: Vec::new(),
-            gateway: None,
-            subnet: None,
-        }
-    }
 }
 
 /// Security event for anomaly detection
