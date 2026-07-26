@@ -1,0 +1,3 @@
+module TinyBridgeSwiftPackageTests {
+    header "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeSwiftPackageTests.build/include/TinyBridgeSwiftPackageTests-Swift.h"
+}

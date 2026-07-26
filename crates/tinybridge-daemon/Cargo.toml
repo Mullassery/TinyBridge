@@ -19,6 +19,7 @@ thiserror          = { workspace = true }
 tracing            = { workspace = true }
 tracing-subscriber = { workspace = true }
 tinybridge-core      = { workspace = true }
+tinybridge-error     = { workspace = true }
 tinybridge-dds       = { workspace = true }
 tinybridge-vz        = { workspace = true }
 tinybridge-clipboard = { workspace = true }
@@ -29,7 +30,9 @@ chrono             = { workspace = true }
 futures            = { workspace = true }
 dirs               = { workspace = true }
 parking_lot        = { version = "0.12" }
-# OTel dependencies for Phase 2 (deferred for now to keep Phase 1 minimal)
-# opentelemetry      = { version = "0.22", features = ["trace", "metrics"] }
-# opentelemetry-jaeger = { version = "0.21", features = ["rt-tokio"] }
-# tracing-opentelemetry = "0.22"
+libc               = { version = "0.2" }
+# OTel dependencies for Phase 2 (framework added, full implementation in progress)
+# opentelemetry       = { version = "0.24", features = ["trace", "metrics"] }
+# opentelemetry-http  = { version = "0.13" }
+# opentelemetry-otlp  = { version = "0.17", features = ["trace", "metrics", "http-proto"] }
+# tracing-opentelemetry = { version = "0.25", features = ["metrics"] }

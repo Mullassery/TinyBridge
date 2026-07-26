@@ -1,8 +1,15 @@
 pub mod dds;
+pub mod destroy;
+pub mod doctor;
 pub mod down;
+pub mod images;
+pub mod launch;
 pub mod list;
+pub mod logs;
+pub mod restart;
 pub mod shell;
 pub mod status;
+pub mod templates;
 pub mod up;
 
 use clap::Parser;
@@ -51,3 +58,12 @@ pub struct ShellArgs {
     #[arg(short, long, help = "Command to execute")]
     pub command: Option<String>,
 }
+
+// Re-export new command args for main.rs
+pub use destroy::DestroyArgs;
+pub use doctor::DoctorArgs;
+pub use images::ImagesArgs;
+pub use launch::LaunchArgs;
+pub use logs::LogsArgs;
+pub use restart::RestartArgs;
+pub use templates::TemplatesArgs;

@@ -1,6 +1,10 @@
 {
   "builtTestProducts" : [
-
+    {
+      "binaryPath" : "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeSwiftPackageTests.xctest/Contents/MacOS/TinyBridgeSwiftPackageTests",
+      "packagePath" : "/private/tmp/tinybridge/swift",
+      "productName" : "TinyBridgeSwiftPackageTests"
+    }
   ],
   "copyCommands" : {
 
@@ -17,34 +21,121 @@
 
   ],
   "swiftCommands" : {
-    "C.TinyBridgeVZBridge-arm64-apple-macosx-release.module" : {
+    "C.TinyBridgeSwiftPackageTests-arm64-apple-macosx-release.module" : {
       "executable" : "/Library/Developer/CommandLineTools/usr/bin/swiftc",
-      "fileList" : "/Users/georgimullassery/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridge.build/sources",
-      "importPath" : "/Users/georgimullassery/tinybridge/swift/.build/arm64-apple-macosx/release/Modules",
+      "fileList" : "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeSwiftPackageTests.build/sources",
+      "importPath" : "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/Modules",
       "inputs" : [
         {
           "kind" : "file",
-          "name" : "/Users/georgimullassery/tinybridge/swift/TinyBridgeVZBridge/TinyBridgeVZ.swift"
+          "name" : "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeSwiftPackageTests.derived/runner.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/georgimullassery/tinybridge/swift/TinyBridgeVZBridge/TinyBridgeVZBridge.swift"
+          "name" : "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/swift-version--1AB21518FC5DEDBE.txt"
         },
         {
           "kind" : "file",
-          "name" : "/Users/georgimullassery/tinybridge/swift/.build/arm64-apple-macosx/release/swift-version--1AB21518FC5DEDBE.txt"
+          "name" : "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/Modules/TinyBridgeVZBridgeTests.swiftmodule"
         },
         {
           "kind" : "file",
-          "name" : "/Users/georgimullassery/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridge.build/sources"
+          "name" : "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeSwiftPackageTests.build/sources"
+        }
+      ],
+      "isLibrary" : true,
+      "moduleName" : "TinyBridgeSwiftPackageTests",
+      "moduleOutputPath" : "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/Modules/TinyBridgeSwiftPackageTests.swiftmodule",
+      "objects" : [
+        "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeSwiftPackageTests.build/runner.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx13.0",
+        "-whole-module-optimization",
+        "-num-threads",
+        "10",
+        "-serialize-diagnostics",
+        "-O",
+        "-enable-testing",
+        "-Xfrontend",
+        "-enable-cross-import-overlays",
+        "-j10",
+        "-DSWIFT_PACKAGE",
+        "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+        "-module-cache-path",
+        "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/ModuleCache",
+        "-parseable-output",
+        "-parse-as-library",
+        "-emit-objc-header",
+        "-emit-objc-header-path",
+        "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeSwiftPackageTests.build/include/TinyBridgeSwiftPackageTests-Swift.h",
+        "-I",
+        "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+        "-L",
+        "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+        "-plugin-path",
+        "/Library/Developer/CommandLineTools/usr/lib/swift/host/plugins/testing",
+        "-sdk",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "swift"
+      ],
+      "outputFileMapPath" : "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeSwiftPackageTests.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeSwiftPackageTests.build/runner.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/Modules/TinyBridgeSwiftPackageTests.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeSwiftPackageTests.derived/runner.swift"
+      ],
+      "tempsPath" : "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeSwiftPackageTests.build",
+      "wholeModuleOptimization" : true
+    },
+    "C.TinyBridgeVZBridge-arm64-apple-macosx-release.module" : {
+      "executable" : "/Library/Developer/CommandLineTools/usr/bin/swiftc",
+      "fileList" : "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridge.build/sources",
+      "importPath" : "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/private/tmp/tinybridge/swift/TinyBridgeVZBridge/TinyBridgeVZ.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/private/tmp/tinybridge/swift/TinyBridgeVZBridge/TinyBridgeVZBridge.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/swift-version--1AB21518FC5DEDBE.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridge.build/sources"
         }
       ],
       "isLibrary" : true,
       "moduleName" : "TinyBridgeVZBridge",
-      "moduleOutputPath" : "/Users/georgimullassery/tinybridge/swift/.build/arm64-apple-macosx/release/Modules/TinyBridgeVZBridge.swiftmodule",
+      "moduleOutputPath" : "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/Modules/TinyBridgeVZBridge.swiftmodule",
       "objects" : [
-        "/Users/georgimullassery/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridge.build/TinyBridgeVZ.swift.o",
-        "/Users/georgimullassery/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridge.build/TinyBridgeVZBridge.swift.o"
+        "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridge.build/TinyBridgeVZ.swift.o",
+        "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridge.build/TinyBridgeVZBridge.swift.o"
       ],
       "otherArguments" : [
         "-target",
@@ -58,12 +149,12 @@
         "-DSWIFT_PACKAGE",
         "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
         "-module-cache-path",
-        "/Users/georgimullassery/tinybridge/swift/.build/arm64-apple-macosx/release/ModuleCache",
+        "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/ModuleCache",
         "-parseable-output",
         "-parse-as-library",
         "-emit-objc-header",
         "-emit-objc-header-path",
-        "/Users/georgimullassery/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridge.build/include/TinyBridgeVZBridge-Swift.h",
+        "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridge.build/include/TinyBridgeVZBridge-Swift.h",
         "-swift-version",
         "5",
         "-I",
@@ -86,27 +177,115 @@
         "-package-name",
         "swift"
       ],
-      "outputFileMapPath" : "/Users/georgimullassery/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridge.build/output-file-map.json",
+      "outputFileMapPath" : "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridge.build/output-file-map.json",
       "outputs" : [
         {
           "kind" : "file",
-          "name" : "/Users/georgimullassery/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridge.build/TinyBridgeVZ.swift.o"
+          "name" : "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridge.build/TinyBridgeVZ.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/georgimullassery/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridge.build/TinyBridgeVZBridge.swift.o"
+          "name" : "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridge.build/TinyBridgeVZBridge.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/georgimullassery/tinybridge/swift/.build/arm64-apple-macosx/release/Modules/TinyBridgeVZBridge.swiftmodule"
+          "name" : "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/Modules/TinyBridgeVZBridge.swiftmodule"
         }
       ],
       "prepareForIndexing" : false,
       "sources" : [
-        "/Users/georgimullassery/tinybridge/swift/TinyBridgeVZBridge/TinyBridgeVZ.swift",
-        "/Users/georgimullassery/tinybridge/swift/TinyBridgeVZBridge/TinyBridgeVZBridge.swift"
+        "/private/tmp/tinybridge/swift/TinyBridgeVZBridge/TinyBridgeVZ.swift",
+        "/private/tmp/tinybridge/swift/TinyBridgeVZBridge/TinyBridgeVZBridge.swift"
       ],
-      "tempsPath" : "/Users/georgimullassery/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridge.build",
+      "tempsPath" : "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridge.build",
+      "wholeModuleOptimization" : true
+    },
+    "C.TinyBridgeVZBridgeTests-arm64-apple-macosx-release.module" : {
+      "executable" : "/Library/Developer/CommandLineTools/usr/bin/swiftc",
+      "fileList" : "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridgeTests.build/sources",
+      "importPath" : "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/private/tmp/tinybridge/swift/Tests/TinyBridgeVZBridgeTests/TinyBridgeVZBridgeTests.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/swift-version--1AB21518FC5DEDBE.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/Modules/TinyBridgeVZBridge.swiftmodule"
+        },
+        {
+          "kind" : "file",
+          "name" : "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridgeTests.build/sources"
+        }
+      ],
+      "isLibrary" : true,
+      "moduleName" : "TinyBridgeVZBridgeTests",
+      "moduleOutputPath" : "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/Modules/TinyBridgeVZBridgeTests.swiftmodule",
+      "objects" : [
+        "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridgeTests.build/TinyBridgeVZBridgeTests.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx13.0",
+        "-whole-module-optimization",
+        "-num-threads",
+        "10",
+        "-serialize-diagnostics",
+        "-index-store-path",
+        "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/index/store",
+        "-O",
+        "-enable-testing",
+        "-Xfrontend",
+        "-enable-cross-import-overlays",
+        "-j10",
+        "-DSWIFT_PACKAGE",
+        "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+        "-module-cache-path",
+        "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/ModuleCache",
+        "-parseable-output",
+        "-parse-as-library",
+        "-swift-version",
+        "5",
+        "-I",
+        "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+        "-L",
+        "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+        "-plugin-path",
+        "/Library/Developer/CommandLineTools/usr/lib/swift/host/plugins/testing",
+        "-sdk",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "swift"
+      ],
+      "outputFileMapPath" : "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridgeTests.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridgeTests.build/TinyBridgeVZBridgeTests.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/Modules/TinyBridgeVZBridgeTests.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/private/tmp/tinybridge/swift/Tests/TinyBridgeVZBridgeTests/TinyBridgeVZBridgeTests.swift"
+      ],
+      "tempsPath" : "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridgeTests.build",
       "wholeModuleOptimization" : true
     }
   },
@@ -114,6 +293,58 @@
 
   },
   "swiftTargetScanArgs" : {
+    "TinyBridgeSwiftPackageTests" : [
+      "/Library/Developer/CommandLineTools/usr/bin/swiftc",
+      "-module-name",
+      "TinyBridgeSwiftPackageTests",
+      "-package-name",
+      "swift",
+      "-c",
+      "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeSwiftPackageTests.derived/runner.swift",
+      "-I",
+      "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/Modules",
+      "-target",
+      "arm64-apple-macosx13.0",
+      "-whole-module-optimization",
+      "-num-threads",
+      "10",
+      "-serialize-diagnostics",
+      "-O",
+      "-enable-testing",
+      "-Xfrontend",
+      "-enable-cross-import-overlays",
+      "-j10",
+      "-DSWIFT_PACKAGE",
+      "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+      "-module-cache-path",
+      "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/ModuleCache",
+      "-parseable-output",
+      "-parse-as-library",
+      "-emit-objc-header",
+      "-emit-objc-header-path",
+      "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeSwiftPackageTests.build/include/TinyBridgeSwiftPackageTests-Swift.h",
+      "-I",
+      "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+      "-L",
+      "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+      "-plugin-path",
+      "/Library/Developer/CommandLineTools/usr/lib/swift/host/plugins/testing",
+      "-sdk",
+      "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "swift",
+      "-driver-use-frontend-path",
+      "/Library/Developer/CommandLineTools/usr/bin/swiftc"
+    ],
     "TinyBridgeVZBridge" : [
       "/Library/Developer/CommandLineTools/usr/bin/swiftc",
       "-module-name",
@@ -121,10 +352,10 @@
       "-package-name",
       "swift",
       "-c",
-      "/Users/georgimullassery/tinybridge/swift/TinyBridgeVZBridge/TinyBridgeVZ.swift",
-      "/Users/georgimullassery/tinybridge/swift/TinyBridgeVZBridge/TinyBridgeVZBridge.swift",
+      "/private/tmp/tinybridge/swift/TinyBridgeVZBridge/TinyBridgeVZ.swift",
+      "/private/tmp/tinybridge/swift/TinyBridgeVZBridge/TinyBridgeVZBridge.swift",
       "-I",
-      "/Users/georgimullassery/tinybridge/swift/.build/arm64-apple-macosx/release/Modules",
+      "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/Modules",
       "-target",
       "arm64-apple-macosx13.0",
       "-whole-module-optimization",
@@ -136,12 +367,65 @@
       "-DSWIFT_PACKAGE",
       "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
       "-module-cache-path",
-      "/Users/georgimullassery/tinybridge/swift/.build/arm64-apple-macosx/release/ModuleCache",
+      "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/ModuleCache",
       "-parseable-output",
       "-parse-as-library",
       "-emit-objc-header",
       "-emit-objc-header-path",
-      "/Users/georgimullassery/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridge.build/include/TinyBridgeVZBridge-Swift.h",
+      "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridge.build/include/TinyBridgeVZBridge-Swift.h",
+      "-swift-version",
+      "5",
+      "-I",
+      "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+      "-L",
+      "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+      "-plugin-path",
+      "/Library/Developer/CommandLineTools/usr/lib/swift/host/plugins/testing",
+      "-sdk",
+      "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "swift",
+      "-driver-use-frontend-path",
+      "/Library/Developer/CommandLineTools/usr/bin/swiftc"
+    ],
+    "TinyBridgeVZBridgeTests" : [
+      "/Library/Developer/CommandLineTools/usr/bin/swiftc",
+      "-module-name",
+      "TinyBridgeVZBridgeTests",
+      "-package-name",
+      "swift",
+      "-c",
+      "/private/tmp/tinybridge/swift/Tests/TinyBridgeVZBridgeTests/TinyBridgeVZBridgeTests.swift",
+      "-I",
+      "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/Modules",
+      "-target",
+      "arm64-apple-macosx13.0",
+      "-whole-module-optimization",
+      "-num-threads",
+      "10",
+      "-serialize-diagnostics",
+      "-index-store-path",
+      "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/index/store",
+      "-O",
+      "-enable-testing",
+      "-Xfrontend",
+      "-enable-cross-import-overlays",
+      "-j10",
+      "-DSWIFT_PACKAGE",
+      "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+      "-module-cache-path",
+      "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/ModuleCache",
+      "-parseable-output",
+      "-parse-as-library",
       "-swift-version",
       "5",
       "-I",
@@ -168,15 +452,32 @@
     ]
   },
   "targetDependencyMap" : {
+    "TinyBridgeSwiftPackageTests" : [
+      "TinyBridgeVZBridgeTests",
+      "TinyBridgeVZBridge"
+    ],
     "TinyBridgeVZBridge" : [
 
+    ],
+    "TinyBridgeVZBridgeTests" : [
+      "TinyBridgeVZBridge"
     ]
   },
   "testDiscoveryCommands" : {
 
   },
   "testEntryPointCommands" : {
+    "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeSwiftPackageTests.derived/runner.swift" : {
+      "inputs" : [
 
+      ],
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeSwiftPackageTests.derived/runner.swift"
+        }
+      ]
+    }
   },
   "traitConfiguration" : {
     "default" : {
@@ -184,7 +485,7 @@
     }
   },
   "writeCommands" : {
-    "/Users/georgimullassery/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridge.build/sources" : {
+    "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeSwiftPackageTests.build/sources" : {
       "alwaysOutOfDate" : false,
       "inputs" : [
         {
@@ -193,16 +494,12 @@
         },
         {
           "kind" : "file",
-          "name" : "/Users/georgimullassery/tinybridge/swift/TinyBridgeVZBridge/TinyBridgeVZ.swift"
-        },
-        {
-          "kind" : "file",
-          "name" : "/Users/georgimullassery/tinybridge/swift/TinyBridgeVZBridge/TinyBridgeVZBridge.swift"
+          "name" : "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeSwiftPackageTests.derived/runner.swift"
         }
       ],
-      "outputFilePath" : "/Users/georgimullassery/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridge.build/sources"
+      "outputFilePath" : "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeSwiftPackageTests.build/sources"
     },
-    "/Users/georgimullassery/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridge.product/Objects.LinkFileList" : {
+    "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeSwiftPackageTests.product/Objects.LinkFileList" : {
       "alwaysOutOfDate" : false,
       "inputs" : [
         {
@@ -211,16 +508,74 @@
         },
         {
           "kind" : "file",
-          "name" : "/Users/georgimullassery/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridge.build/TinyBridgeVZ.swift.o"
+          "name" : "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeSwiftPackageTests.build/runner.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/georgimullassery/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridge.build/TinyBridgeVZBridge.swift.o"
+          "name" : "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridge.build/TinyBridgeVZ.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridge.build/TinyBridgeVZBridge.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridgeTests.build/TinyBridgeVZBridgeTests.swift.o"
         }
       ],
-      "outputFilePath" : "/Users/georgimullassery/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridge.product/Objects.LinkFileList"
+      "outputFilePath" : "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeSwiftPackageTests.product/Objects.LinkFileList"
     },
-    "/Users/georgimullassery/tinybridge/swift/.build/arm64-apple-macosx/release/swift-version--1AB21518FC5DEDBE.txt" : {
+    "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridge.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/private/tmp/tinybridge/swift/TinyBridgeVZBridge/TinyBridgeVZ.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/private/tmp/tinybridge/swift/TinyBridgeVZBridge/TinyBridgeVZBridge.swift"
+        }
+      ],
+      "outputFilePath" : "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridge.build/sources"
+    },
+    "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridge.product/Objects.LinkFileList" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<link-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridge.build/TinyBridgeVZ.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridge.build/TinyBridgeVZBridge.swift.o"
+        }
+      ],
+      "outputFilePath" : "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridge.product/Objects.LinkFileList"
+    },
+    "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridgeTests.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/private/tmp/tinybridge/swift/Tests/TinyBridgeVZBridgeTests/TinyBridgeVZBridgeTests.swift"
+        }
+      ],
+      "outputFilePath" : "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridgeTests.build/sources"
+    },
+    "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/swift-version--1AB21518FC5DEDBE.txt" : {
       "alwaysOutOfDate" : true,
       "inputs" : [
         {
@@ -232,7 +587,7 @@
           "name" : "/Library/Developer/CommandLineTools/usr/bin/swiftc"
         }
       ],
-      "outputFilePath" : "/Users/georgimullassery/tinybridge/swift/.build/arm64-apple-macosx/release/swift-version--1AB21518FC5DEDBE.txt"
+      "outputFilePath" : "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/swift-version--1AB21518FC5DEDBE.txt"
     }
   }
 }

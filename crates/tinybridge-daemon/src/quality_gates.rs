@@ -2,6 +2,7 @@ use crate::okf_updater::ProductionMetrics;
 use serde_json::json;
 
 /// Quality gate definition
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct QualityGate {
     pub name: String,
@@ -14,6 +15,7 @@ pub struct QualityGate {
 }
 
 /// How to compare metric against threshold
+#[allow(dead_code)]
 #[derive(Debug, Clone, PartialEq)]
 pub enum GateComparison {
     LessThan,    // metric < threshold (for latency, error rate)
@@ -21,6 +23,7 @@ pub enum GateComparison {
 }
 
 /// Quality gate validation result
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct GateResult {
     pub gate: QualityGate,
@@ -30,9 +33,11 @@ pub struct GateResult {
 }
 
 /// Quality gates validator for Phase 1 Week 4
+#[allow(dead_code)]
 pub struct QualityGatesValidator;
 
 impl QualityGatesValidator {
+    #[allow(dead_code)]
     pub fn phase_1_week_4_gates() -> Vec<QualityGate> {
         vec![
             // Boot time SLO (critical)
@@ -87,6 +92,7 @@ impl QualityGatesValidator {
         ]
     }
 
+    #[allow(dead_code)]
     pub fn validate_metrics(metrics: &ProductionMetrics, gates: &[QualityGate]) -> Vec<GateResult> {
         gates
             .iter()
@@ -143,6 +149,7 @@ impl QualityGatesValidator {
             .all(|r| r.passed)
     }
 
+    #[allow(dead_code)]
     pub fn export_json(results: &[GateResult]) -> serde_json::Value {
         let gates: Vec<_> = results
             .iter()
