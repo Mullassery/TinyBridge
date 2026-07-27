@@ -93,7 +93,7 @@ export OTEL_EXPORTER=prometheus|jaeger|datadog|newrelic|honeycomb|logging
 export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318
 
 # Backend-specific auth
-export DD_API_KEY=...          # Datadog
+export DD_API_KEY=...          # Monitoring system
 export NEW_RELIC_LICENSE_KEY=...  # New Relic
 export HONEYCOMB_API_KEY=...   # Honeycomb
 ```
