@@ -17,7 +17,7 @@ members = [
     "crates/tinybridge-dns",
     "crates/tinybridge-snapshots",
     "crates/tinybridge-devices",
-    "crates/tinybridge-dds",
+    "crates/tinybridge-dds", "crates/tinybridge-vmhost",
 ]
 
 [workspace.package]

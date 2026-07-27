@@ -14,9 +14,10 @@
 Replace Docker Desktop and Lima as the preferred Linux development substrate on macOS. CLI-first, built for automation, scripting, and team workflows.
 
 ### Key Differentiators
-- **Open source** (Apache 2.0, full transparency)
-- **CLI-first design** (no GUI bloat, shell-scriptable)
+- **Proprietary** (closed source, mullassery@gmail.com)
+- **Dual-mode VM** (headless CLI-first, or windowed desktop on demand — same instance)
 - **Environment-as-Code** (declarative YAML, git-versioned)
+- **Full VM lifecycle** (suspend/resume, graceful shutdown, snapshots, resource scaling)
 - **ROS 2 native** (DDS multicast networking works out of the box)
 - **Transparent CUDA routing** (routes to remote GPU automatically)
 - **Parallel environments** (AI agent workflows, team automation)
@@ -33,13 +34,14 @@ Replace Docker Desktop and Lima as the preferred Linux development substrate on 
 **Philosophy:** Rust for performance and safety. CLI-first design for automation and scripting.
 
 **Core:**
-- **Daemon + CLI:** Rust + tokio (100% CLI, no GUI)
-- **VM Backend:** Apple VZ Framework via C FFI (~500 lines; unavoidable for system APIs)
-- **VM Substrate:** Minimal Linux kernel, VirtioFS, Rosetta 2
+- **Control Daemon + CLI:** Rust + tokio (headless, always-on, AppKit-free)
+- **VM Host Process:** Per-VM Rust binary linking Swift VZ bridge (owns VZVirtualMachine + optional NSWindow)
+- **VM Backend:** Apple Virtualization.framework via Swift FFI
+- **VM Substrate:** Real Linux kernel, VirtioFS, virtio-graphics, Rosetta 2
 
-### No C++. No GUI. Period.
+### No C++. Headless-First. Optional GUI.
 
-Minimize C entirely (only for VZ Framework FFI). Zero Electron, zero native UI frameworks. Pure CLI for shell scripting, automation, and CI/CD integration.
+Minimize C entirely (only for VZ Framework FFI). Zero Electron, zero native UI frameworks in the daemon. **AppKit lives only in per-VM host processes** — users who need pure headless server environments pay zero GUI overhead. When GUI is needed, one CLI command (`tinybridge gui`) attaches a window to the already-running VM without restart.
 
 ### Build System
 - **Rust:** Cargo workspace, universal binary (arm64 + x86_64 via Rosetta)
@@ -54,15 +56,17 @@ See `docs/ARCHITECTURE.md` for complete details.
 ```
 tinybridge up myproject              ← CLI-driven
     ↓
-tinybridged daemon                   ← Rust, JSON-RPC over Unix socket
-    ├─ Tier 1 (Native macOS)          ← Default, zero overhead
-    ├─ Tier 2 (Linux Substrate)       ← VirtioFS + VirtioNet
-    └─ Tier 3 (Remote GPU)            ← Transparent CUDA routing
+tinybridged daemon (headless)         ← Rust, JSON-RPC over Unix socket, no AppKit
     ↓
-SSH + Networking + Storage           ← Auto-configured
+tinybridge-vmhost (per-VM)            ← Spawned child process, owns VZVirtualMachine
+    ├─ VZ VM (headless by default)
+    ├─ [Optional] NSWindow + display  ← On-demand: tinybridge gui
+    └─ JSON-RPC socket for control
+    ↓
+SSH + Networking + Storage            ← Auto-configured
 ```
 
-Routing is **transparent** — `tinybridge` CLI commands handle tier selection based on workload capabilities. No GUI, pure automation.
+**Dual-mode flexibility:** Headless by default (zero GUI overhead), or attach a window to the same running VM with `tinybridge gui`—no restart, no separate VM, no "app must stay open" requirement.
 
 ## Implementation Phases
 
@@ -127,8 +131,14 @@ Routing is **transparent** — `tinybridge` CLI commands handle tier selection b
 ### tinybridge-vz (Rust)
 - Safe wrapper around C FFI bindings
 - VM lifecycle (boot, shutdown, snapshot)
-- VirtioFS mounting
+- VirtioFS mounting, graphics device config
 - Rosetta 2 configuration
+
+### tinybridge-vmhost (Rust)
+- Per-VM host process: owns `VZVirtualMachine`, manages lifecycle
+- Spawned by daemon as isolated child process (crash isolation)
+- Exposes JSON-RPC control socket (`vmhost.status`, `vmhost.show_window`, `vmhost.hide_window`)
+- Links Swift VZ bridge and optional AppKit (window host) — only process that needs display APIs
 
 ### TinyBridgeApp (Swift)
 - Menu bar app
@@ -140,6 +150,45 @@ Routing is **transparent** — `tinybridge` CLI commands handle tier selection b
 - Wrapper around Virtualization.framework
 - Exports minimal C header for Rust FFI
 - ~500 lines total
+
+## CLI Commands Reference
+
+### Basic Lifecycle
+```bash
+tinybridge up myproject [--cpu 8] [--memory 16] [--disk 100]  # Create & start
+tinybridge down myproject                                       # Stop
+tinybridge suspend myproject                                    # Pause (preserves state)
+tinybridge resume myproject                                     # Resume from pause
+tinybridge shutdown myproject                                   # Graceful shutdown
+tinybridge restart myproject                                    # Restart (same state)
+```
+
+### GUI Toggle
+```bash
+tinybridge gui myproject        # Attach display window
+tinybridge headless myproject   # Detach display (VM keeps running)
+```
+
+### Resource Management
+```bash
+tinybridge update myproject --cpu 8 --memory 16 --disk 100
+```
+
+### Snapshots
+```bash
+tinybridge snapshot myproject create after-deploy
+tinybridge snapshot myproject list
+tinybridge snapshot myproject restore after-deploy
+tinybridge snapshot myproject delete after-deploy
+```
+
+### Other
+```bash
+tinybridge shell myproject                      # Open shell
+tinybridge status myproject                     # Check status
+tinybridge list                                 # List all environments
+tinybridge destroy myproject                    # Permanently delete
+```
 
 ## Development Workflow
 
@@ -175,7 +224,7 @@ cargo test --test integration_tests -- --include-ignored
 ### Debugging
 - Rust: `RUST_LOG=debug cargo run`
 - Swift: Xcode debugger
-- Daemon: `tail -f /var/log/tinybridge.log`
+- Daemon: `tail -f ~/Library/Logs/tinybridge.log`
 
 ## Critical Decisions
 

@@ -8,16 +8,17 @@
 OrbStack is a tightly integrated macOS GUI app combining containers, VMs, SSH, networking, and developer tooling. TinyBridge adopts OrbStack's UX philosophy (zero-config, native integration, dev joy) while taking a **CLI-first approach** that's better for automation, scripting, and enterprise workflows.
 
 **Key Strategic Difference**: 
-- OrbStack: GUI-first, integrated, point-and-click, single-vendor ecosystem
-- TinyBridge: **CLI-first**, modular, scriptable, vendor-neutral, quality-first
+- OrbStack: GUI-first only; requires the app to stay open for headless VMs
+- TinyBridge: **Dual-mode on the same instance** — headless CLI-first by default (pure automation), OR attach a window on demand (`tinybridge gui`) without restarting. Independent daemon means VMs keep running even if the app closes.
 
-**CLI-First Advantage**:
+**Dual-Mode + Headless-First Advantage**:
 - ✅ Shell scriptable (bash, zsh, fish, PowerShell)
 - ✅ CI/CD native (GitHub Actions, GitLab CI, Jenkins)
 - ✅ Infrastructure-as-Code ready
 - ✅ Team automation via shared YAML configs
-- ✅ No Electron bloat (3x smaller binaries, faster startup)
-- ✅ Headless/server-friendly
+- ✅ **Headless by default** — zero GUI overhead for server/automation users
+- ✅ **GUI on demand** — attach a window to same running VM with `tinybridge gui` (no restart, unlike UTM)
+- ✅ **Independent daemon** — VMs survive app close (OrbStack/UTM can't do this)
 - ✅ Better for DevOps workflows
 
 ---
@@ -44,11 +45,12 @@ OrbStack is a tightly integrated macOS GUI app combining containers, VMs, SSH, n
 | **VM Cloning** | ✅ | 📋 | Phase 2 | Zero-copy clones via CoW |
 | **Native macOS UI** | ✅ | ✅ | Phase 1 | Swift/SwiftUI menu bar app |
 | **Multi-Arch** | ✅ | ✅ | Phase 1 | arm64 native, x86_64 via Rosetta 2 |
-| **CLI-First** | ⚪ | ✅ | Phase 1 | Pure CLI, no GUI, scriptable (unique advantage) |
+| **CLI-First** | ⚪ | ✅ | Phase 1 | Headless-first, GUI on demand, scriptable (unique advantage) |
 | **Kubernetes** | ✅ (lightweight) | 🎯 | Phase 4+ | Lightweight k3s integration |
 | **Port Forwarding** | ✅ | 📋 | Phase 2 | Automatic + manual tunneling |
 | **Network DNS** | ✅ | 📋 | Phase 2 | mDNS-based service discovery |
 | **Suspend/Resume** | ✅ | ✅ | Phase 1 | Built into VZ framework |
+| **Windowed VM Display** | ✅ | 🔨 | Phase 1.5 | Headless by default, GUI on demand (unique: same-instance toggle) |
 | **Audit Logging** | ⚪ | ✅ | Phase 2a | Comprehensive SSH audit trail (unique) |
 | **Environment Templates** | ⚪ | 📋 | Phase 2 | Backend, ML, robotics, data-science (unique) |
 | **Workload Routing** | ⚪ | 🔨 | Phase 2 | Native vs Linux vs Remote execution (unique) |

@@ -25,6 +25,19 @@ pub struct EnvMetadata {
     pub description: Option<String>,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum DisplayMode {
+    Headless,
+    Gui,
+}
+
+impl Default for DisplayMode {
+    fn default() -> Self {
+        DisplayMode::Headless
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SubstrateConfig {
     pub os: String,
@@ -34,6 +47,8 @@ pub struct SubstrateConfig {
     pub kernel: Option<String>,
     #[serde(default = "default_arch")]
     pub arch: Vec<Arch>,
+    #[serde(default)]
+    pub display_mode: Option<DisplayMode>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

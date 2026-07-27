@@ -57,11 +57,21 @@ impl DaemonClient {
             .ok_or_else(|| anyhow!("No result in response"))
     }
 
-    pub async fn up(&mut self, name: Option<String>, env_yaml_path: Option<String>) -> Result<()> {
+    pub async fn up(
+        &mut self,
+        name: Option<String>,
+        env_yaml_path: Option<String>,
+        cpu: Option<u32>,
+        memory: Option<u64>,
+        disk: Option<u64>,
+    ) -> Result<()> {
         let params = json!({
             "name": name,
             "env_yaml_path": env_yaml_path,
             "wait": true,
+            "cpu": cpu,
+            "memory": memory,
+            "disk": disk,
         });
 
         let result = self.call(methods::ENVIRONMENT_UP, params).await?;
@@ -130,6 +140,18 @@ impl DaemonClient {
             eprintln!("Error: {}", error);
         }
 
+        Ok(())
+    }
+
+    pub async fn show_window(&mut self, name: Option<String>) -> Result<()> {
+        let params = json!({"name": name});
+        let _result = self.call(methods::ENVIRONMENT_GUI_SHOW, params).await?;
+        Ok(())
+    }
+
+    pub async fn hide_window(&mut self, name: Option<String>) -> Result<()> {
+        let params = json!({"name": name});
+        let _result = self.call(methods::ENVIRONMENT_GUI_HIDE, params).await?;
         Ok(())
     }
 }

@@ -21,7 +21,15 @@ pub async fn execute(args: UpArgs, socket: Option<PathBuf>) -> Result<()> {
     );
     pb.set_message(format!("Starting environment: {}", env_name));
 
-    client.up(args.name.clone(), args.file.clone()).await?;
+    client
+        .up(
+            args.name.clone(),
+            args.file.clone(),
+            args.cpu,
+            args.memory,
+            args.disk,
+        )
+        .await?;
 
     pb.finish_with_message(format!("✓ Environment {} is ready", env_name));
 

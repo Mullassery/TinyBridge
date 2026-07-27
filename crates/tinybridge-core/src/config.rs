@@ -48,6 +48,14 @@ impl TinyBridgeConfig {
     pub fn shells_dir() -> PathBuf {
         Self::data_dir().join("shells")
     }
+
+    pub fn vmhost_socket_path(&self, env_id: &str) -> PathBuf {
+        self.data_dir.join(format!("vmhost/{}.sock", env_id))
+    }
+
+    pub fn vmhosts_dir(&self) -> PathBuf {
+        self.data_dir.join("vmhost")
+    }
 }
 
 impl Default for TinyBridgeConfig {

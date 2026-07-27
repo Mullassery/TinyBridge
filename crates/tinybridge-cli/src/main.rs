@@ -36,8 +36,23 @@ enum Commands {
     /// Start an environment (legacy, use 'launch' instead)
     Up(commands::UpArgs),
 
+    /// Attach display window to environment
+    Gui(commands::GuiArgs),
+
+    /// Detach display window from environment
+    Headless(commands::HeadlessArgs),
+
     /// Stop an environment
     Down(commands::DownArgs),
+
+    /// Suspend an environment (pause VM, preserves state)
+    Suspend(commands::suspend::SuspendArgs),
+
+    /// Resume a suspended environment
+    Resume(commands::resume::ResumeArgs),
+
+    /// Gracefully shutdown an environment
+    Shutdown(commands::shutdown::ShutdownArgs),
 
     /// Restart an environment
     Restart(commands::RestartArgs),
@@ -57,8 +72,17 @@ enum Commands {
     /// Open shell in environment
     Shell(commands::ShellArgs),
 
+    /// SSH into environment
+    Ssh(commands::ssh::SshArgs),
+
     /// Show logs
     Logs(commands::LogsArgs),
+
+    /// Manage environment resources
+    Update(commands::update::UpdateArgs),
+
+    /// Manage environment snapshots
+    Snapshot(commands::snapshot::SnapshotArgs),
 
     /// Run system diagnostics
     Doctor(commands::DoctorArgs),
@@ -95,14 +119,22 @@ async fn main() {
     let result = match cli.command {
         Some(Commands::Launch(args)) => commands::launch::execute(args, socket).await,
         Some(Commands::Up(args)) => commands::up::execute(args, socket).await,
+        Some(Commands::Gui(args)) => commands::gui::execute(args, socket).await,
+        Some(Commands::Headless(args)) => commands::headless::execute(args, socket).await,
         Some(Commands::Down(args)) => commands::down::execute(args, socket).await,
+        Some(Commands::Suspend(args)) => commands::suspend::execute(args, socket).await,
+        Some(Commands::Resume(args)) => commands::resume::execute(args, socket).await,
+        Some(Commands::Shutdown(args)) => commands::shutdown::execute(args, socket).await,
         Some(Commands::Restart(args)) => commands::restart::execute(args, socket).await,
         Some(Commands::Repair(args)) => commands::repair::execute(args, socket).await,
         Some(Commands::Destroy(args)) => commands::destroy::execute(args, socket).await,
         Some(Commands::Status(args)) => commands::status::execute(args, socket).await,
         Some(Commands::List(args)) => commands::list::execute(args, socket).await,
         Some(Commands::Shell(args)) => commands::shell::execute(args, socket).await,
+        Some(Commands::Ssh(args)) => commands::ssh::execute(args, socket).await,
         Some(Commands::Logs(args)) => commands::logs::execute(args, socket).await,
+        Some(Commands::Update(args)) => commands::update::execute(args, socket).await,
+        Some(Commands::Snapshot(args)) => commands::snapshot::execute(args, socket).await,
         Some(Commands::Doctor(args)) => commands::doctor::execute(args, socket).await,
         Some(Commands::Templates(args)) => commands::templates::execute(args, socket).await,
         Some(Commands::Images(args)) => commands::images::execute(args, socket).await,

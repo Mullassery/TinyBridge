@@ -10,7 +10,7 @@
 
 Developers on macOS need Linux capabilities (ROS 2, systemd services, Linux-only ABIs, GPU training) without the pain of traditional VMs: frozen desktops, snapshot hell, slow file I/O, and incomplete feature sets. Open-source tools like Lima and Colima fill some gaps but have hard limitations: zero GPU support, broken ROS 2 DDS networking, limited USB/serial passthrough, no parallel environments, and no Environment-as-Code paradigm.
 
-TinyBridge ships as a native macOS `.dmg` — a real product — built open-source (Apache 2.0). It is NOT a VM manager. It is a **development substrate** that routes workloads to the right execution tier (native macOS / minimal Linux kernel / remote GPU) transparently, with a declarative Environment-as-Code model at the center.
+TinyBridge ships as a native macOS `.dmg` — a real product — built open-source (Apache 2.0). It is a **dual-mode VM manager and development substrate**: run the same Linux VM headlessly (CLI-driven, minimal overhead) or with a graphical desktop (windowed, like UTM), toggling between modes on demand without restart. Built on top of this flexibility, it also routes containerized workloads to the right execution tier (native macOS / Linux substrate / remote GPU) transparently, with a declarative Environment-as-Code model at the center.
 
 ---
 
@@ -33,12 +33,13 @@ TinyBridge ships as a native macOS `.dmg` — a real product — built open-sour
 
 **100% Rust + Swift. No C++.**
 
-- **Core daemon + CLI** — Rust + tokio (performance, safety, single binary)
-- **macOS UI** — Swift + SwiftUI (native look & feel, system integration)
-- **VZ Framework access** — Minimal C FFI bridge only (~500 lines of Swift + C header)
-- **Everything else** — Rust (device discovery via IOKit via Swift bridge, networking, routing, etc.)
+- **Control daemon + CLI** — Rust + tokio (headless, always-on, AppKit-free)
+- **VM host process** — Rust + Swift (per-environment, owns VZVirtualMachine, optional NSWindow)
+- **macOS UI** — Swift + SwiftUI (menu bar app, environment management — separate from daemon)
+- **VZ Framework access** — Minimal Swift bridge with native Virtualization.framework APIs
+- **Everything else** — Rust (device discovery via IOKit, networking, routing, etc.)
 
-The only C is a thin FFI header to bridge Swift's Virtualization.framework into Rust. This is unavoidable (Apple's SDK is Objective-C/Swift-native) and follows the pattern used by Lima, Podman Machine, and other macOS hypervisor tools.
+The architecture separates concerns: the always-on daemon (pure Rust, no GUI overhead) supervises per-VM host processes (Rust + Swift bindings) that own the VZVirtualMachine and optionally a display window. Users who need headless VMs pay zero AppKit cost; users who want GUI get it without restarting the VM.
 
 ---
 

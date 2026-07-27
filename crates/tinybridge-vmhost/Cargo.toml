@@ -1,0 +1,17 @@
+[package]
+name = "tinybridge-vmhost"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+tinybridge-vz = { path = "../tinybridge-vz" }
+tinybridge-core = { path = "../tinybridge-core" }
+tokio = { version = "1", features = ["full"] }
+anyhow = "1"
+serde_json = "1"
+tracing = "0.1"
+tracing-subscriber = "0.3"

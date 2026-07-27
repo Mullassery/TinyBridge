@@ -2191,6 +2191,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "tinybridge-vmhost"
+version = "0.3.0"
+dependencies = [
+ "anyhow",
+ "serde_json",
+ "tinybridge-core",
+ "tinybridge-vz",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "tinybridge-vz"
 version = "0.3.0"
 dependencies = [

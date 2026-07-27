@@ -78,7 +78,15 @@ pub async fn execute(args: LaunchArgs, socket: Option<PathBuf>) -> Result<()> {
 
     // Step 5: Start environment
     pb.set_message(format!("🚀 Starting environment..."));
-    client.up(args.name.clone(), args.file.clone()).await?;
+    client
+        .up(
+            args.name.clone(),
+            args.file.clone(),
+            args.cpu,
+            args.memory.map(|m| m as u64),
+            args.disk.map(|d| d as u64),
+        )
+        .await?;
 
     pb.finish_with_message(format!("✅ {} is ready!", env_name));
 

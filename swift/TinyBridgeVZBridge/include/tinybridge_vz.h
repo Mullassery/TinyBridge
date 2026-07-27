@@ -30,6 +30,8 @@ typedef struct {
     uint32_t cpu_count;
     uint64_t memory_bytes;
     bool enable_rosetta;
+    uint32_t display_width;
+    uint32_t display_height;
     TBVMStateCallback state_callback;
     void *user_data;
 } TBVMConfig;
@@ -58,6 +60,9 @@ int tb_vm_add_virtiofs(TBVirtualMachine *vm, const TBVirtioFSConfig *config);
 
 int tb_vm_get_status(TBVirtualMachine *vm, TBVMStatus *out_status);
 int tb_vm_get_ip(TBVirtualMachine *vm, char *buf, size_t buf_len);
+
+int tb_vm_show_window(TBVirtualMachine *vm);
+int tb_vm_hide_window(TBVirtualMachine *vm);
 
 const char *tb_version(void);
 bool tb_is_available(void);

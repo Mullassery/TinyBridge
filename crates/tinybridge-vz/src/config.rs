@@ -1,5 +1,6 @@
 use tinybridge_core::Resources;
 
+#[derive(Clone)]
 pub struct VmConfig {
     pub cpu_count: u32,
     pub memory_bytes: u64,
@@ -8,6 +9,8 @@ pub struct VmConfig {
     pub cmdline: String,
     pub disk_image_path: String,
     pub enable_rosetta: bool,
+    pub display_width: u32,
+    pub display_height: u32,
 }
 
 impl VmConfig {
@@ -20,6 +23,8 @@ impl VmConfig {
             cmdline: "root=/dev/vda1 rw console=hvc0 quiet".to_string(),
             disk_image_path,
             enable_rosetta: true,
+            display_width: 1920,
+            display_height: 1080,
         }
     }
 
@@ -35,6 +40,12 @@ impl VmConfig {
 
     pub fn with_rosetta(mut self, enabled: bool) -> Self {
         self.enable_rosetta = enabled;
+        self
+    }
+
+    pub fn with_display(mut self, width: u32, height: u32) -> Self {
+        self.display_width = width;
+        self.display_height = height;
         self
     }
 }

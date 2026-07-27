@@ -43,6 +43,8 @@ impl VirtualMachine {
             cpu_count: config.cpu_count,
             memory_bytes: config.memory_bytes,
             enable_rosetta: config.enable_rosetta,
+            display_width: config.display_width,
+            display_height: config.display_height,
             state_callback: None,
             user_data: null_mut(),
         };

@@ -85,13 +85,15 @@ impl EnvironmentManager {
         let kernel_path = self.assets_dir.join("vmlinux");
         let disk_path = self.assets_dir.join("rootfs.img");
 
-        self.vm_manager.create_vm(
-            env_id,
-            env_name.clone(),
-            kernel_path.to_string_lossy().to_string(),
-            disk_path.to_string_lossy().to_string(),
-            resources.clone(),
-        )?;
+        self.vm_manager
+            .create_vm(
+                env_id,
+                env_name.clone(),
+                kernel_path.to_string_lossy().to_string(),
+                disk_path.to_string_lossy().to_string(),
+                resources.clone(),
+            )
+            .await?;
 
         // Create environment entry
         self.environments
@@ -106,6 +108,7 @@ impl EnvironmentManager {
                     version: Some("24.04".to_string()),
                     kernel: None,
                     arch: vec![tinybridge_core::Arch::Arm64],
+                    display_mode: None,
                 },
                 resources,
                 native_tools: vec![],
@@ -125,7 +128,7 @@ impl EnvironmentManager {
         }
 
         // Start the VM
-        self.vm_manager.start_vm(env_id)?;
+        self.vm_manager.start_vm(env.id).await?;
 
         // Simulate boot progress while VM starts
         for pct in [25, 50, 75, 100] {
@@ -295,10 +298,10 @@ impl EnvironmentManager {
         // Stop the actual VM
         if force {
             tracing::info!("Force stopping environment");
-            self.vm_manager.force_stop_vm(env_id)?;
+            self.vm_manager.force_stop_vm(env.id).await?;
         } else {
             tracing::info!("Gracefully stopping environment");
-            self.vm_manager.stop_vm(env_id)?;
+            self.vm_manager.stop_vm(env.id).await?;
         }
 
         tokio::time::sleep(tokio::time::Duration::from_millis(200)).await;
@@ -311,7 +314,7 @@ impl EnvironmentManager {
         }
 
         // Clean up VM handle
-        self.vm_manager.destroy_vm(env_id)?;
+        self.vm_manager.destroy_vm(env.id).await?;
 
         tracing::info!("Environment down complete");
 
