@@ -28,6 +28,8 @@ pub async fn execute(args: UpArgs, socket: Option<PathBuf>) -> Result<()> {
             args.cpu,
             args.memory,
             args.disk,
+            args.gpu,
+            args.gpu_memory,
         )
         .await?;
 

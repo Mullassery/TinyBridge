@@ -65,6 +65,7 @@ async fn main() -> Result<()> {
         cpu: args.cpu_count,
         memory_bytes: args.memory_bytes,
         disk_bytes: args.disk_bytes,
+        gpu: None, // Use defaults
     })
     .with_cmdline("root=/dev/vda1 rw console=hvc0 quiet systemd.unified_cgroup_hierarchy=1".to_string())
     .with_display(args.display_width, args.display_height);

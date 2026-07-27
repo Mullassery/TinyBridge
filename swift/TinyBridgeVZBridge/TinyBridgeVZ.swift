@@ -190,6 +190,14 @@ public func tb_vm_create(_ configPtr: UnsafeRawPointer?) -> UnsafeMutableRawPoin
         graphicsConfig.scanouts = [scanoutConfig]
         vmConfig.graphicsDevices = [graphicsConfig]
 
+        // GPU device (Metal acceleration on macOS)
+        if config.gpu_enabled {
+            if #available(macOS 14.0, *) {
+                let gpuConfig = VZMacGPUDeviceConfiguration()
+                vmConfig.gpuDevices = [gpuConfig]
+            }
+        }
+
         // Input devices
         vmConfig.keyboards = [VZUSBKeyboardConfiguration()]
         vmConfig.pointingDevices = [VZUSBScreenCoordinatePointingDeviceConfiguration()]

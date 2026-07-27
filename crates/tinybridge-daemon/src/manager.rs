@@ -79,6 +79,7 @@ impl EnvironmentManager {
             cpu: 2,
             memory_bytes: 4 * 1024_u64.pow(3),
             disk_bytes: 20 * 1024_u64.pow(3),
+            gpu: None,
         };
 
         // Create VM via tinybridge-vz
@@ -128,7 +129,7 @@ impl EnvironmentManager {
         }
 
         // Start the VM
-        self.vm_manager.start_vm(env.id).await?;
+        self.vm_manager.start_vm(env_id).await?;
 
         // Simulate boot progress while VM starts
         for pct in [25, 50, 75, 100] {
@@ -298,10 +299,10 @@ impl EnvironmentManager {
         // Stop the actual VM
         if force {
             tracing::info!("Force stopping environment");
-            self.vm_manager.force_stop_vm(env.id).await?;
+            self.vm_manager.force_stop_vm(env_id).await?;
         } else {
             tracing::info!("Gracefully stopping environment");
-            self.vm_manager.stop_vm(env.id).await?;
+            self.vm_manager.stop_vm(env_id).await?;
         }
 
         tokio::time::sleep(tokio::time::Duration::from_millis(200)).await;
@@ -314,7 +315,7 @@ impl EnvironmentManager {
         }
 
         // Clean up VM handle
-        self.vm_manager.destroy_vm(env.id).await?;
+        self.vm_manager.destroy_vm(env_id)?;
 
         tracing::info!("Environment down complete");
 

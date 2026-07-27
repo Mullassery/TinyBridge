@@ -64,6 +64,8 @@ impl DaemonClient {
         cpu: Option<u32>,
         memory: Option<u64>,
         disk: Option<u64>,
+        gpu: Option<bool>,
+        gpu_memory: Option<u32>,
     ) -> Result<()> {
         let params = json!({
             "name": name,
@@ -72,6 +74,8 @@ impl DaemonClient {
             "cpu": cpu,
             "memory": memory,
             "disk": disk,
+            "gpu": gpu,
+            "gpu_memory": gpu_memory,
         });
 
         let result = self.call(methods::ENVIRONMENT_UP, params).await?;

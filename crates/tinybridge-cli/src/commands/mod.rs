@@ -45,6 +45,12 @@ pub struct UpArgs {
 
     #[arg(long, help = "Disk size in GB (default: 50)")]
     pub disk: Option<u64>,
+
+    #[arg(long, help = "Enable GPU acceleration (Metal on macOS, default: true)")]
+    pub gpu: Option<bool>,
+
+    #[arg(long, help = "GPU memory in GB (0 = auto allocation)")]
+    pub gpu_memory: Option<u32>,
 }
 
 #[derive(Parser)]

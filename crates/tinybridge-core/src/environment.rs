@@ -69,6 +69,22 @@ pub struct Resources {
     pub memory_bytes: u64,
     #[serde(rename = "disk", deserialize_with = "deserialize_size_string")]
     pub disk_bytes: u64,
+    #[serde(default)]
+    pub gpu: Option<GpuConfig>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GpuConfig {
+    /// Enable GPU acceleration (Metal on macOS)
+    #[serde(default = "default_gpu_enabled")]
+    pub enabled: bool,
+    /// GPU memory allocation in GB (0 = auto)
+    #[serde(default)]
+    pub memory_gb: Option<u32>,
+}
+
+fn default_gpu_enabled() -> bool {
+    true
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]

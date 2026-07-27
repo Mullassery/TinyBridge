@@ -85,6 +85,8 @@ pub async fn execute(args: LaunchArgs, socket: Option<PathBuf>) -> Result<()> {
             args.cpu,
             args.memory.map(|m| m as u64),
             args.disk.map(|d| d as u64),
+            None, // GPU uses defaults
+            None, // GPU memory uses defaults
         )
         .await?;
 

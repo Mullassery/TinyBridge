@@ -11,10 +11,18 @@ pub struct VmConfig {
     pub enable_rosetta: bool,
     pub display_width: u32,
     pub display_height: u32,
+    pub gpu_enabled: bool,
+    pub gpu_memory_gb: Option<u32>,
 }
 
 impl VmConfig {
     pub fn new(kernel_path: String, disk_image_path: String, resources: Resources) -> Self {
+        let (gpu_enabled, gpu_memory_gb) = if let Some(gpu_config) = &resources.gpu {
+            (gpu_config.enabled, gpu_config.memory_gb)
+        } else {
+            (true, None) // GPU enabled by default
+        };
+
         VmConfig {
             cpu_count: resources.cpu,
             memory_bytes: resources.memory_bytes,
@@ -25,6 +33,8 @@ impl VmConfig {
             enable_rosetta: true,
             display_width: 1920,
             display_height: 1080,
+            gpu_enabled,
+            gpu_memory_gb,
         }
     }
 
