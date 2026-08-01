@@ -1,3 +1,37 @@
+## Key Features
+## System Requirements
+## Complete Example
+
+```bash
+tinybridge init ubuntu:latest
+tinybridge start
+tinybridge ssh user@vm
+tinybridge stop
+```
+---
+
+
+- macOS 10.13+ (Intel/Apple Silicon)
+- Linux with KVM support
+- 2GB+ disk space
+- 1GB+ RAM
+- Optional: Docker for container support
+---
+
+
+**Boot Optimization**
+- Tier 1: SSH ready in 1.5s
+- Tier 2: Usable UI in 5s
+- Tier 3: Complete boot in 120s
+- Live migration support
+
+**Networking**
+- OTel instrumentation
+- Metrics/traces/logs
+- Multi-backend support
+- Service discovery
+---
+
 # TinyBridge
 
 Linux development on macOS. Open source, CLI-first, zero configuration.
