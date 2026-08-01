@@ -10,8 +10,9 @@ Lightweight, fast Linux VM integration for Mac developers. Develop for Linux wit
 ## Quick Start
 
 ```bash
-# Install
-brew install mullassery/tinybridge/tinybridge
+# Install (Homebrew tap, all architectures)
+brew tap Mullassery/tinybridge
+brew install tinybridged
 
 # Start Linux environment
 tinybridge start
@@ -32,9 +33,36 @@ Linux tinybridge 6.x.x
 
 ## Installation
 
+### Homebrew (Recommended)
+
+**Supports macOS on Intel and Apple Silicon (M1/M2/M3)**
+
 ```bash
-brew install mullassery/tinybridge/tinybridge
+brew tap Mullassery/tinybridge
+brew install tinybridged
 ```
+
+This installs two components:
+- **`tinybridge`** - CLI tool for managing Linux environments
+- **`tinybridged`** - Background daemon with auto-start via LaunchAgent
+
+### Minimal CLI Only
+
+If you only need the command-line tool without the daemon:
+
+```bash
+brew tap Mullassery/tinybridge
+brew install tinybridge
+```
+
+### What Gets Installed
+
+| Component | Purpose | Auto-Start |
+|-----------|---------|-----------|
+| `tinybridge` | Command-line interface | Manual |
+| `tinybridged` | Background daemon | Yes (via LaunchAgent) |
+
+**Note:** `tinybridged` automatically installs `tinybridge` as a dependency.
 
 ## Use Cases
 
