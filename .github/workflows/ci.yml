@@ -11,24 +11,9 @@ env:
   RUST_BACKTRACE: 1
 
 jobs:
-  swift-build:
-    name: Swift (Build)
-    runs-on: macos-15
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Build Swift package
-        run: swift build --package-path swift/ -c release
-
-      - name: Copy dylib to target/swift-libs for Rust linking
-        run: |
-          mkdir -p target/swift-libs
-          cp swift/.build/release/libTinyBridgeVZBridge.dylib target/swift-libs/ || true
-
   rust-lint-and-test:
     name: Rust (Lint & Test)
     runs-on: macos-15
-    needs: swift-build
     steps:
       - uses: actions/checkout@v4
 
