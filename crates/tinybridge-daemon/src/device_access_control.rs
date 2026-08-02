@@ -103,10 +103,7 @@ impl DeviceAccessController {
         } else {
             AccessControlDecision::denied(
                 policy_decision,
-                format!(
-                    "Device allocation failed: {}",
-                    passthrough_result.message
-                ),
+                format!("Device allocation failed: {}", passthrough_result.message),
             )
         }
     }
