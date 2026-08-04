@@ -1,32 +1,22 @@
 Proprietary License — Free to use with explicit attribution
 
-Copyright (c) 2026 Georgi Mammen Mullassery
+Copyright © 2026 Georgi Mammen Mullassery
 
-TERMS AND CONDITIONS:
+Permission is granted to any person obtaining a copy of this software to use,
+copy, modify, and distribute this software and its documentation, provided that:
 
-1. GRANT OF LICENSE
-   This software is provided free of charge under a proprietary license.
-   You are granted a non-exclusive, royalty-free, worldwide license to use,
-   copy, modify, and distribute this software and its documentation.
+1. The above copyright notice and this permission notice appear in all copies
+   or substantial portions of the software.
 
-2. ATTRIBUTION REQUIREMENT
-   You MUST include the following attribution in any documentation, code comments,
-   or materials that reference or use this software:
+2. Explicit attribution to the original author (Georgi Mammen Mullassery) is
+   provided in any project documentation and significant code comments where
+   this software is used.
 
-   "Powered by TinyBridge (https://github.com/Mullassery/TinyBridge)"
+3. The software is provided "AS IS" without warranty of any kind, express or
+   implied, including but not limited to the warranties of merchantability,
+   fitness for a particular purpose, or non-infringement.
 
-   Attribution must be maintained in all copies, modifications, and derivative works.
+4. In no event shall the author be liable for any claim, damages, or other
+   liability arising from the use of this software.
 
-3. DISCLAIMER OF WARRANTY
-   THIS SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
-   INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
-   PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-   COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER
-   IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN
-   CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-4. THIRD-PARTY COMPONENTS
-   This software incorporates open-source components licensed under their respective
-   licenses. See the documentation and source code for details.
-
-For licensing inquiries, contact: mullassery@gmail.com
+For more information, visit: https://github.com/Mullassery
