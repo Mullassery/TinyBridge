@@ -1,6 +1,9 @@
 ## Key Features
+See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 ## System Requirements
+See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 ## Complete Example
+See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 
 ```bash
 tinybridge init ubuntu:latest
@@ -42,6 +45,7 @@ Linux development on macOS. Open source, CLI-first, zero configuration.
 Lightweight, fast Linux VM integration for Mac developers. Develop for Linux without heavy virtualization.
 
 ## Quick Start
+See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 
 ```bash
 # Install (Homebrew tap, all architectures)
@@ -57,6 +61,7 @@ Linux tinybridge 6.x.x
 ```
 
 ## Key Features
+See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 
 - Instant Linux environment on macOS
 - Zero configuration required
@@ -66,6 +71,7 @@ Linux tinybridge 6.x.x
 - Minimal resource usage
 
 ## Installation
+See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 
 ### Homebrew (Recommended)
 
@@ -99,6 +105,7 @@ brew install tinybridge
 **Note:** `tinybridged` automatically installs `tinybridge` as a dependency.
 
 ## Use Cases
+See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 
 - Develop Linux-only applications on Mac
 - Test Docker containers locally
@@ -107,11 +114,13 @@ brew install tinybridge
 - Kernel module development
 
 ## Documentation
+See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 
 - [Getting Started](docs/getting-started.md)
 - [Configuration](docs/config.md)
 - [Advanced Usage](docs/advanced.md)
 
 ## License
+See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 
 MIT License - See LICENSE
