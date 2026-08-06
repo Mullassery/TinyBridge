@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-VERSION="0.3.0"
+VERSION="0.4.0"
 TEMP_DIR=$(mktemp -d)
 RELEASE_DIR="homebrew-release"
 
