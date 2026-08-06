@@ -253,7 +253,7 @@ mod access_control_integration_tests {
         let device_id = device.id.clone();
         device_mgr.register_device(device);
 
-        let controller = DeviceAccessController::new(policy, device_mgr);
+        let mut controller = DeviceAccessController::new(policy, device_mgr);
 
         // Try to request access
         let decision = controller.request_device_access(

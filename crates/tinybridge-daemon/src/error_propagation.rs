@@ -34,7 +34,7 @@ impl ErrorPropagator {
 
         let data = if error.context.is_some() || error.suggestion.is_some() {
             Some(json!({
-                "severity": error.severity.to_string(),
+                "severity": serde_json::to_value(&error.severity).unwrap_or_else(|_| Value::String("Error".to_string())),
                 "kind": format!("{}", error.kind),
                 "context": error.context.as_ref().map(|ctx| {
                     ctx.details.iter().map(|(k, v)| (k.clone(), v.clone())).collect::<Vec<_>>()

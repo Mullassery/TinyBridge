@@ -258,14 +258,14 @@ mod e2e_tests {
     fn test_error_code_mapping_completeness() {
         // Verify all error kinds map to valid error codes
         let error_kinds = vec![
-            BridgeError::bootstrap("test"),
-            BridgeError::vm("test"),
-            BridgeError::cli("test"),
-            BridgeError::network("test"),
-            BridgeError::storage("test"),
-            BridgeError::permission("test"),
-            BridgeError::configuration("test"),
-            BridgeError::unknown("test"),
+            BridgeError::bootstrap("test".to_string()),
+            BridgeError::vm("test".to_string()),
+            BridgeError::cli("test".to_string()),
+            BridgeError::network("test".to_string()),
+            BridgeError::storage("test".to_string()),
+            BridgeError::permission("test".to_string()),
+            BridgeError::configuration("test".to_string()),
+            BridgeError::unknown("test".to_string()),
         ];
 
         for error in error_kinds {
