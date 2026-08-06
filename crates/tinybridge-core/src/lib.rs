@@ -1,5 +1,7 @@
+pub mod boot_diagnostics;
 pub mod boot_instrumentation;
 pub mod boot_integration;
+pub mod boot_recovery;
 pub mod boot_stages;
 pub mod config;
 pub mod config_overrides;
@@ -17,8 +19,10 @@ pub mod profiles;
 pub mod resource_enforcer;
 pub mod ssh_keys;
 
+pub use boot_diagnostics::{BootDiagnosticReport, BootPerformanceMetrics, ComponentHealth, HealthCheckEngine, HealthReport, HealthStatus};
 pub use boot_instrumentation::{BootInstrumentation, BootPhase, BootSpan, BootSummary, ConfigContext, SpanStatus};
 pub use boot_integration::{BootIntegrationTester, BootReadinessValidator, BootScenario, BootTestResult};
+pub use boot_recovery::{BootFailure, BootFailureType, BootRecoveryHandler, DegradationPolicy, RecoveryStrategy, RecoverySummary};
 pub use boot_stages::{BootReadiness, BootTier, BootTimeline, BootTimelineSummary, TierFeatures};
 pub use config::{DefaultResources, TinyBridgeConfig};
 pub use config_overrides::{CliOverrides, EnvOverrides, OverrideEngine};
