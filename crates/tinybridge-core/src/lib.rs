@@ -12,6 +12,7 @@ pub mod environment;
 pub mod error;
 pub mod ipc;
 pub mod lazy_loader;
+pub mod linux_adapter;
 pub mod macos_adapter;
 pub mod metrics;
 pub mod migration;
@@ -27,6 +28,7 @@ pub use boot_diagnostics::{BootDiagnosticReport, BootPerformanceMetrics, Compone
 pub use boot_instrumentation::{BootInstrumentation, BootPhase, BootSpan, BootSummary, ConfigContext, SpanStatus};
 pub use boot_integration::{BootIntegrationTester, BootReadinessValidator, BootScenario, BootTestResult};
 pub use boot_recovery::{BootFailure, BootFailureType, BootRecoveryHandler, DegradationPolicy, RecoveryStrategy, RecoverySummary};
+pub use linux_adapter::{LinuxKVMAdapter, LinuxVMMetadata};
 pub use macos_adapter::{MacOSAppleAdapter, MacOSVMMetadata};
 pub use platform_abstraction::{HostPlatform, HypervisorBackend, NetworkMode, PlatformAdapter, PlatformCapabilities, PlatformInfo, StorageMount, VMResourceConfig};
 pub use platform_registry::{PlatformRegistry, RegistryStatus};
