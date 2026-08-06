@@ -20,6 +20,7 @@ pub mod platform_registry;
 pub mod profiles;
 pub mod resource_enforcer;
 pub mod ssh_keys;
+pub mod windows_adapter;
 
 pub use boot_diagnostics::{BootDiagnosticReport, BootPerformanceMetrics, ComponentHealth, HealthCheckEngine, HealthReport, HealthStatus};
 pub use boot_instrumentation::{BootInstrumentation, BootPhase, BootSpan, BootSummary, ConfigContext, SpanStatus};
@@ -27,6 +28,7 @@ pub use boot_integration::{BootIntegrationTester, BootReadinessValidator, BootSc
 pub use boot_recovery::{BootFailure, BootFailureType, BootRecoveryHandler, DegradationPolicy, RecoveryStrategy, RecoverySummary};
 pub use platform_abstraction::{HostPlatform, HypervisorBackend, NetworkMode, PlatformAdapter, PlatformCapabilities, PlatformInfo, StorageMount, VMResourceConfig};
 pub use platform_registry::{PlatformRegistry, RegistryStatus};
+pub use windows_adapter::{WindowsHyperVAdapter, WindowsVMMetadata};
 pub use boot_stages::{BootReadiness, BootTier, BootTimeline, BootTimelineSummary, TierFeatures};
 pub use config::{DefaultResources, TinyBridgeConfig};
 pub use config_overrides::{CliOverrides, EnvOverrides, OverrideEngine};
