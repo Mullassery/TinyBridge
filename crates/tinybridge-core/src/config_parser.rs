@@ -8,7 +8,7 @@ use std::collections::HashMap;
 use std::path::Path;
 use thiserror::Error;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct EnvironmentConfig {
     /// Environment name
     pub name: String,
