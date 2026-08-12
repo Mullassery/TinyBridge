@@ -6,7 +6,8 @@ fn main() {
     let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
 
     let header_path = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap())
-        .join("../../swift/TinyBridgeVZBridge/include/tinybridge_vz.h");
+        .join("../../swift/Sources/CTinyBridgeVZ/tinybridge_vz.h");
+    println!("cargo:rerun-if-changed={}", header_path.display());
 
     let bindings = Builder::default()
         .header(header_path.to_string_lossy().to_string())

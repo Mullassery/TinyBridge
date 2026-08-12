@@ -36,6 +36,14 @@ env/
 target/
 Cargo.lock
 
+# Swift build output. This was previously (accidentally) committed - see
+# swift/.build/arm64-apple-macosx/release/libTinyBridgeVZBridge.dylib in git history - which
+# is how a stale, non-compiling prebuilt dylib ended up checked into the repo giving false
+# confidence that the Swift bridge built successfully. It's a real build artifact, not
+# source; build it locally with `just vz-bridge` / `swift build --package-path swift/ -c
+# release` instead of relying on a committed copy.
+swift/.build/
+
 # Temp files
 *.tmp
 *.log

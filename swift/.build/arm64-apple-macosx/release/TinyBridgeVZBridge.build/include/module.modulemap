@@ -1,3 +1,0 @@
-module TinyBridgeVZBridge {
-    header "/private/tmp/tinybridge/swift/.build/arm64-apple-macosx/release/TinyBridgeVZBridge.build/include/TinyBridgeVZBridge-Swift.h"
-}

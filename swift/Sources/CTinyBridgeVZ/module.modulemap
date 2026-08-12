@@ -1,0 +1,4 @@
+module CTinyBridgeVZ {
+    header "tinybridge_vz.h"
+    export *
+}

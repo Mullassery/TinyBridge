@@ -1,4 +1,0 @@
-module TinyBridgeVZBridge {
-    header "include/tinybridge_vz.h"
-    export *
-}
