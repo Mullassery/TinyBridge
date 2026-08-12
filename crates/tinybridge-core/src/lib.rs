@@ -12,6 +12,10 @@ pub mod environment;
 pub mod error;
 pub mod ipc;
 pub mod lazy_loader;
+// NOTE: linux_adapter/macos_adapter/windows_adapter are unimplemented scaffolding, not
+// real hypervisor backends, and are not wired into any daemon/CLI/RPC path. See each
+// module's doc comment for details. The real, working macOS backend is
+// crates/tinybridge-vz + crates/tinybridge-vmhost.
 pub mod linux_adapter;
 pub mod macos_adapter;
 pub mod metrics;

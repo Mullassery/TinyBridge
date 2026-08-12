@@ -1,7 +1,17 @@
-/// Linux Platform Adapter
-/// Phase 6.3: KVM/QEMU Implementation
-///
-/// Implements PlatformAdapter for Linux with KVM backend
+//! Linux Platform Adapter - **UNIMPLEMENTED / PLANNED, NOT A REAL KVM/QEMU BACKEND.**
+//!
+//! Despite prior commit messages describing this as a "Phase 6.3 Implementation," this
+//! module does not call `libvirt`, QEMU, or `/dev/kvm` in any way. Every method below
+//! only mutates an in-memory `HashMap<String, LinuxVMMetadata>` - there is no real VM
+//! anywhere. It is also **dead code today**: nothing outside this module and its own unit
+//! tests constructs a `LinuxKVMAdapter` (verified by workspace-wide search), so it is not
+//! reachable from the daemon, CLI, or any RPC path.
+//!
+//! It is being kept (rather than deleted) as clearly-labeled scaffolding for a genuine
+//! future Linux implementation, since a real KVM/libvirt backend cannot be built or tested
+//! from a macOS development sandbox - see the "Platform Support" section of the top-level
+//! README for the honest, currently-supported platform (macOS only, via
+//! `crates/tinybridge-vz`).
 
 use crate::platform_abstraction::{
     NetworkMode, PlatformAdapter, PlatformCapabilities, PlatformInfo, StorageMount, VMResourceConfig,
@@ -57,7 +67,7 @@ impl LinuxVMMetadata {
             memory_gb: config.memory_gb,
             gpu_enabled: config.gpu_enabled,
             iommu_support: true, // Assume modern Linux
-            network_mode: "Bridged".to_string(),
+            network_mode: "NAT".to_string(), // safe-by-default; was "Bridged" (see SECURITY.md)
             shared_folders: Vec::new(),
             usb_devices: Vec::new(),
             is_running: false,

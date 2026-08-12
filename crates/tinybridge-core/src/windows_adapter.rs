@@ -1,7 +1,17 @@
-/// Windows Platform Adapter
-/// Phase 6.1: Windows Hyper-V Implementation
-///
-/// Implements PlatformAdapter for Windows with Hyper-V backend
+//! Windows Platform Adapter - **UNIMPLEMENTED / PLANNED, NOT A REAL HYPER-V BACKEND.**
+//!
+//! Despite prior commit messages describing this as a "Phase 6.1 Implementation," this
+//! module does not call any Hyper-V / Windows Hypervisor Platform (WHPX) API. Every method
+//! below only mutates an in-memory `HashMap<String, WindowsVMMetadata>` - there is no real
+//! VM anywhere. It is also **dead code today**: nothing outside this module and its own
+//! unit tests constructs a `WindowsHyperVAdapter` (verified by workspace-wide search), so
+//! it is not reachable from the daemon, CLI, or any RPC path.
+//!
+//! It is being kept (rather than deleted) as clearly-labeled scaffolding for a genuine
+//! future Windows implementation, since a real Hyper-V/WHPX backend cannot be built or
+//! tested from a macOS development sandbox (no Windows host with virtualization available)
+//! - see the "Platform Support" section of the top-level README for the honest,
+//! currently-supported platform (macOS only, via `crates/tinybridge-vz`).
 
 use crate::platform_abstraction::{
     NetworkMode, PlatformAdapter, PlatformCapabilities, PlatformInfo, StorageMount, VMResourceConfig,

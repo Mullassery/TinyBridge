@@ -15,6 +15,16 @@ tracing = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 
+# KNOWN DEBT: objc 0.2 and its objc-foundation/objc_id dependents are unmaintained; the
+# transitive `block` crate they pull in already triggers a Rust future-incompatibility
+# warning (`cargo report future-incompatibilities`: "static of uninhabited type", will
+# become a hard error in a future rustc). `objc2` is the actively-maintained successor and
+# the migration path for crates/tinybridge-clipboard/src/macos.rs, but it's a real API
+# rewrite (different msg_send!/class! macros, Retained<T> ownership model) that touches the
+# only working native clipboard integration in this crate - deliberately not attempted in
+# the same pass as the VM-lifecycle wiring to avoid destabilizing a feature that wasn't
+# broken, and because it can't be meaningfully tested without a second physical/virtual
+# macOS clipboard peer. Tracked here rather than migrated silently.
 [target.'cfg(target_os = "macos")'.dependencies]
 objc = "0.2"
 objc-foundation = "0.1"

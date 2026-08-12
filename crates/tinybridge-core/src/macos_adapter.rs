@@ -1,7 +1,19 @@
-/// macOS Platform Adapter
-/// Phase 6.2: Apple Virtualization Framework Implementation
-///
-/// Implements PlatformAdapter for macOS with native virtualization
+//! macOS Platform Adapter - **NOT the real macOS backend, and not wired to anything.**
+//!
+//! Despite prior commit messages describing this as a "Phase 6.2 Implementation," this
+//! module does not call Virtualization.framework or any other macOS API. Every method
+//! below only mutates an in-memory `HashMap<String, MacOSVMMetadata>` - there is no real
+//! VM anywhere. It is also **dead code today**: nothing outside this module and its own
+//! unit tests constructs a `MacOSAppleAdapter` (verified by workspace-wide search), so it
+//! is not reachable from the daemon, CLI, or any RPC path.
+//!
+//! **The real, working macOS Virtualization.framework integration lives in
+//! `crates/tinybridge-vz` (`VirtualMachine`, backed by real FFI into
+//! `swift/Sources/TinyBridgeVZBridge`) and is driven by `crates/tinybridge-vmhost`'s
+//! `VmController` - not by this module.** This file is kept only as clearly-labeled
+//! scaffolding matching the (also unimplemented) Windows/Linux adapters in this same
+//! directory, for a possible future unification of the platform-abstraction trait with
+//! the real backend; today it should be treated as dead code, not a second macOS backend.
 
 use crate::platform_abstraction::{
     NetworkMode, PlatformAdapter, PlatformCapabilities, PlatformInfo, StorageMount, VMResourceConfig,
@@ -56,7 +68,7 @@ impl MacOSVMMetadata {
             memory_gb: config.memory_gb,
             gpu_enabled: config.gpu_enabled,
             metal_support: true, // Apple Silicon default
-            network_mode: "Bridged".to_string(),
+            network_mode: "NAT".to_string(), // safe-by-default; was "Bridged" (see SECURITY.md)
             shared_folders: Vec::new(),
             is_running: false,
             is_suspended: false,
