@@ -1,8 +1,29 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
+use std::io::Read;
+use std::path::Path;
 use uuid::Uuid;
 
 use crate::error::{Result, SnapshotError};
+
+/// Compute a SHA-256 hex digest of a file, streaming it in chunks rather than reading the
+/// whole (potentially multi-GB disk image) file into memory at once.
+pub fn sha256_file(path: &Path) -> Result<String> {
+    let mut file = std::fs::File::open(path)?;
+    let mut hasher = Sha256::new();
+    let mut buf = [0u8; 1024 * 1024];
+
+    loop {
+        let n = file.read(&mut buf)?;
+        if n == 0 {
+            break;
+        }
+        hasher.update(&buf[..n]);
+    }
+
+    Ok(hex::encode(hasher.finalize()))
+}
 
 /// Snapshot metadata
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -87,6 +108,18 @@ impl SnapshotMetadata {
     pub fn with_retention(mut self, retention: SnapshotRetention) -> Self {
         self.retention = retention;
         self
+    }
+
+    /// Populate `checksum` and `size_bytes` for real, by hashing the snapshot's actual
+    /// image file on disk. Previously `checksum` was declared on this struct but never
+    /// populated by any code path in the workspace, so it was always an empty string and
+    /// nothing ever verified it. Callers creating a snapshot from a real disk image should
+    /// use this instead of leaving `checksum` blank.
+    pub fn with_checksum_from_file(mut self, image_path: &Path) -> Result<Self> {
+        let metadata = std::fs::metadata(image_path)?;
+        self.size_bytes = metadata.len();
+        self.checksum = sha256_file(image_path)?;
+        Ok(self)
     }
 
     /// Check if snapshot is expired (for retention policies)
@@ -195,6 +228,31 @@ impl SnapshotManager {
             .filter(|s| s.env_id == env_id)
             .count()
     }
+
+    /// Verify a snapshot's on-disk image against its recorded checksum before it is used
+    /// to boot a VM (e.g. on restore). Fails closed: a snapshot with no recorded checksum
+    /// (the historical default - `checksum` was declared but never populated anywhere) is
+    /// treated as untrusted and rejected, not silently accepted.
+    pub fn verify_integrity(&self, id: Uuid, image_path: &Path) -> Result<()> {
+        let metadata = self
+            .snapshots
+            .get(&id)
+            .ok_or_else(|| SnapshotError::SnapshotNotFound(id.to_string()))?;
+
+        if metadata.checksum.is_empty() {
+            return Err(SnapshotError::MissingChecksum);
+        }
+
+        let actual = sha256_file(image_path)?;
+        if !actual.eq_ignore_ascii_case(&metadata.checksum) {
+            return Err(SnapshotError::ChecksumMismatch {
+                expected: metadata.checksum.clone(),
+                actual,
+            });
+        }
+
+        Ok(())
+    }
 }
 
 impl Default for SnapshotManager {
@@ -279,6 +337,83 @@ mod tests {
         };
 
         assert!(old.is_expired());
+    }
+
+    #[test]
+    fn test_checksum_populated_from_real_file() {
+        let tmp = tempfile::tempdir().unwrap();
+        let image_path = tmp.path().join("disk.img");
+        std::fs::write(&image_path, b"fake disk image contents").unwrap();
+
+        let metadata = SnapshotMetadata::new(Uuid::new_v4(), "snap".to_string())
+            .with_checksum_from_file(&image_path)
+            .unwrap();
+
+        assert!(!metadata.checksum.is_empty());
+        assert_eq!(
+            metadata.size_bytes,
+            b"fake disk image contents".len() as u64
+        );
+        assert_eq!(
+            metadata.checksum,
+            sha256_file(&image_path).unwrap(),
+            "checksum should match a fresh hash of the same file"
+        );
+    }
+
+    #[test]
+    fn test_verify_integrity_passes_for_unmodified_file() {
+        let tmp = tempfile::tempdir().unwrap();
+        let image_path = tmp.path().join("disk.img");
+        std::fs::write(&image_path, b"original contents").unwrap();
+
+        let mut manager = SnapshotManager::new();
+        let metadata = SnapshotMetadata::new(Uuid::new_v4(), "snap".to_string())
+            .with_checksum_from_file(&image_path)
+            .unwrap();
+        let id = metadata.id;
+        manager.create_snapshot(metadata).unwrap();
+
+        assert!(manager.verify_integrity(id, &image_path).is_ok());
+    }
+
+    #[test]
+    fn test_verify_integrity_rejects_tampered_file() {
+        let tmp = tempfile::tempdir().unwrap();
+        let image_path = tmp.path().join("disk.img");
+        std::fs::write(&image_path, b"original contents").unwrap();
+
+        let mut manager = SnapshotManager::new();
+        let metadata = SnapshotMetadata::new(Uuid::new_v4(), "snap".to_string())
+            .with_checksum_from_file(&image_path)
+            .unwrap();
+        let id = metadata.id;
+        manager.create_snapshot(metadata).unwrap();
+
+        // Simulate corruption/tampering after the snapshot was recorded.
+        std::fs::write(&image_path, b"tampered contents!!").unwrap();
+
+        let result = manager.verify_integrity(id, &image_path);
+        assert!(matches!(
+            result,
+            Err(SnapshotError::ChecksumMismatch { .. })
+        ));
+    }
+
+    #[test]
+    fn test_verify_integrity_rejects_missing_checksum() {
+        let tmp = tempfile::tempdir().unwrap();
+        let image_path = tmp.path().join("disk.img");
+        std::fs::write(&image_path, b"contents").unwrap();
+
+        let mut manager = SnapshotManager::new();
+        // Metadata created without ever calling with_checksum_from_file - checksum stays "".
+        let metadata = SnapshotMetadata::new(Uuid::new_v4(), "snap".to_string());
+        let id = metadata.id;
+        manager.create_snapshot(metadata).unwrap();
+
+        let result = manager.verify_integrity(id, &image_path);
+        assert!(matches!(result, Err(SnapshotError::MissingChecksum)));
     }
 
     #[test]

@@ -18,13 +18,39 @@ echo "Target: 1.5s SSH ready, 5s usable, 120s complete"
 mkdir -p "$ROOTFS_DIR"
 cd "$ROOTFS_DIR"
 
-# Step 1: Download minimal Ubuntu cloud image
-echo "[1/6] Downloading Ubuntu $UBUNTU_VERSION minimal image..."
-CLOUD_IMG="ubuntu-$UBUNTU_VERSION-minimal-cloudimg-arm64.img"
+# Step 1: Download Ubuntu cloud image and verify its checksum before using it.
+#
+# SECURITY: a plain `wget` with no integrity check means a compromised mirror, a MITM'd
+# download, or a partial/corrupted transfer would be silently accepted as a trusted guest
+# boot image. This now downloads the upstream SHA256SUMS file alongside the image and
+# refuses to proceed if the hash doesn't match. Note: Ubuntu's cloud-images.ubuntu.com no
+# longer serves a "minimal/releases/<ver>/release" tree (it now 404s); this uses the
+# actively maintained "releases/<ver>/release" server cloud image tree instead.
+echo "[1/6] Downloading Ubuntu $UBUNTU_VERSION cloud image..."
+CLOUD_IMG="ubuntu-$UBUNTU_VERSION-server-cloudimg-arm64.img"
+CLOUD_IMG_BASE_URL="https://cloud-images.ubuntu.com/releases/$UBUNTU_VERSION/release"
+
 if [ ! -f "$CLOUD_IMG" ]; then
-    URL="https://cloud-images.ubuntu.com/minimal/releases/$UBUNTU_VERSION/release/$CLOUD_IMG"
-    wget -q "$URL" || echo "Warning: Could not download cloud image (may not be necessary for CI)"
+    curl -fsSL -o "$CLOUD_IMG" "$CLOUD_IMG_BASE_URL/$CLOUD_IMG"
 fi
+
+echo "[1/6] Verifying checksum against upstream SHA256SUMS..."
+curl -fsSL -o SHA256SUMS "$CLOUD_IMG_BASE_URL/SHA256SUMS"
+EXPECTED_SHA256=$(grep " \*${CLOUD_IMG}\$" SHA256SUMS | awk '{print $1}')
+if [ -z "$EXPECTED_SHA256" ]; then
+    echo "ERROR: could not find a checksum for $CLOUD_IMG in upstream SHA256SUMS" >&2
+    exit 1
+fi
+
+ACTUAL_SHA256=$(shasum -a 256 "$CLOUD_IMG" | awk '{print $1}')
+if [ "$ACTUAL_SHA256" != "$EXPECTED_SHA256" ]; then
+    echo "ERROR: checksum mismatch for $CLOUD_IMG" >&2
+    echo "  expected: $EXPECTED_SHA256" >&2
+    echo "  actual:   $ACTUAL_SHA256" >&2
+    rm -f "$CLOUD_IMG"
+    exit 1
+fi
+echo "  OK: $CLOUD_IMG checksum verified ($ACTUAL_SHA256)"
 
 # Step 2: Prepare rootfs (extract cloud-init image)
 echo "[2/6] Preparing rootfs..."

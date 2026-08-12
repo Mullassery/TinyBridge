@@ -22,6 +22,14 @@ pub async fn run(socket_path: PathBuf) -> Result<()> {
     let listener = UnixListener::bind(&socket_path)?;
     listener.set_nonblocking(true)?;
 
+    // Harden the daemon's control socket to owner-only access rather than relying on the
+    // process umask (see SECURITY.md - VM Control Socket). Any peer able to connect can
+    // drive full environment lifecycle operations.
+    {
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::set_permissions(&socket_path, std::fs::Permissions::from_mode(0o600))?;
+    }
+
     tracing::info!("Listening on {:?}", socket_path);
 
     let manager = Arc::new(Mutex::new(EnvironmentManager::new()));

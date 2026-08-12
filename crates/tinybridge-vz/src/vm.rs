@@ -1,9 +1,51 @@
 use crate::config::VmConfig;
 use crate::error::{Result, VzError};
-use std::ffi::CString;
+use std::ffi::{CStr, CString};
 use std::ptr::null_mut;
 use tinybridge_vz_sys::*;
 use uuid::Uuid;
+
+/// Real-time lifecycle state of a [`VirtualMachine`], as reported by
+/// Virtualization.framework via `tb_vm_get_status`. This is never fabricated locally -
+/// it always reflects the last value the C ABI / Swift bridge / VZVirtualMachine
+/// returned.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum VmState {
+    Stopped,
+    Starting,
+    Running,
+    Stopping,
+    Error,
+    /// The C ABI returned a state value this Rust binding doesn't recognize yet.
+    Unknown(u32),
+}
+
+#[allow(non_upper_case_globals)] // bindgen-generated constant names from the C enum
+impl From<TBVMState> for VmState {
+    fn from(raw: TBVMState) -> Self {
+        match raw {
+            TBVMState_TB_VM_STATE_STOPPED => VmState::Stopped,
+            TBVMState_TB_VM_STATE_STARTING => VmState::Starting,
+            TBVMState_TB_VM_STATE_RUNNING => VmState::Running,
+            TBVMState_TB_VM_STATE_STOPPING => VmState::Stopping,
+            TBVMState_TB_VM_STATE_ERROR => VmState::Error,
+            other => VmState::Unknown(other),
+        }
+    }
+}
+
+/// A point-in-time snapshot of a running (or not-yet-running) VM, read directly from
+/// Virtualization.framework through the FFI boundary - never hardcoded.
+#[derive(Debug, Clone, PartialEq)]
+pub struct VmStatus {
+    pub state: VmState,
+    pub cpu_usage_pct: f64,
+    pub memory_used_bytes: u64,
+    pub memory_total_bytes: u64,
+    /// Guest IP address, if one has been observed yet. Empty until the boot monitor on
+    /// the Swift side detects the guest is up.
+    pub ip_address: Option<String>,
+}
 
 pub struct VirtualMachine {
     vm: *mut tinybridge_vz_sys::TBVirtualMachine,
@@ -86,6 +128,63 @@ impl VirtualMachine {
         Ok(())
     }
 
+    /// Query the VM's real, current state from Virtualization.framework. This is the
+    /// only source of truth for VM status - callers must not assume "running" just
+    /// because `start()` was called; `start()` is asynchronous on the Swift side, and
+    /// this call reflects whatever VZVirtualMachine.state actually is right now.
+    pub fn status(&self) -> Result<VmStatus> {
+        let mut raw = TBVMStatus {
+            state: TBVMState_TB_VM_STATE_STOPPED,
+            cpu_usage_pct: 0.0,
+            memory_used_bytes: 0,
+            memory_total_bytes: 0,
+            ip_address: [0; 46],
+        };
+
+        let result = unsafe { tb_vm_get_status(self.vm as *mut _, &mut raw as *mut _) };
+        if result != 0 {
+            return Err(VzError::StatusQueryFailed);
+        }
+
+        let ip_address = unsafe {
+            let cstr = CStr::from_ptr(raw.ip_address.as_ptr());
+            let s = cstr.to_string_lossy().into_owned();
+            if s.is_empty() {
+                None
+            } else {
+                Some(s)
+            }
+        };
+
+        Ok(VmStatus {
+            state: VmState::from(raw.state),
+            cpu_usage_pct: raw.cpu_usage_pct,
+            memory_used_bytes: raw.memory_used_bytes,
+            memory_total_bytes: raw.memory_total_bytes,
+            ip_address,
+        })
+    }
+
+    /// Show the VM's graphical window (VZVirtualMachineView), if the host process has a
+    /// window server connection. Returns an error if the underlying `tb_vm_show_window`
+    /// call fails (e.g. headless/no display server, as is typical in CI/sandboxes).
+    pub fn show_window(&self) -> Result<()> {
+        let result = unsafe { tb_vm_show_window(self.vm as *mut _) };
+        if result != 0 {
+            return Err(VzError::StatusQueryFailed);
+        }
+        Ok(())
+    }
+
+    /// Hide the VM's graphical window.
+    pub fn hide_window(&self) -> Result<()> {
+        let result = unsafe { tb_vm_hide_window(self.vm as *mut _) };
+        if result != 0 {
+            return Err(VzError::StatusQueryFailed);
+        }
+        Ok(())
+    }
+
     pub fn id(&self) -> Uuid {
         self.id
     }
@@ -126,5 +225,45 @@ mod tests {
     #[test]
     fn test_version() {
         assert_eq!(VirtualMachine::version(), "0.1.0");
+    }
+
+    /// This is the honest end-to-end proof that the Rust -> C ABI -> Swift ->
+    /// Virtualization.framework call chain is real and reached, not a stub. With a
+    /// kernel path that does not exist on disk, VZVirtualMachineConfiguration.validate()
+    /// inside tb_vm_create() must genuinely fail, and that real failure must propagate
+    /// all the way back as VzError::CreationFailed rather than silently succeeding.
+    #[test]
+    fn test_vm_create_with_missing_kernel_surfaces_real_ffi_error() {
+        if !VirtualMachine::is_available() {
+            eprintln!("skipping: Virtualization.framework not available on this host");
+            return;
+        }
+
+        let resources = tinybridge_core::Resources {
+            cpu: 1,
+            memory_bytes: 512 * 1024 * 1024,
+            disk_bytes: 0,
+            gpu: None,
+        };
+        let config = VmConfig::new(
+            "/nonexistent/tinybridge-test-kernel-does-not-exist".to_string(),
+            "/nonexistent/tinybridge-test-disk-does-not-exist.img".to_string(),
+            resources,
+        );
+
+        let result = VirtualMachine::new("ffi-smoke-test".to_string(), config);
+        assert!(
+            matches!(result, Err(VzError::CreationFailed)),
+            "expected a real CreationFailed error from Virtualization.framework, got: {result:?}"
+        );
+    }
+}
+
+impl std::fmt::Debug for VirtualMachine {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("VirtualMachine")
+            .field("id", &self.id)
+            .field("name", &self.name)
+            .finish()
     }
 }

@@ -128,15 +128,72 @@ impl EnvironmentManager {
             env.status = EnvironmentStatus::Starting { progress_pct: 0 };
         }
 
-        // Start the VM
+        // Start the VM for real (issues a genuine vmhost.start JSON-RPC call, which drives
+        // tinybridge_vz::VirtualMachine::start() -> Virtualization.framework). Any real
+        // failure (missing entitlement, framework unavailable, invalid image, ...)
+        // propagates from here rather than being swallowed.
         self.vm_manager.start_vm(env_id).await?;
 
-        // Simulate boot progress while VM starts
-        for pct in [25, 50, 75, 100] {
-            tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+        // Poll the vmhost for the VM's real hypervisor-level state instead of fabricating
+        // boot progress. This only proves the hypervisor itself reached "Running" - it does
+        // not (yet) probe guest-level readiness (SSH, etc.), since that requires a real,
+        // verified-bootable guest image pipeline that doesn't exist yet (see
+        // scripts/build-rootfs-multi-tier.sh).
+        const POLL_ATTEMPTS: u32 = 10;
+        const POLL_INTERVAL_MS: u64 = 300;
+        let mut last_status: Option<serde_json::Value> = None;
+        let mut reached_running = false;
+
+        for attempt in 0..POLL_ATTEMPTS {
+            tokio::time::sleep(tokio::time::Duration::from_millis(POLL_INTERVAL_MS)).await;
+
+            let progress_pct = (((attempt + 1) * 100 / POLL_ATTEMPTS) as u8).min(99);
             if let Some(env) = self.environments.get_mut(&env_name) {
-                env.status = EnvironmentStatus::Starting { progress_pct: pct };
+                env.status = EnvironmentStatus::Starting { progress_pct };
             }
+
+            match self.vm_manager.status_vm(env_id).await {
+                Ok(status) => {
+                    let state = status.get("state").and_then(|s| s.as_str()).unwrap_or("");
+                    last_status = Some(status.clone());
+                    if state == "Running" {
+                        reached_running = true;
+                        break;
+                    }
+                    if state == "Error" || state == "unavailable" {
+                        let message = status
+                            .get("error")
+                            .and_then(|e| e.as_str())
+                            .unwrap_or("VM entered an error state")
+                            .to_string();
+                        if let Some(env) = self.environments.get_mut(&env_name) {
+                            env.status = EnvironmentStatus::Error {
+                                message: message.clone(),
+                            };
+                        }
+                        return Err(anyhow!("VM failed to start: {message}"));
+                    }
+                }
+                Err(e) => {
+                    tracing::warn!(error = %e, "status_vm query failed while polling boot state");
+                }
+            }
+        }
+
+        if !reached_running {
+            let message = format!(
+                "VM did not reach Running state within {}ms (last status: {})",
+                POLL_ATTEMPTS as u64 * POLL_INTERVAL_MS,
+                last_status
+                    .map(|s| s.to_string())
+                    .unwrap_or_else(|| "none".to_string())
+            );
+            if let Some(env) = self.environments.get_mut(&env_name) {
+                env.status = EnvironmentStatus::Error {
+                    message: message.clone(),
+                };
+            }
+            return Err(anyhow!(message));
         }
 
         let boot_duration_ms = boot_start.elapsed().as_millis() as u64;
@@ -168,11 +225,18 @@ impl EnvironmentManager {
             4
         };
 
-        // Update environment status - running
+        // Update environment status - running. ip_address comes from the real status poll
+        // above (tinybridge-vz's boot monitor observing the guest via the VZ NAT device) -
+        // it is None until the guest is actually detected, never a fabricated placeholder.
+        let real_ip_address = last_status
+            .as_ref()
+            .and_then(|s| s.get("ip_address"))
+            .and_then(|ip| ip.as_str())
+            .map(|s| s.to_string());
         if let Some(env) = self.environments.get_mut(&env_name) {
             env.status = EnvironmentStatus::Running { uptime_secs: 0 };
             env.started_at = Some(Utc::now());
-            env.ip_address = Some("192.168.105.2".to_string());
+            env.ip_address = real_ip_address;
         }
 
         // Generate SSH key for this environment
@@ -465,7 +529,10 @@ domain_id: 0
 
         // Re-establish SSH configuration if needed
         {
-            let env = self.environments.get(env_name).unwrap();
+            let env = self
+                .environments
+                .get(env_name)
+                .ok_or_else(|| anyhow!("Environment '{}' disappeared during repair", env_name))?;
             if !env.ssh_configured {
                 tracing::info!("Re-establishing SSH configuration...");
                 match self
@@ -496,7 +563,10 @@ domain_id: 0
 
         // Re-provision DDS configuration if needed
         {
-            let env = self.environments.get(env_name).unwrap();
+            let env = self
+                .environments
+                .get(env_name)
+                .ok_or_else(|| anyhow!("Environment '{}' disappeared during repair", env_name))?;
             if !env.dds_configured {
                 tracing::info!("Re-provisioning DDS configuration...");
                 self.provision_dds(env_name, env.id).await?;
@@ -515,7 +585,10 @@ domain_id: 0
         // Validate repair was successful
         match self.validate_environment(env_name).await {
             Ok(validation) => {
-                let env = self.environments.get(env_name).unwrap();
+                let env = self
+                    .environments
+                    .get(env_name)
+                    .ok_or_else(|| anyhow!("Environment '{}' disappeared during repair", env_name))?;
                 tracing::info!("Environment validation result: {}", validation);
                 Ok(json!({
                     "status": "repaired",

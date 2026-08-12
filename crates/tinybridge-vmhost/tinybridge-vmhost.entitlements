@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!--
+      Required for tinybridge-vmhost to call into Apple's Virtualization.framework
+      (via crates/tinybridge-vz -> crates/tinybridge-vz-sys -> swift/Sources/TinyBridgeVZBridge).
+      Without this entitlement, VZVirtualMachine construction fails at runtime with:
+        "The process doesn't have the 'com.apple.security.virtualization' entitlement."
+      Ad-hoc codesigning (`codesign -s -`) is sufficient to satisfy this entitlement for
+      local/development use; see justfile's `build-vmhost` recipe.
+    -->
+    <key>com.apple.security.virtualization</key>
+    <true/>
+</dict>
+</plist>

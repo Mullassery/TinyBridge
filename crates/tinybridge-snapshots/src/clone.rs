@@ -271,7 +271,10 @@ mod tests {
         );
 
         manager.create_clone(c1).unwrap();
-        std::thread::sleep(std::time::Duration::from_millis(10));
+        // 10ms was flaky under `cargo test --workspace` (heavy scheduler contention from
+        // many crates' test binaries running in parallel can blow past a 10ms margin).
+        // 100ms is still fast but leaves realistic headroom.
+        std::thread::sleep(std::time::Duration::from_millis(100));
         manager.create_clone(c2.clone()).unwrap();
 
         let latest = manager.latest_clone(source_id).unwrap();

@@ -1,8 +1,8 @@
 use anyhow::Result;
+use serde_json::json;
 use std::path::PathBuf;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::net::{UnixListener, UnixStream};
-use serde_json::json;
 
 use crate::vm_controller::VmController;
 
@@ -26,6 +26,18 @@ impl SocketServer {
 
     pub async fn run(&mut self) -> Result<()> {
         let listener = UnixListener::bind(&self.socket_path)?;
+
+        // Harden the control socket to owner-only access. The default create-mode is
+        // governed by the process umask, which is not guaranteed to be restrictive (e.g.
+        // 022 leaves the socket group/world-readable+writable) - a peer able to connect to
+        // this socket can drive VM start/stop/force_stop, so it must not be reachable by
+        // other local users regardless of umask.
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            std::fs::set_permissions(&self.socket_path, std::fs::Permissions::from_mode(0o600))?;
+        }
+
         tracing::info!(socket = %self.socket_path.display(), "Listening for JSON-RPC connections");
 
         loop {
@@ -64,48 +76,78 @@ impl SocketServer {
             let id = request.get("id").cloned();
 
             let response = match method {
-                "vmhost.status" => {
-                    match controller.status().await {
-                        Ok(status) => json!({
-                            "jsonrpc": "2.0",
-                            "result": serde_json::from_str::<serde_json::Value>(&status).unwrap_or_default(),
-                            "id": id
-                        }),
-                        Err(e) => json!({
-                            "jsonrpc": "2.0",
-                            "error": {"code": -32000, "message": e.to_string()},
-                            "id": id
-                        }),
-                    }
-                }
-                "vmhost.show_window" => {
-                    match controller.show_window() {
-                        Ok(_) => json!({
-                            "jsonrpc": "2.0",
-                            "result": "ok",
-                            "id": id
-                        }),
-                        Err(e) => json!({
-                            "jsonrpc": "2.0",
-                            "error": {"code": -32000, "message": e.to_string()},
-                            "id": id
-                        }),
-                    }
-                }
-                "vmhost.hide_window" => {
-                    match controller.hide_window() {
-                        Ok(_) => json!({
-                            "jsonrpc": "2.0",
-                            "result": "ok",
-                            "id": id
-                        }),
-                        Err(e) => json!({
-                            "jsonrpc": "2.0",
-                            "error": {"code": -32000, "message": e.to_string()},
-                            "id": id
-                        }),
-                    }
-                }
+                "vmhost.status" => match controller.status().await {
+                    Ok(status) => json!({
+                        "jsonrpc": "2.0",
+                        "result": serde_json::from_str::<serde_json::Value>(&status).unwrap_or_default(),
+                        "id": id
+                    }),
+                    Err(e) => json!({
+                        "jsonrpc": "2.0",
+                        "error": {"code": -32000, "message": e.to_string()},
+                        "id": id
+                    }),
+                },
+                "vmhost.start" => match controller.start().await {
+                    Ok(_) => json!({
+                        "jsonrpc": "2.0",
+                        "result": "ok",
+                        "id": id
+                    }),
+                    Err(e) => json!({
+                        "jsonrpc": "2.0",
+                        "error": {"code": -32000, "message": e.to_string()},
+                        "id": id
+                    }),
+                },
+                "vmhost.stop" => match controller.stop().await {
+                    Ok(_) => json!({
+                        "jsonrpc": "2.0",
+                        "result": "ok",
+                        "id": id
+                    }),
+                    Err(e) => json!({
+                        "jsonrpc": "2.0",
+                        "error": {"code": -32000, "message": e.to_string()},
+                        "id": id
+                    }),
+                },
+                "vmhost.force_stop" => match controller.force_stop().await {
+                    Ok(_) => json!({
+                        "jsonrpc": "2.0",
+                        "result": "ok",
+                        "id": id
+                    }),
+                    Err(e) => json!({
+                        "jsonrpc": "2.0",
+                        "error": {"code": -32000, "message": e.to_string()},
+                        "id": id
+                    }),
+                },
+                "vmhost.show_window" => match controller.show_window().await {
+                    Ok(_) => json!({
+                        "jsonrpc": "2.0",
+                        "result": "ok",
+                        "id": id
+                    }),
+                    Err(e) => json!({
+                        "jsonrpc": "2.0",
+                        "error": {"code": -32000, "message": e.to_string()},
+                        "id": id
+                    }),
+                },
+                "vmhost.hide_window" => match controller.hide_window().await {
+                    Ok(_) => json!({
+                        "jsonrpc": "2.0",
+                        "result": "ok",
+                        "id": id
+                    }),
+                    Err(e) => json!({
+                        "jsonrpc": "2.0",
+                        "error": {"code": -32000, "message": e.to_string()},
+                        "id": id
+                    }),
+                },
                 _ => json!({
                     "jsonrpc": "2.0",
                     "error": {"code": -32601, "message": "Method not found"},

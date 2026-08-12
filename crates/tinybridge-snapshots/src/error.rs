@@ -23,6 +23,12 @@ pub enum SnapshotError {
     #[error("Snapshot already exists: {0}")]
     SnapshotExists(String),
 
+    #[error("Snapshot has no recorded checksum - refusing to trust its integrity")]
+    MissingChecksum,
+
+    #[error("Snapshot checksum mismatch: expected {expected}, computed {actual} - image may be corrupt or tampered with")]
+    ChecksumMismatch { expected: String, actual: String },
+
     #[error("IO error: {0}")]
     IoError(#[from] std::io::Error),
 

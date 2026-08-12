@@ -5,5 +5,5 @@ pub mod vm;
 
 pub use config::VmConfig;
 pub use error::{Result, VzError};
-pub use virtiofs::VirtioFS;
-pub use vm::VirtualMachine;
+pub use virtiofs::{rejects_traversal, validate_host_path_scope, VirtioFS};
+pub use vm::{VirtualMachine, VmState, VmStatus};
