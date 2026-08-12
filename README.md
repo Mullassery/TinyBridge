@@ -1,674 +1,212 @@
 # TinyBridge
 
-Production-grade virtual machine platform with cross-platform support for Windows, macOS, and Linux. Single codebase, zero platform-specific code, complete boot orchestration and resource management.
+A macOS-native Linux VM runtime, built on Apple's Virtualization.framework. Boots a real
+Linux virtual machine via a genuine Rust -> C ABI -> Swift -> Virtualization.framework call
+chain - not a mock.
 
-## Overview
+## Honest status (read this first)
 
-TinyBridge is a comprehensive VM management system that brings Linux development to Windows and macOS users. Unlike traditional hypervisors, TinyBridge provides a unified abstraction layer that runs natively on each platform with automatic resource management, intelligent boot optimization, and complete observability.
+This project was previously documented and committed as "production-grade" and
+"cross-platform (Windows/macOS/Linux)." That was not accurate. Here is the real state:
 
-### What Makes TinyBridge Different
+- **macOS is the only platform with a working hypervisor backend.** `crates/tinybridge-vz`
+  calls Apple's Virtualization.framework through a Swift bridge
+  (`swift/Sources/TinyBridgeVZBridge`), and it is wired end-to-end through
+  `crates/tinybridge-vmhost`'s `VmController` and `crates/tinybridge-daemon`. This has been
+  verified to actually boot a real ARM64 Linux kernel under `VZVirtualMachine` on real Apple
+  Silicon hardware (state transitions `Stopped -> Running`, with a NAT guest IP detected) -
+  see "What's actually been verified" below.
+- **Windows (Hyper-V) and Linux (KVM/QEMU) have no real hypervisor backend.**
+  `crates/tinybridge-core/src/windows_adapter.rs` and `linux_adapter.rs` only mutate an
+  in-memory `HashMap` - there is no Hyper-V or KVM API call anywhere in either file, and
+  neither is wired into the daemon, CLI, or any RPC path (dead code, kept as clearly-labeled
+  scaffolding for a genuine future implementation). Building and testing real Windows/Linux
+  hypervisor backends isn't possible from a macOS development environment, so this is
+  correctly deferred rather than faked further.
+- The CLI's own `--help` text already says it plainly: `tinybridge --help` describes this as
+  a **"macOS Linux development substrate."**
 
-- **Single Codebase**: One core implementation that runs on Windows, macOS, and Linux with zero duplicated platform-specific code
-- **Intelligent Boot**: Multi-tier boot optimization reaching interactive shell in 1.5 seconds with full resources available at 120 seconds
-- **Production-Ready**: 201 comprehensive tests, error recovery with automatic strategies, health monitoring with diagnostics
-- **Native Performance**: Hyper-V on Windows, Apple Virtualization on macOS, KVM on Linux - each optimized for the host platform
-- **Zero Configuration**: Works out of the box with sensible defaults and profile-based resource allocation
+If you're evaluating this project: treat it as a real, working macOS-only VM runtime with
+a genuine (if young) Virtualization.framework integration, not a finished cross-platform
+product.
+
+## What's actually been verified
+
+Directly observed on Apple Silicon (M-series, macOS 26), not just implemented and assumed
+to work:
+
+1. The Swift bridge (`swift/Sources/TinyBridgeVZBridge`) builds cleanly against
+   Virtualization.framework (`swift build -c release`) and exports the real C ABI symbols
+   (`tb_vm_create`, `tb_vm_start`, `tb_vm_stop`, `tb_vm_get_status`, ...).
+2. `tinybridge-vz-sys`'s `bindgen`-generated Rust bindings compile and link against that
+   dylib for real.
+3. `tinybridge-vmhost`'s real production binary - codesigned with the
+   `com.apple.security.virtualization` entitlement
+   (`crates/tinybridge-vmhost/tinybridge-vmhost.entitlements`) - was started, and driven over
+   its actual Unix-socket JSON-RPC protocol (`vmhost.start`/`vmhost.status`/`vmhost.stop`)
+   with a real ARM64 Linux kernel image. Observed status transitions:
+   `Stopped` → (`vmhost.start`) → `Running` (with a detected NAT guest IP,
+   `192.168.105.2`) → (`vmhost.stop`) → `Stopped`.
+4. A non-obvious platform requirement was found and fixed in the process:
+   Virtualization.framework dispatches its callbacks onto the process's main GCD queue, so a
+   plain `#[tokio::main]` process silently hangs forever on every VM lifecycle call. Fixed by
+   running the async server on a background thread and dedicating the real process main
+   thread to `dispatch_main()` (see `crates/tinybridge-vmhost/src/main.rs`).
+5. Ad-hoc codesigning with the virtualization entitlement (no paid Apple Developer account
+   required) was confirmed sufficient for local use - see `justfile`'s `sign-vmhost` recipe.
+
+**Not yet verified**: booting all the way to a real guest login/SSH prompt. That requires a
+real, complete guest disk image (root filesystem), which this repository does not ship or
+auto-download today (`scripts/build-rootfs-multi-tier.sh` builds boot-tier *configuration*,
+not a bootable image, and no default kernel/rootfs asset pair is bundled). The verification
+above used a real downloaded ARM64 Linux kernel and a placeholder (non-bootable-filesystem)
+disk image, which is sufficient to prove the hypervisor genuinely starts and runs guest code,
+but not sufficient to prove a full guest OS boot to a shell.
 
 ## Platform Support
 
-### Windows
+| Platform | Hypervisor | Status |
+|---|---|---|
+| macOS (Apple Silicon / Intel, macOS 13+) | Apple Virtualization.framework | **Real, wired, verified to boot a VM to the hypervisor `Running` state.** Guest-image pipeline (kernel/rootfs download + checksum) still needs to be completed for a full guest boot. |
+| Windows | Hyper-V / WHPX | Not implemented. `windows_adapter.rs` is unimplemented scaffolding, not wired to anything. |
+| Linux | KVM/QEMU | Not implemented. `linux_adapter.rs` is unimplemented scaffolding, not wired to anything. |
 
-- **Hypervisor**: Hyper-V / Windows Hypervisor Platform (WHPX)
-- **Architecture**: x86-64
-- **Minimum OS**: Windows 10 Pro/Enterprise or Windows 11
-- **Memory**: 4GB+ available RAM
-- **Disk**: 20GB+ free space
-- **Features**: VM lifecycle, snapshots, clipboard, shared folders, multi-monitor support, printing
+## Requirements (macOS)
 
-### macOS
+- macOS 13.0+ on Apple Silicon or Intel (Virtualization.framework requirement)
+- Rust (see `rust-toolchain.toml`) and Swift (Xcode Command Line Tools are sufficient)
+- `just` (optional, for the `justfile` recipes) - or run the equivalent `cargo`/`swift`/
+  `codesign` commands directly
 
-- **Hypervisor**: Apple Virtualization Framework
-- **Architecture**: Intel x86-64 and Apple Silicon (ARM64)
-- **Minimum OS**: macOS 11.0+
-- **Memory**: 4GB+ available RAM
-- **Disk**: 20GB+ free space
-- **Features**: VM lifecycle, GPU acceleration via Metal, camera support, clipboard, shared folders, printing
+## Building from source
 
-### Linux
+There is currently no Homebrew tap, package manager entry, or published binary release for
+this project (a prior internal audit, `docs/CRITICAL_GAPS_ANALYSIS.md`, documents this
+gap in detail - the README used to advertise a `brew install tinybridge` that does not
+exist). Build from source:
 
-- **Hypervisor**: KVM/QEMU
-- **Architecture**: x86-64 and ARM64
-- **Minimum Kernel**: 4.4+ with KVM support
-- **Memory**: 4GB+ available RAM
-- **Disk**: 20GB+ free space
-- **Features**: VM lifecycle, snapshots, GPU/USB passthrough via VFIO, 9p filesystem, network bridge, VPN passthrough
+```bash
+git clone https://github.com/Mullassery/TinyBridge.git
+cd TinyBridge
 
-## Quick Start
+# Builds the Swift Virtualization.framework bridge, copies the dylib where Cargo's linker
+# expects it, builds the whole Rust workspace, and codesigns tinybridge-vmhost with the
+# com.apple.security.virtualization entitlement (ad-hoc signing - no paid Apple Developer
+# account needed).
+just build
 
-### Windows Installation
+# Or, without `just`:
+swift build --package-path swift/ -c release
+mkdir -p target/swift-libs
+cp swift/.build/release/libTinyBridgeVZBridge.dylib target/swift-libs/
+cargo build --workspace
+codesign --force --sign - \
+  --entitlements crates/tinybridge-vmhost/tinybridge-vmhost.entitlements \
+  target/debug/tinybridge-vmhost
+```
 
-1. **Prerequisites**
-   - Windows 10 Pro/Enterprise or Windows 11 (Home edition does not include Hyper-V)
-   - 4GB+ available RAM
-   - 20GB+ free disk space
-   - Administrator privileges
-   - Hyper-V support enabled
+`cargo test --workspace` requires `DYLD_LIBRARY_PATH=target/swift-libs` so the test
+binaries for `tinybridge-vz` can find the real dylib at runtime; see `.github/workflows/ci.yml`
+for the exact invocation this project's CI uses.
 
-2. **Enable Hyper-V**
-   
-   Open PowerShell as Administrator and run:
-   ```powershell
-   # Enable Hyper-V feature
-   Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V -All
-   
-   # Restart when prompted
-   Restart-Computer
-   ```
-   
-   Alternatively, use Settings:
-   - Settings > Apps > Apps & Features > Programs and Features > Turn Windows features on or off
-   - Check "Hyper-V" and restart
+## CLI
 
-3. **Install Rust and Cargo (Required for Building)**
-   
-   Download and run the installer from https://rustup.rs/
-   
-   Verify installation:
-   ```powershell
-   rustc --version
-   cargo --version
-   ```
+The real command surface (from `crates/tinybridge-cli/src/main.rs`), not an aspirational
+one:
 
-4. **Install TinyBridge from Source**
-   
-   ```powershell
-   # Clone repository
-   git clone https://github.com/Mullassery/TinyBridge.git
-   cd TinyBridge
-   
-   # Build release binary
-   cargo build --release --bin tinybridge
-   
-   # Binary location: .\target\release\tinybridge.exe
-   ```
-   
-   Add to PATH (optional):
-   ```powershell
-   # Add TinyBridge to user PATH
-   $TinyBridgePath = "$PWD\target\release"
-   [Environment]::SetEnvironmentVariable("Path", "$env:Path;$TinyBridgePath", "User")
-   
-   # Restart PowerShell for changes to take effect
-   ```
+```
+tinybridge launch      Launch a new environment
+tinybridge up          Start an environment (legacy alias for launch)
+tinybridge down        Stop an environment
+tinybridge gui         Attach a display window to a running environment
+tinybridge headless    Detach the display window (VM keeps running)
+tinybridge suspend     Suspend an environment (pause, preserving state)
+tinybridge resume      Resume a suspended environment
+tinybridge shutdown    Gracefully shut down an environment
+tinybridge restart     Restart an environment
+tinybridge repair      Re-provision SSH/DDS config for a running environment
+tinybridge destroy     Destroy an environment
+tinybridge status      Show environment status
+tinybridge list        List all environments
+tinybridge shell       Open an interactive shell in an environment
+tinybridge ssh         SSH into an environment
+tinybridge logs        Show environment logs
+tinybridge update      Manage environment resources
+tinybridge snapshot     Manage environment snapshots
+tinybridge doctor      Run system diagnostics
+tinybridge templates   List available templates
+tinybridge images      List available images
+tinybridge dds         Manage DDS networking
+```
 
-5. **Verify Installation**
-   
-   ```powershell
-   tinybridge --version
-   ```
-
-6. **Start Using TinyBridge**
-   
-   ```powershell
-   # Create a new Linux environment
-   tinybridge create ubuntu:22.04 --name dev-env
-   
-   # Start the environment (boots to Tier 1 in ~1.5 seconds)
-   tinybridge start dev-env
-   
-   # SSH into the environment
-   tinybridge ssh dev-env
-   
-   # List all environments
-   tinybridge list
-   
-   # Stop the environment
-   tinybridge stop dev-env
-   ```
-
-7. **Troubleshooting Windows Installation**
-   
-   **Hyper-V not available in BIOS**
-   - Restart computer and enter BIOS/UEFI settings
-   - Look for virtualization options (VT-x, AMD-V, or Intel Virtualization Technology)
-   - Enable and save, then restart Windows
-   
-   **Port conflicts**
-   - TinyBridge uses port 2222 for SSH by default
-   - Check for conflicts: `netstat -ano | findstr :2222`
-   
-   **Build failures**
-   - Update Rust: `rustup update`
-   - Clean build: `cargo clean && cargo build --release --bin tinybridge`
-   - Windows SDK may be required: Install via Visual Studio Installer
-
-### macOS Installation
-
-1. **Prerequisites**
-   - macOS 11.0 or later
-   - Apple Silicon (M1/M2/M3+) or Intel processor
-   - 4GB+ available RAM
-
-2. **Installation via Homebrew (Recommended)**
-   ```bash
-   brew tap Mullassery/tinybridge
-   brew install tinybridge
-   ```
-
-3. **Start Using TinyBridge**
-   ```bash
-   # Create and start a new Linux environment
-   tinybridge create ubuntu:22.04 --name dev-env
-   tinybridge start dev-env
-   
-   # SSH into the environment
-   tinybridge ssh dev-env
-   
-   # Access with GPU acceleration
-   tinybridge start dev-env --gpu
-   
-   # Stop the environment
-   tinybridge stop dev-env
-   ```
-
-### Linux Installation
-
-1. **Prerequisites**
-   - Kernel 4.4+ with KVM support
-   - `libvirt` installed
-   - User in `kvm` group
-
-2. **Installation via Package Manager**
-   ```bash
-   # Ubuntu/Debian
-   sudo apt-get install tinybridge
-   
-   # Fedora/RHEL
-   sudo dnf install tinybridge
-   
-   # From source
-   cargo install tinybridge
-   ```
-
-3. **Start Using TinyBridge**
-   ```bash
-   # Create and start a new Linux environment
-   tinybridge create ubuntu:22.04 --name dev-env
-   tinybridge start dev-env --gpu  # GPU passthrough available
-   
-   # SSH into the environment
-   tinybridge ssh dev-env
-   
-   # Stop the environment
-   tinybridge stop dev-env
-   ```
-
-## Core Features
-
-### Boot Optimization
-
-TinyBridge uses intelligent, multi-tier boot optimization to balance startup speed with resource availability:
-
-- **Tier 1 (SSH Ready)**: 1.5 seconds - Core VM ready, SSH accessible, minimal overhead
-- **Tier 2 (Usable)**: 5 seconds - Health monitoring, resource allocation complete
-- **Tier 3 (API Ready)**: 30 seconds - Full control plane, command execution
-- **Tier 4 (Complete)**: 120 seconds - All services ready, metrics, telemetry, advanced features
-
-### Resource Management
-
-Automatic resource allocation based on host capabilities and selected profile:
-
-- **Development Profile**: 4 CPU cores, 8GB memory, 40GB disk, debug logging
-- **Production Profile**: 8 CPU cores, 16GB memory, 100GB disk, GPU enabled
-- **Testing Profile**: 2 CPU cores, 4GB memory, 30GB disk, deterministic mode
-- **Minimal Profile**: 1 CPU core, 2GB memory, 20GB disk (CI/CD)
-
-### Error Recovery
-
-Intelligent recovery strategies that activate automatically on failures:
-
-- **Retry**: For transient failures with configurable backoff
-- **Skip**: For optional components, continue boot with degraded mode
-- **Downgrade**: Gracefully fallback to lower functionality tier
-- **Abort**: Only for critical failures preventing boot
-
-### Health Monitoring
-
-Continuous health monitoring with diagnostic reporting:
-
-- Per-component health tracking (healthy, degraded, unhealthy)
-- Response time measurement and analysis
-- Performance bottleneck identification
-- Automatic recommendations for optimization
-
-### Observability
-
-Production-grade observability with OpenTelemetry:
-
-- **Distributed Tracing**: Jaeger backend integration, trace correlation across phases
-- **Metrics**: Prometheus-compatible export, boot performance metrics per phase
-- **Logging**: Structured JSON logging with severity levels
-- **Multi-Backend**: Support for Datadog, New Relic, Honeycomb, Splunk, Dynatrace
+Run `tinybridge --help` or `tinybridge <command> --help` for full, current usage - that's
+the source of truth, not this file.
 
 ## Architecture
 
-TinyBridge implements a layered architecture that separates concerns and enables cross-platform support:
-
 ```
-Configuration Management (YAML, profiles, overrides)
-         |
-    Boot Orchestration (9 phases: PreFlight → Ready)
-         |
-  Resource Management (CPU/memory/disk/network)
-         |
-   4-Tier Lazy Loading (1.5s SSH → 120s full)
-         |
-   Error Recovery (Automatic strategies)
-         |
-  Health Diagnostics (Monitoring + recommendations)
-         |
-Cross-Platform Abstraction
-    |           |           |
-Windows      macOS       Linux
-Hyper-V    Apple Virt    KVM/QEMU
+tinybridge-cli  ──(Unix socket JSON-RPC)──>  tinybridged (daemon)
+                                                   │
+                                          tinybridge-daemon::VmManager
+                                          (spawns one child process per VM)
+                                                   │
+                                     tinybridge-vmhost (per-VM child process)
+                                          tinybridge-vmhost::VmController
+                                                   │
+                                            tinybridge-vz::VirtualMachine
+                                                   │
+                                          tinybridge-vz-sys (bindgen FFI)
+                                                   │
+                                   swift/Sources/TinyBridgeVZBridge (Swift, @_cdecl)
+                                                   │
+                                      Apple Virtualization.framework
 ```
 
-### Platform Abstraction Layer
-
-A unified interface abstracts platform differences while exposing native capabilities:
-
-| Feature | Windows | macOS | Linux |
-|---------|---------|-------|-------|
-| VM Lifecycle | Yes | Yes | Yes |
-| Snapshots | Yes | No | Yes |
-| Shared Folders | Yes | Yes | Yes (9p) |
-| Clipboard | Yes | Yes | Yes |
-| GPU Acceleration | No | Yes (Metal) | Yes (VFIO) |
-| USB Passthrough | No | No | Yes (VFIO) |
-| Audio Support | Yes | Yes | Yes |
-| Multi-Monitor | Yes | No | Yes |
-| Network Bridge | Yes | No | Yes |
-| VPN Passthrough | No | No | Yes |
-
-## Usage Examples
-
-### Basic Environment Management
-
-```bash
-# Create new environment
-tinybridge create ubuntu:22.04 --name project-env --profile development
-
-# List all environments
-tinybridge list
-
-# Start environment
-tinybridge start project-env
-
-# SSH into environment
-tinybridge ssh project-env
-
-# Stop environment
-tinybridge stop project-env
-
-# Delete environment
-tinybridge delete project-env
-```
-
-### Advanced Configuration
-
-```bash
-# Create with custom resources
-tinybridge create ubuntu:22.04 \
-  --name gpu-dev \
-  --cpus 8 \
-  --memory 16 \
-  --disk 100 \
-  --gpu
-
-# Mount host directory
-tinybridge mount project-env /Users/user/projects /home/user/projects
-
-# Configure network
-tinybridge network project-env --mode bridged
-
-# Enable clipboard
-tinybridge clipboard project-env --enable
-
-# Export metrics
-tinybridge metrics project-env export prometheus
-```
-
-### Container Integration
-
-```bash
-# Use TinyBridge for Docker development
-tinybridge create ubuntu:22.04 --name docker-dev
-tinybridge start docker-dev --docker
-tinybridge ssh docker-dev
-
-# Inside the VM
-docker run -it ubuntu:latest /bin/bash
-```
-
-### Cross-Platform Development
-
-```bash
-# Windows
-tinybridge start dev-env
-# SSH available at localhost:2222
-
-# macOS
-tinybridge start dev-env
-# SSH available at $(tinybridge ip dev-env):22
-
-# Linux
-tinybridge start dev-env
-# SSH available at $(tinybridge ip dev-env):22
-```
-
-## Performance
-
-TinyBridge achieves industry-leading performance through intelligent resource management and platform-native optimization:
-
-### Boot Time Metrics
-
-- **Tier 1 (SSH)**: 1.5 seconds (target) - Achieved across all platforms
-- **Tier 2 (Usable)**: 5 seconds (target) - 4.5s average on Windows, 4.8s on macOS, 4.2s on Linux
-- **Tier 4 (Complete)**: 120 seconds (target) - 110s average across platforms
-- **Slack Budget**: 10-20 seconds per tier for optimization headroom
-
-### Resource Efficiency
-
-- **Memory Overhead**: ~300MB per idle VM (minimum tier)
-- **CPU Usage**: <1% idle, scales to allocated cores under load
-- **Disk Usage**: ~2GB base image, ~3-5GB per snapshot
-- **Network**: 1-5ms latency for shared folder access (9p on Linux, SMBD on Windows/macOS)
-
-### Concurrent VMs
-
-- **Windows**: 4-6 concurrent VMs on 16GB system
-- **macOS**: 6-8 concurrent VMs on 16GB system (Apple Silicon advantage)
-- **Linux**: 10+ concurrent VMs on 32GB system
-
-## Development Phases
-
-TinyBridge is engineered in phases, each building on the previous with comprehensive testing:
-
-### Phase 4: Production Boot System (Phases 4.0.1 - 4.0.5)
-- Configuration management, OTel integration, bootstrap orchestration
-- Resource management, boot optimization, integration testing
-- **Status**: Complete (107 tests, 5,223 LOC)
-
-### Phase 5: Production Hardening
-- Error recovery strategies, health monitoring, diagnostics
-- **Status**: Complete (28 tests, 1,570 LOC)
-
-### Phase 6: Cross-Platform Compatibility
-- Platform abstraction layer, Windows/macOS/Linux adapters
-- **Status**: Complete (35 tests, 1,830 LOC)
-- **Phase 6.1**: Windows Hyper-V (12 tests, 575 LOC)
-- **Phase 6.2**: macOS Apple Virtualization (12 tests, 610 LOC)
-- **Phase 6.3**: Linux KVM/QEMU (11 tests, 645 LOC)
-
-### Phase 7+: Advanced Features (Planned)
-- VM snapshots and templates, migration and cloning
-- Advanced scheduling, fleet management
-- Digital twins, multi-instance orchestration
-
-## Documentation
-
-- [Getting Started Guide](docs/GETTING_STARTED.md) - Detailed setup for each platform
-- [Configuration Reference](docs/CONFIG.md) - Profile and override documentation
-- [CLI Command Reference](docs/CLI.md) - Complete command documentation
-- [Troubleshooting Guide](docs/TROUBLESHOOTING.md) - Common issues and solutions
-- [Architecture Guide](docs/ARCHITECTURE.md) - Deep dive into system design
-- [Contributing Guide](CONTRIBUTING.md) - Development setup and guidelines
-
-## API Reference
-
-TinyBridge provides both CLI and programmatic APIs for integration:
-
-### Command-Line Interface
-
-```bash
-tinybridge [COMMAND] [OPTIONS]
-
-Commands:
-  create      Create a new Linux environment
-  start       Start an environment
-  stop        Stop an environment
-  delete      Delete an environment
-  list        List all environments
-  ssh         SSH into an environment
-  status      Show environment status
-  metrics     Export observability metrics
-  config      Manage configuration
-  logs        View environment logs
-```
-
-### Rust API
-
-```rust
-use tinybridge::{PlatformRegistry, VMResourceConfig};
-
-let registry = PlatformRegistry::new()?;
-let adapter = registry.get_default_adapter()?;
-
-let config = VMResourceConfig {
-    cpu_cores: 4,
-    memory_gb: 8,
-    disk_gb: 40,
-    gpu_enabled: false,
-};
-
-let vm_id = adapter.create_vm("dev-env", &config)?;
-adapter.start_vm(&vm_id)?;
-```
-
-## Performance Benchmarks
-
-Complete benchmarks available at [BENCHMARKS.md](docs/BENCHMARKS.md). Key metrics:
-
-- Boot to interactive shell: 1.5 seconds (Tier 1)
-- Memory per idle VM: 300MB
-- Storage efficiency: 2GB base + 3-5GB per snapshot
-- Network latency: <5ms for shared folders
-
-## Platform-Specific Guides
-
-### Windows Developer Setup
-
-TinyBridge on Windows brings native Linux environments through Hyper-V, enabling developers to work seamlessly between Windows and Linux without separate machines or complex VM configurations.
-
-**System Requirements Check**
-
-Verify Hyper-V compatibility:
-```powershell
-# Check if your CPU supports virtualization
-Get-ComputerInfo | Select-Object CsProcessors
-
-# Check if Hyper-V is available (must be Pro/Enterprise/Education)
-Get-WindowsEdition
-
-# Verify virtualization is enabled in BIOS
-msinfo32  # Look for "Hyper-V Capable"
-```
-
-**First Time Setup (One-Time)**
-
-```powershell
-# 1. Enable Hyper-V (requires restart)
-Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V -All
-
-# 2. Install Rust (one-time)
-# Download from https://rustup.rs/ and run the installer
-
-# 3. Verify both are ready
-rustc --version
-cargo --version
-```
-
-**Daily Workflow**
-
-```powershell
-# Start your development environment
-tinybridge start dev-env
-
-# Work as usual with full Linux access
-tinybridge ssh dev-env
-
-# SSH connection details
-# Default: localhost:2222 for Windows
-
-# Stop when done (freeing resources)
-tinybridge stop dev-env
-```
-
-**Network Configuration for Windows**
-
-By default, TinyBridge uses NAT (Network Address Translation) for simplicity:
-```powershell
-# VM can reach the internet and host
-# Host can access VM via localhost:2222
-# Other machines on network cannot directly access VM
-
-# For network bridge (VM on same network as host):
-tinybridge network dev-env --mode bridged
-```
-
-**File Sharing Between Windows and VM**
-
-```powershell
-# Mount Windows directory into VM
-tinybridge mount dev-env C:\Users\YourName\Projects /home/user/projects
-
-# Now accessible from VM:
-# ssh into VM and navigate to /home/user/projects
-```
-
-**GPU and Performance Options**
-
-Hyper-V on Windows has limitations compared to macOS/Linux:
-```powershell
-# GPU acceleration is limited on Windows Hyper-V
-# For intensive compute work, consider:
-# - Remote Linux machine with TinyBridge
-# - WSL2 as alternative for simple Linux tasks
-# - Dedicated GPU workstation with Linux
-
-# Optimize memory allocation
-tinybridge create ubuntu:22.04 --name dev-env --memory 8 --cpus 4
-```
-
-**Automation and Batch Operations**
-
-Create a PowerShell profile function for quick access:
-```powershell
-# Add to $PROFILE (PowerShell config file):
-function tb-start { tinybridge start dev-env; tinybridge ssh dev-env }
-function tb-stop { tinybridge stop dev-env }
-function tb-list { tinybridge list }
-
-# Now use: tb-start, tb-stop, tb-list
-```
-
-**Integration with Windows Tools**
-
-- VS Code SSH extension: Works seamlessly with TinyBridge VMs
-- Git for Windows: Clone and work in VM directly
-- Docker Desktop: Run containers inside TinyBridge Linux VM
-- WSL interop: TinyBridge provides additional isolation compared to WSL
-
-**Windows-Specific Troubleshooting**
-
-If Hyper-V errors occur:
-```powershell
-# Restart Hyper-V service
-Restart-Service vmcompute
-
-# Reset network adapters
-Get-NetAdapter | Restart-NetAdapter
-
-# Check Event Viewer for Hyper-V logs:
-# Applications and Services Logs > Microsoft > Windows > Hyper-V
-```
-
-### macOS Developer Setup
-
-TinyBridge leverages Apple's native virtualization framework for optimized performance on both Intel and Apple Silicon Macs.
-
-**Apple Silicon (M1/M2/M3+) Advantages**
-
-- Native ARM64 support with Metal GPU acceleration
-- Near-native performance (minimal overhead)
-- Excellent thermal efficiency
-- No x86 translation layer needed
-
-**Installation and Daily Use**
-
-```bash
-# Installation (one-time)
-brew tap Mullassery/tinybridge
-brew install tinybridge
-
-# Start work
-tinybridge start dev-env
-tinybridge ssh dev-env
-
-# Stop when done
-tinybridge stop dev-env
-```
-
-**GPU Acceleration**
-
-macOS provides Metal framework support:
-```bash
-# Enable GPU acceleration
-tinybridge start dev-env --gpu
-
-# Check GPU status
-tinybridge status dev-env  # Shows GPU: enabled
-```
-
-**Launchd Service Setup**
-
-Start TinyBridge daemon automatically on login:
-```bash
-# Install as service
-brew services start tinybridged
-
-# Check status
-brew services list | grep tinybridged
-```
+Each running VM gets its own `tinybridge-vmhost` process (codesigned with the
+virtualization entitlement), which owns exactly one real `VZVirtualMachine` and exposes
+`start`/`stop`/`force_stop`/`status` over a `0600`-permissioned Unix socket. The daemon
+(`tinybridged`) spawns and talks to these per-VM processes; it never touches
+Virtualization.framework directly.
+
+See `docs/ARCHITECTURE.md` for more detail (note: some of that document predates this pass
+and may still describe the pre-wiring state in places).
+
+## Security
+
+See [SECURITY.md](SECURITY.md) for the current, accurate security posture: guest network
+mode (NAT-only by default), guest image checksum verification, VM control socket
+permissions, the virtualization entitlement requirement, and VirtioFS host-path scoping
+(implemented and tested ahead of the share-mounting FFI call itself being wired up - see
+`crates/tinybridge-vz/src/virtiofs.rs`).
+
+## Known debt / deliberately deferred
+
+- **Windows/Linux hypervisor backends**: not implemented (see "Honest status" above).
+- **Guest image pipeline**: no bundled/auto-downloaded kernel+rootfs pair verified to boot
+  to a login prompt yet. `scripts/build-rootfs-multi-tier.sh` now verifies its Ubuntu cloud
+  image download against upstream `SHA256SUMS` before use, but building a full, tested,
+  bootable rootfs image end-to-end is still open work.
+- **VirtioFS host-directory sharing**: not wired to a real FFI call.
+  Virtualization.framework requires directory shares to be configured at VM-creation time,
+  and the config plumbing for that doesn't exist yet, so `VirtioFS::attach()` returns an
+  explicit "not implemented" error rather than silently doing nothing. Host-path scoping
+  (canonicalize + allowlist, reject `..` escapes, default read-only) is implemented and
+  unit-tested ahead of that wiring.
+- **`objc` 0.2 / `block` 0.1.6`** (used by `tinybridge-clipboard`'s macOS pasteboard
+  integration) are unmaintained; `block` already triggers a Rust future-incompatibility
+  warning. `objc2` is the maintained successor but migrating is a real API rewrite,
+  deliberately not bundled into this pass - see the comment in
+  `crates/tinybridge-clipboard/Cargo.toml`.
+- **Performance**: no end-to-end guest-boot-to-shell benchmarks exist yet (see "What's
+  actually been verified" above for what *has* been measured). Treat any boot-time number
+  you see elsewhere in this repo's history/docs as unverified until re-measured against a
+  real guest image.
 
 ## License
 
-Licensed under the MIT License. See [LICENSE](LICENSE) for details.
+Proprietary - free to use with explicit attribution. See [LICENSE](LICENSE) for the exact
+terms.
 
-## Contributing
+## Contact
 
-Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, testing requirements, and submission guidelines.
-
-## Community
-
-- GitHub Issues: Bug reports and feature requests
-- GitHub Discussions: Q&A and general discussions
-- Code of Conduct: See [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
-
-## Support
-
-For questions and support:
-
-1. Check the [Troubleshooting Guide](docs/TROUBLESHOOTING.md)
-2. Search [Existing GitHub Issues](https://github.com/Mullassery/TinyBridge/issues)
-3. Create a new [GitHub Issue](https://github.com/Mullassery/TinyBridge/issues/new)
-
-## Acknowledgments
-
-TinyBridge leverages native virtualization capabilities:
-
-- Windows: Hyper-V technology stack
-- macOS: Apple Virtualization Framework
-- Linux: KVM and QEMU ecosystem
-- Observability: OpenTelemetry standards
-- Metrics: Prometheus exposition format
+mullassery@gmail.com — see [SECURITY.md](SECURITY.md) for security-specific reporting.
