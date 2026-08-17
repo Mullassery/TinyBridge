@@ -78,12 +78,22 @@ but not sufficient to prove a full guest OS boot to a shell.
 - `just` (optional, for the `justfile` recipes) - or run the equivalent `cargo`/`swift`/
   `codesign` commands directly
 
-## Building from source
+## Installing
 
-There is currently no Homebrew tap, package manager entry, or published binary release for
-this project (a prior internal audit, `docs/CRITICAL_GAPS_ANALYSIS.md`, documents this
-gap in detail - the README used to advertise a `brew install tinybridge` that does not
-exist). Build from source:
+`brew install mullassery/tinybridge/tinybridge` does not currently work for anyone outside
+this project: the tap repository (`mullassery/homebrew-tinybridge`) is **private**, so
+`brew tap`/`brew install` fails with a git authentication error for external users (tracked
+in [issue #1](https://github.com/Mullassery/TinyBridge/issues/1) and
+[issue #2](https://github.com/Mullassery/TinyBridge/issues/2)). Even once that's fixed, the
+tap's formula currently points at the `v0.3.0` release, not the latest (`v0.5.0`, matching
+this repo's current `Cargo.toml` version) - it has not been kept in sync with every release.
+GitHub Releases are published for this repository, but per issue #2 the `tinybridge-vmhost`
+darwin release asset is missing `libTinyBridgeVZBridge.dylib` (a hard runtime dependency)
+and has no `LC_RPATH` to find it even if present, so a manual download of the release
+tarballs does not currently produce a working `tinybridge-vmhost`. Until those are fixed,
+build from source.
+
+## Building from source
 
 ```bash
 git clone https://github.com/Mullassery/TinyBridge.git
@@ -181,6 +191,15 @@ permissions, the virtualization entitlement requirement, and VirtioFS host-path 
 
 ## Known debt / deliberately deferred
 
+- **Distribution is currently broken for external users**: the Homebrew tap is private
+  ([#1](https://github.com/Mullassery/TinyBridge/issues/1)), the published darwin release
+  tarball for `tinybridge-vmhost` is missing its required dylib and has no rpath to find it
+  even if bundled, the `v0.3.1` tag ships assets internally named `0.3.0`, and no release
+  checksums are published ([#2](https://github.com/Mullassery/TinyBridge/issues/2)). See
+  "Installing" above. Building from source is the only currently-working install path.
+- Two `TODO`s left in the CLI: `crates/tinybridge-cli/src/commands/logs.rs` (log retrieval
+  from the daemon is not yet implemented) and `crates/tinybridge-cli/src/commands/launch.rs`
+  (system detection is not yet implemented).
 - **Windows/Linux hypervisor backends**: not implemented (see "Honest status" above).
 - **Guest image pipeline**: no bundled/auto-downloaded kernel+rootfs pair verified to boot
   to a login prompt yet. `scripts/build-rootfs-multi-tier.sh` now verifies its Ubuntu cloud
