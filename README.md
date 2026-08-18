@@ -101,17 +101,23 @@ made with a real, complete guest disk image - not just a placeholder:
 ## Installing
 
 `brew install mullassery/tinybridge/tinybridge` does not currently work for anyone outside
-this project: the tap repository (`mullassery/homebrew-tinybridge`) is **private**, so
+this project: the tap repository (`mullassery/homebrew-tinybridge`) is **still private**, so
 `brew tap`/`brew install` fails with a git authentication error for external users (tracked
 in [issue #1](https://github.com/Mullassery/TinyBridge/issues/1) and
-[issue #2](https://github.com/Mullassery/TinyBridge/issues/2)). Even once that's fixed, the
-tap's formula currently points at the `v0.3.0` release, not the latest (`v0.5.0`, matching
-this repo's current `Cargo.toml` version) - it has not been kept in sync with every release.
-GitHub Releases are published for this repository, but per issue #2 the `tinybridge-vmhost`
-darwin release asset is missing `libTinyBridgeVZBridge.dylib` (a hard runtime dependency)
-and has no `LC_RPATH` to find it even if present, so a manual download of the release
-tarballs does not currently produce a working `tinybridge-vmhost`. Until those are fixed,
-build from source.
+[issue #2](https://github.com/Mullassery/TinyBridge/issues/2)). That remains the actual
+blocker. The rest of issue #2 has since been fixed and this section is updated to match: the
+tap's `tinybridge.rb`/`tinybridged.rb` formulas now point at `v0.5.0` (the latest release,
+matching this repo's current `Cargo.toml` version), and the `v0.5.0` GitHub Release asset
+(`tinybridge-0.5.0-aarch64-apple-darwin.tar.gz`) now bundles `libTinyBridgeVZBridge.dylib`
+and a `SHA256SUMS` file (verified directly - both are present in the downloaded tarball).
+`tinybridge-vmhost` inside that tarball still has no `LC_RPATH` (confirmed with `otool -l`:
+one `LC_LOAD_DYLIB` for `@rpath/libTinyBridgeVZBridge.dylib`, zero `LC_RPATH` commands, so it
+aborts with a dyld error if run standalone) - the bundled `INSTALL.txt` documents the
+workaround (set `DYLD_LIBRARY_PATH` to wherever you place the dylib), and the `tinybridged`
+formula automates that same workaround via `write_env_script`. So: a manual download of the
+release tarball now works if you follow `INSTALL.txt`, but the tap itself still isn't
+installable by anyone outside this project until it's made public. Building from source
+remains the simplest path for external users today.
 
 ## Building from source
 
@@ -211,12 +217,26 @@ permissions, the virtualization entitlement requirement, and VirtioFS host-path 
 
 ## Known debt / deliberately deferred
 
-- **Distribution is currently broken for external users**: the Homebrew tap is private
-  ([#1](https://github.com/Mullassery/TinyBridge/issues/1)), the published darwin release
-  tarball for `tinybridge-vmhost` is missing its required dylib and has no rpath to find it
-  even if bundled, the `v0.3.1` tag ships assets internally named `0.3.0`, and no release
-  checksums are published ([#2](https://github.com/Mullassery/TinyBridge/issues/2)). See
-  "Installing" above. Building from source is the only currently-working install path.
+- **Distribution is still broken for external users, though partially fixed**: the Homebrew
+  tap is private ([#1](https://github.com/Mullassery/TinyBridge/issues/1)) - that part is
+  unresolved and is the actual blocker. The `v0.5.0` darwin release tarball now bundles the
+  required dylib and a `SHA256SUMS` file (re-verified directly), but the `tinybridge-vmhost`
+  binary inside it still has no `LC_RPATH`, so it needs `DYLD_LIBRARY_PATH` set manually per
+  the bundled `INSTALL.txt` ([#2](https://github.com/Mullassery/TinyBridge/issues/2)). The
+  older `v0.3.1` tag still ships assets internally named `0.3.0` (unchanged, low-priority
+  since `v0.5.0` is current). See "Installing" above. Building from source is the only
+  install path that doesn't require a manual `DYLD_LIBRARY_PATH` workaround.
+- **CI has been red on every push to `main` since the `v0.5.0` release (5/5 most recent
+  runs)**: `cargo fmt --check` fails on the very first gate in `.github/workflows/ci.yml`,
+  before clippy or the test suite ever run (confirmed via `gh run list`/`gh run view`, and
+  reproduced locally - `cargo fmt --check` reports real formatting diffs in
+  `commands/headless.rs` and `commands/mod.rs`). This means CI has not actually exercised the
+  test suite on any of the last 5 commits to `main`. Run locally instead: with
+  `DYLD_LIBRARY_PATH` pointed at `target/swift-libs`, `cargo test --workspace --exclude
+  tinybridge-daemon` passes 396/396, and `cargo test -p tinybridge-daemon` passes 185/194
+  (the other 9 are the pre-existing, named failures CI already skips - see
+  `.github/workflows/ci.yml`). No unexpected test failures were found; the only real CI
+  problem is the unformatted code blocking the pipeline before it reaches the tests.
 - Two `TODO`s left in the CLI: `crates/tinybridge-cli/src/commands/logs.rs` (log retrieval
   from the daemon is not yet implemented) and `crates/tinybridge-cli/src/commands/launch.rs`
   (system detection is not yet implemented).
