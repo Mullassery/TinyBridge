@@ -34,6 +34,12 @@ typedef struct {
     uint32_t display_height;
     TBVMStateCallback state_callback;
     void *user_data;
+    // Optional: if set, a real VZVirtioConsoleDeviceConfiguration is
+    // attached and its output is written to this file path -- lets a
+    // caller actually observe kernel/init boot messages (matching the
+    // `console=hvc0` kernel cmdline argument, which otherwise points to a
+    // device that was never attached). NULL means no console attached.
+    const char *serial_log_path;
 } TBVMConfig;
 
 typedef struct {

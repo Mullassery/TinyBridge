@@ -13,6 +13,7 @@ pub struct VmConfig {
     pub display_height: u32,
     pub gpu_enabled: bool,
     pub gpu_memory_gb: Option<u32>,
+    pub serial_log_path: Option<String>,
 }
 
 impl VmConfig {
@@ -35,6 +36,7 @@ impl VmConfig {
             display_height: 1080,
             gpu_enabled,
             gpu_memory_gb,
+            serial_log_path: None,
         }
     }
 
@@ -56,6 +58,11 @@ impl VmConfig {
     pub fn with_display(mut self, width: u32, height: u32) -> Self {
         self.display_width = width;
         self.display_height = height;
+        self
+    }
+
+    pub fn with_serial_log_path(mut self, path: String) -> Self {
+        self.serial_log_path = Some(path);
         self
     }
 }

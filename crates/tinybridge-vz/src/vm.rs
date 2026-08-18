@@ -74,6 +74,11 @@ impl VirtualMachine {
             .as_ref()
             .and_then(|p| CString::new(p.clone()).ok());
 
+        let serial_log_cstring = config
+            .serial_log_path
+            .as_ref()
+            .and_then(|p| CString::new(p.clone()).ok());
+
         let vz_config = tinybridge_vz_sys::TBVMConfig {
             kernel_path: kernel_cstring.as_ptr(),
             initrd_path: initrd_cstring
@@ -89,6 +94,10 @@ impl VirtualMachine {
             display_height: config.display_height,
             state_callback: None,
             user_data: null_mut(),
+            serial_log_path: serial_log_cstring
+                .as_ref()
+                .map(|c| c.as_ptr())
+                .unwrap_or(null_mut()),
         };
 
         let vm = unsafe { tb_vm_create(&vz_config) };

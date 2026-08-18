@@ -221,19 +221,45 @@ public func tb_vm_create(_ configPtr: UnsafeRawPointer?) -> UnsafeMutableRawPoin
 
         // Graphics device (VirtIO GPU scanout - this is the real Metal-accelerated display
         // path; there is no separate "GPU passthrough" API in the public Virtualization
-        // framework, and TBVMConfig has no gpu_enabled field, so this is always attached,
-        // matching what the C header actually declares).
-        let scanoutConfig = VZVirtioGraphicsScanoutConfiguration(
-            widthInPixels: Int(config.display_width > 0 ? config.display_width : 1920),
-            heightInPixels: Int(config.display_height > 0 ? config.display_height : 1080)
-        )
-        let graphicsConfig = VZVirtioGraphicsDeviceConfiguration()
-        graphicsConfig.scanouts = [scanoutConfig]
-        vmConfig.graphicsDevices = [graphicsConfig]
+        // framework). Only attached when a display size is requested: creating this device
+        // opens a real WindowServer/SkyLight session, which macOS gates behind Screen
+        // Recording TCC consent for the responsible app - a headless (serial-only) VM must
+        // not require that permission just to boot.
+        if config.display_width > 0 && config.display_height > 0 {
+            let scanoutConfig = VZVirtioGraphicsScanoutConfiguration(
+                widthInPixels: Int(config.display_width),
+                heightInPixels: Int(config.display_height)
+            )
+            let graphicsConfig = VZVirtioGraphicsDeviceConfiguration()
+            graphicsConfig.scanouts = [scanoutConfig]
+            vmConfig.graphicsDevices = [graphicsConfig]
 
-        // Input devices
-        vmConfig.keyboards = [VZUSBKeyboardConfiguration()]
-        vmConfig.pointingDevices = [VZUSBScreenCoordinatePointingDeviceConfiguration()]
+            // Input devices only make sense alongside a display.
+            vmConfig.keyboards = [VZUSBKeyboardConfiguration()]
+            vmConfig.pointingDevices = [VZUSBScreenCoordinatePointingDeviceConfiguration()]
+        }
+
+        // Serial console — real boot/init output, not just VM-lifecycle
+        // status. Without this, `console=hvc0` in the kernel cmdline
+        // points to a device that was never attached, so there was no way
+        // to actually observe whether a guest boots to a login prompt.
+        if let serialLogPathC = config.serial_log_path {
+            let logPath = String(cString: serialLogPathC)
+            if !FileManager.default.fileExists(atPath: logPath) {
+                FileManager.default.createFile(atPath: logPath, contents: nil)
+            }
+            if let writeHandle = FileHandle(forWritingAtPath: logPath) {
+                let attachment = VZFileHandleSerialPortAttachment(
+                    fileHandleForReading: nil,
+                    fileHandleForWriting: writeHandle
+                )
+                let consoleConfig = VZVirtioConsoleDeviceSerialPortConfiguration()
+                consoleConfig.attachment = attachment
+                vmConfig.serialPorts = [consoleConfig]
+            } else {
+                NSLog("TinyBridgeVZBridge: could not open serial_log_path for writing: %@", logPath)
+            }
+        }
 
         try vmConfig.validate()
         let virtualMachine = VZVirtualMachine(configuration: vmConfig)

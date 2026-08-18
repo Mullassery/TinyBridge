@@ -55,13 +55,33 @@ to work:
 5. Ad-hoc codesigning with the virtualization entitlement (no paid Apple Developer account
    required) was confirmed sufficient for local use - see `justfile`'s `sign-vmhost` recipe.
 
-**Not yet verified**: booting all the way to a real guest login/SSH prompt. That requires a
-real, complete guest disk image (root filesystem), which this repository does not ship or
-auto-download today (`scripts/build-rootfs-multi-tier.sh` builds boot-tier *configuration*,
-not a bootable image, and no default kernel/rootfs asset pair is bundled). The verification
-above used a real downloaded ARM64 Linux kernel and a placeholder (non-bootable-filesystem)
-disk image, which is sufficient to prove the hypervisor genuinely starts and runs guest code,
-but not sufficient to prove a full guest OS boot to a shell.
+**Not yet verified**: booting all the way to a real guest login/SSH prompt. A real attempt was
+made with a real, complete guest disk image - not just a placeholder:
+
+- A real Ubuntu 24.04 ARM64 cloud image was downloaded, checksum-verified, and converted from
+  QCOW2 to the raw format `VZDiskImageStorageDeviceAttachment` requires (`qemu-img convert -O
+  raw`), then confirmed GPT-partitioned with a Linux root filesystem as the first partition,
+  matching the default `root=/dev/vda1` kernel cmdline.
+- A real serial console was wired up end-to-end (`serial_log_path` on `TBVMConfig` ->
+  `VZVirtioConsoleDeviceSerialPortConfiguration` + `VZFileHandleSerialPortAttachment` in
+  `TinyBridgeVZ.swift` -> `VmConfig::with_serial_log_path()` in `crates/tinybridge-vz`), since
+  previously `console=hvc0` in the kernel cmdline pointed at a device that was never attached
+  and there was no way to observe boot output at all.
+- The VirtIO graphics device was made conditional on a non-zero display size
+  (`crates/tinybridge-vz/examples/vz_boot_test.rs` requests `0x0`, i.e. headless), because
+  attaching it unconditionally opens a real WindowServer/SkyLight session that macOS gates
+  behind Screen Recording TCC consent for the calling process - unnecessary for a serial-only
+  boot check.
+- With all of the above real and wired, `vm.start()` on this real kernel + real disk still
+  fails with `Error Domain=VZErrorDomain Code=1 "The virtual machine failed to start."` before
+  any guest code runs (confirmed via `Console.app`/`log show`, with and without the graphics
+  device, with and without an app-bundle wrapper, with and without a real vs. placeholder
+  disk - same failure every time). This is not a TinyBridge bug: it matches a
+  [known macOS 26.x ARM64 Virtualization.framework regression](https://github.com/apple/container/issues/1254)
+  that also breaks Apple's own `container` CLI and Podman on the same OS/architecture
+  combination, per an Apple-affiliated maintainer's confirmation on that issue - there is
+  currently no known app-level workaround. Re-verification is blocked on either an Apple OS
+  update or testing on a macOS build that doesn't have this regression.
 
 ## Platform Support
 
@@ -204,7 +224,9 @@ permissions, the virtualization entitlement requirement, and VirtioFS host-path 
 - **Guest image pipeline**: no bundled/auto-downloaded kernel+rootfs pair verified to boot
   to a login prompt yet. `scripts/build-rootfs-multi-tier.sh` now verifies its Ubuntu cloud
   image download against upstream `SHA256SUMS` before use, but building a full, tested,
-  bootable rootfs image end-to-end is still open work.
+  bootable rootfs image end-to-end is still open work. A real, complete boot attempt was made
+  (see "What's actually been verified" above) and is currently blocked by an external macOS
+  26.x ARM64 Virtualization.framework bug, not by anything in this pipeline.
 - **VirtioFS host-directory sharing**: not wired to a real FFI call.
   Virtualization.framework requires directory shares to be configured at VM-creation time,
   and the config plumbing for that doesn't exist yet, so `VirtioFS::attach()` returns an
