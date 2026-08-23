@@ -230,7 +230,7 @@ impl PolicyEngine {
     ) {
         self.project_policies
             .entry(project)
-            .or_insert_with(PolicyLevel::new)
+            .or_default()
             .set_policy(device_type, policy);
     }
 
@@ -243,7 +243,7 @@ impl PolicyEngine {
     ) {
         self.environment_policies
             .entry(environment)
-            .or_insert_with(PolicyLevel::new)
+            .or_default()
             .set_policy(device_type, policy);
     }
 
@@ -255,7 +255,7 @@ impl PolicyEngine {
         if let Some(env_policy) = self.environment_policies.get(&context.environment) {
             decision_path.push(format!(
                 "Checked environment policy: {}",
-                &context.environment
+                context.environment
             ));
             if let Some(device_policy) = env_policy.get_policy(context.device_type) {
                 match device_policy.decision {
@@ -269,7 +269,7 @@ impl PolicyEngine {
                         } else {
                             decision_path.push(format!(
                                 "Device {} not in whitelist/blacklist",
-                                &context.device_id
+                                context.device_id
                             ));
                         }
                     }
@@ -303,7 +303,7 @@ impl PolicyEngine {
                             } else {
                                 decision_path.push(format!(
                                     "Device {} not in whitelist/blacklist",
-                                    &context.device_id
+                                    context.device_id
                                 ));
                             }
                         }
@@ -336,7 +336,7 @@ impl PolicyEngine {
                     } else {
                         decision_path.push(format!(
                             "Device {} not in whitelist/blacklist",
-                            &context.device_id
+                            context.device_id
                         ));
                         return PolicyDecision::deny("Device not in whitelist", "platform")
                             .with_path(decision_path);

@@ -146,7 +146,7 @@ mod tests {
     async fn test_diagnostic_report_single_check() {
         let runner = DiagnosticRunner::new();
         let report = runner.run(CheckType::Virtualization).await.unwrap();
-        assert!(report.checks.len() >= 1);
+        assert!(!report.checks.is_empty());
     }
 
     #[test]

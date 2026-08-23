@@ -156,7 +156,7 @@ mod tests {
     #[test]
     fn test_builtin_templates() {
         let templates = get_builtin_templates();
-        assert!(templates.len() > 0);
+        assert!(!templates.is_empty());
         assert!(templates.iter().any(|t| t.name == "rust"));
         assert!(templates
             .iter()

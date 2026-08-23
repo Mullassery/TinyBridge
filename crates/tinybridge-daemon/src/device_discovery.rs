@@ -54,7 +54,7 @@ impl DeviceDiscovery {
                     "Generic".to_string(),
                     format!(
                         "Serial Port ({})",
-                        path.split('/').last().unwrap_or("unknown")
+                        path.split('/').next_back().unwrap_or("unknown")
                     ),
                     path.to_string(),
                 );
@@ -121,7 +121,7 @@ impl DeviceDiscovery {
     /// Get USB devices using system_profiler
     fn system_profiler_usb() -> std::io::Result<Vec<Device>> {
         let output = Command::new("system_profiler")
-            .args(&["SPUSBDataType", "-json"])
+            .args(["SPUSBDataType", "-json"])
             .output()?;
 
         if !output.status.success() {
@@ -148,29 +148,28 @@ impl DeviceDiscovery {
     /// Get audio devices using system_profiler
     fn system_profiler_audio() -> std::io::Result<Vec<Device>> {
         let output = Command::new("system_profiler")
-            .args(&["SPAudioDataType", "-json"])
+            .args(["SPAudioDataType", "-json"])
             .output()?;
 
         if !output.status.success() {
             return Ok(vec![]);
         }
 
-        let mut devices = Vec::new();
-
         // Try to parse builtin output and input
-        devices.push(Device::new(
-            DeviceType::Audio,
-            "Apple".to_string(),
-            "Built-in Microphone".to_string(),
-            "/dev/audioin0".to_string(),
-        ));
-
-        devices.push(Device::new(
-            DeviceType::Audio,
-            "Apple".to_string(),
-            "Built-in Speaker".to_string(),
-            "/dev/audioout0".to_string(),
-        ));
+        let devices = vec![
+            Device::new(
+                DeviceType::Audio,
+                "Apple".to_string(),
+                "Built-in Microphone".to_string(),
+                "/dev/audioin0".to_string(),
+            ),
+            Device::new(
+                DeviceType::Audio,
+                "Apple".to_string(),
+                "Built-in Speaker".to_string(),
+                "/dev/audioout0".to_string(),
+            ),
+        ];
 
         Ok(devices)
     }
@@ -262,8 +261,8 @@ mod tests {
         let count1 = DeviceDiscovery::discover_all(&mut manager).unwrap();
         let count2 = DeviceDiscovery::discover_all(&mut manager).unwrap();
 
-        // Second call should discover same or more devices
-        assert!(count2 >= 0);
+        // Second call should discover the same or more devices
+        assert!(count2 >= count1);
     }
 
     #[test]

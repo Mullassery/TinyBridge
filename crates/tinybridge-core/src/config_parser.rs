@@ -266,8 +266,10 @@ env:
 "#;
 
         let mut config = EnvironmentConfig::from_yaml(yaml).unwrap();
-        let mut overrides = ConfigOverrides::default();
-        overrides.cpus = Some(8);
+        let mut overrides = ConfigOverrides {
+            cpus: Some(8),
+            ..Default::default()
+        };
         overrides
             .env_vars
             .insert("FOO".to_string(), "baz".to_string());

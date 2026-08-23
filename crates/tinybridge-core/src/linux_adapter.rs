@@ -14,8 +14,7 @@
 //! `crates/tinybridge-vz`).
 
 use crate::platform_abstraction::{
-    NetworkMode, PlatformAdapter, PlatformCapabilities, PlatformInfo, StorageMount,
-    VMResourceConfig,
+    NetworkMode, PlatformAdapter, PlatformInfo, StorageMount, VMResourceConfig,
 };
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -339,6 +338,7 @@ impl PlatformAdapter for LinuxKVMAdapter {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::platform_abstraction::PlatformCapabilities;
     use crate::platform_abstraction::{HostPlatform, HypervisorBackend};
 
     fn create_adapter() -> LinuxKVMAdapter {

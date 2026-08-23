@@ -109,7 +109,7 @@ fn get_available_memory_gb() -> f64 {
     {
         use std::process::Command;
 
-        if let Ok(output) = Command::new("sysctl").args(&["hw.memsize"]).output() {
+        if let Ok(output) = Command::new("sysctl").args(["hw.memsize"]).output() {
             if let Ok(output_str) = String::from_utf8(output.stdout) {
                 if let Some(mem_str) = output_str.split('=').nth(1) {
                     if let Ok(mem_bytes) = mem_str.trim().parse::<u64>() {
@@ -130,7 +130,7 @@ fn get_available_disk_gb() -> f64 {
     {
         use std::process::Command;
 
-        if let Ok(output) = Command::new("df").args(&["-g", "/var/tmp"]).output() {
+        if let Ok(output) = Command::new("df").args(["-g", "/var/tmp"]).output() {
             if let Ok(output_str) = String::from_utf8(output.stdout) {
                 // Parse df output: columns are filesystem, blocks, used, available
                 for line in output_str.lines().skip(1) {

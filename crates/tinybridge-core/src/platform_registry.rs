@@ -284,7 +284,7 @@ mod tests {
     #[test]
     fn test_platform_registry_default() {
         let registry = PlatformRegistry::default();
-        assert!(registry.adapter_count() >= 0);
+        assert_eq!(registry.adapter_count(), 0);
     }
 
     #[test]

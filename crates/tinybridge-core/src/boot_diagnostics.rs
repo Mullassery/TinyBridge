@@ -218,8 +218,8 @@ impl BootDiagnosticReport {
     /// Generate human-readable report
     pub fn to_string_report(&self) -> String {
         let mut report = String::new();
-        report.push_str(&format!("Boot Diagnostic Report\n"));
-        report.push_str(&format!("======================\n"));
+        report.push_str("Boot Diagnostic Report\n");
+        report.push_str("======================\n");
         report.push_str(&format!("Reached Tier: {:?}\n", self.reached_tier));
         report.push_str(&format!("Success: {}\n", self.success));
         report.push_str(&format!("Total Time: {}ms\n\n", self.total_time_ms));

@@ -41,7 +41,7 @@ async fn check_network_connectivity() -> bool {
     use std::process::Command;
 
     let output = Command::new("ping")
-        .args(&["-c", "1", "-W", "2", "8.8.8.8"])
+        .args(["-c", "1", "-W", "2", "8.8.8.8"])
         .output();
 
     output.is_ok() && output.unwrap().status.success()
@@ -50,7 +50,7 @@ async fn check_network_connectivity() -> bool {
 async fn check_dns_resolution() -> bool {
     use std::process::Command;
 
-    let output = Command::new("nslookup").args(&["google.com"]).output();
+    let output = Command::new("nslookup").args(["google.com"]).output();
 
     output.is_ok() && output.unwrap().status.success()
 }

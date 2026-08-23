@@ -57,6 +57,10 @@ impl DaemonClient {
             .ok_or_else(|| anyhow!("No result in response"))
     }
 
+    // Each parameter maps 1:1 to a CLI flag on `tinybridge up`; bundling
+    // them into a struct would just move the same 7 fields one level out
+    // without reducing real complexity, so allow rather than restructure.
+    #[allow(clippy::too_many_arguments)]
     pub async fn up(
         &mut self,
         name: Option<String>,

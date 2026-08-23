@@ -1,3 +1,7 @@
+//! Keyboard handling for `interactive.rs`'s REPL mode -- same unwired
+//! scaffolding status, see that module's doc comment.
+#![allow(dead_code)]
+
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyModifiers};
 use std::time::Duration;
 

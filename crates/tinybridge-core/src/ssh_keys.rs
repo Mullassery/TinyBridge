@@ -21,7 +21,7 @@ impl SshKeyManager {
     }
 
     /// Generate SSH key pair using ssh-keygen
-    fn generate_key_pair(private_key: &Path, public_key: &Path) -> Result<()> {
+    fn generate_key_pair(private_key: &Path, _public_key: &Path) -> Result<()> {
         let output = std::process::Command::new("ssh-keygen")
             .arg("-t")
             .arg("rsa")

@@ -16,8 +16,7 @@
 //! the real backend; today it should be treated as dead code, not a second macOS backend.
 
 use crate::platform_abstraction::{
-    NetworkMode, PlatformAdapter, PlatformCapabilities, PlatformInfo, StorageMount,
-    VMResourceConfig,
+    NetworkMode, PlatformAdapter, PlatformInfo, StorageMount, VMResourceConfig,
 };
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -357,6 +356,7 @@ impl PlatformAdapter for MacOSAppleAdapter {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::platform_abstraction::PlatformCapabilities;
     use crate::platform_abstraction::{HostPlatform, HypervisorBackend};
 
     fn create_adapter() -> MacOSAppleAdapter {

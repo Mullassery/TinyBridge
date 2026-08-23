@@ -6,9 +6,10 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 /// DDS transport type
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub enum DDSTransport {
     /// Multicast (default for LAN)
+    #[default]
     Multicast,
     /// Unicast UDP
     UnicodeUdp,
@@ -18,14 +19,8 @@ pub enum DDSTransport {
     SharedMemory,
 }
 
-impl Default for DDSTransport {
-    fn default() -> Self {
-        DDSTransport::Multicast
-    }
-}
-
 /// DDS domain ID (0-232 valid range)
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct DDSDomainId(u8);
 
 impl DDSDomainId {
@@ -39,12 +34,6 @@ impl DDSDomainId {
 
     pub fn value(&self) -> u8 {
         self.0
-    }
-}
-
-impl Default for DDSDomainId {
-    fn default() -> Self {
-        DDSDomainId(0) // Default ROS 2 domain
     }
 }
 

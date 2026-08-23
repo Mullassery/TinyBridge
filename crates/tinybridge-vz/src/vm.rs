@@ -219,6 +219,15 @@ impl Drop for VirtualMachine {
     }
 }
 
+impl std::fmt::Debug for VirtualMachine {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("VirtualMachine")
+            .field("id", &self.id)
+            .field("name", &self.name)
+            .finish()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -265,14 +274,5 @@ mod tests {
             matches!(result, Err(VzError::CreationFailed)),
             "expected a real CreationFailed error from Virtualization.framework, got: {result:?}"
         );
-    }
-}
-
-impl std::fmt::Debug for VirtualMachine {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("VirtualMachine")
-            .field("id", &self.id)
-            .field("name", &self.name)
-            .finish()
     }
 }

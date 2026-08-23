@@ -6,7 +6,6 @@
 /// - Passthrough request handling
 /// - Device release and lifecycle
 /// - Multi-environment device allocation
-
 #[cfg(test)]
 mod device_manager_integration {
     use crate::device_discovery::DeviceDiscovery;
@@ -32,7 +31,7 @@ mod device_manager_integration {
         // Verify device is tracked
         assert_eq!(manager.total_count(), 1);
         assert!(manager.get_device(&device_id).is_some());
-        assert!(manager.available_devices().len() > 0);
+        assert!(!manager.available_devices().is_empty());
     }
 
     #[test]
@@ -113,7 +112,7 @@ mod device_manager_integration {
     fn test_device_status_transitions() {
         let mut manager = DeviceManager::new();
 
-        let mut device = Device::new(
+        let device = Device::new(
             DeviceType::Camera,
             "Apple".to_string(),
             "Camera".to_string(),

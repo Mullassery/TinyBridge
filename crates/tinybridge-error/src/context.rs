@@ -61,7 +61,7 @@ impl Default for ErrorContext {
 impl fmt::Display for ErrorContext {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for (key, value) in &self.details {
-            write!(f, "{}: {}\n", key, value)?;
+            writeln!(f, "{}: {}", key, value)?;
         }
         Ok(())
     }

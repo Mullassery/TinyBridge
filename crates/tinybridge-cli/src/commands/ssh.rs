@@ -52,13 +52,11 @@ pub async fn execute(args: SshArgs, _socket: Option<PathBuf>) -> Result<()> {
     // Execute SSH
     let status = ssh_cmd.status()?;
 
-    if !status.success() {
-        if status.code() == Some(255) {
-            output::print_error(&format!(
-                "SSH connection failed. Make sure the environment is running:\n  tinybridge up {}",
-                env_name
-            ));
-        }
+    if !status.success() && status.code() == Some(255) {
+        output::print_error(&format!(
+            "SSH connection failed. Make sure the environment is running:\n  tinybridge up {}",
+            env_name
+        ));
     }
 
     Ok(())

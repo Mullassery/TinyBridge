@@ -5,7 +5,6 @@
 use crate::boot_stages::BootTier;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::sync::Arc;
 
 /// Loadable component state
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]

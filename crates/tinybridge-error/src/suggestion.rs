@@ -93,7 +93,7 @@ impl RecoverySuggestion {
 impl fmt::Display for RecoverySuggestion {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for (i, step) in self.steps.iter().enumerate() {
-            write!(f, "{}. {}\n", i + 1, step)?;
+            writeln!(f, "{}. {}", i + 1, step)?;
         }
 
         if let Some(link) = &self.docs_link {
@@ -130,7 +130,7 @@ mod tests {
     #[test]
     fn test_check_network_suggestion() {
         let sugg = RecoverySuggestion::check_network();
-        assert!(sugg.steps.len() > 0);
+        assert!(!sugg.steps.is_empty());
     }
 
     #[test]

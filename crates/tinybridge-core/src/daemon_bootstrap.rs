@@ -7,7 +7,7 @@ use crate::{
     config_overrides::OverrideEngine,
     config_parser::EnvironmentConfig,
     metrics::BootMetrics,
-    otel_provider::{OtelConfig, OtelProvider, TraceContext},
+    otel_provider::{OtelConfig, OtelProvider},
     profiles::Profile,
 };
 use serde::{Deserialize, Serialize};

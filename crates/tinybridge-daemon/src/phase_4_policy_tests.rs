@@ -1,7 +1,6 @@
 /// Phase 4.0.2: Policy Engine & Access Control Integration Tests
 ///
 /// Complete testing of hierarchical policy evaluation and enforcement
-
 #[cfg(test)]
 mod policy_engine_hierarchy_tests {
     use crate::device_access_control::DeviceAccessController;

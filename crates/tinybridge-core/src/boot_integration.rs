@@ -5,7 +5,6 @@
 use crate::{
     boot_instrumentation::{BootInstrumentation, BootPhase, BootSpan},
     boot_stages::{BootReadiness, BootTier, BootTimeline},
-    daemon_bootstrap::{BootstrapConfig, DaemonBootstrapper},
     lazy_loader::{LazyLoadScheduler, LoadState, Loadable},
     metrics::BootMetrics,
 };
@@ -344,7 +343,7 @@ impl BootIntegrationTester {
             }
         };
 
-        let summary = self.instrumentation.summary();
+        let _summary = self.instrumentation.summary();
         let scheduler_summary = self.scheduler.summary();
 
         BootTestResult {
@@ -389,7 +388,7 @@ impl BootReadinessValidator {
     }
 
     /// Validate feature availability
-    pub fn validate_features(tier: BootTier, expected_count: usize, actual_count: usize) -> bool {
+    pub fn validate_features(_tier: BootTier, expected_count: usize, actual_count: usize) -> bool {
         actual_count >= expected_count
     }
 

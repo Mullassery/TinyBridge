@@ -66,7 +66,7 @@ impl MetricValue {
 
     /// Format as Prometheus line protocol
     pub fn to_prometheus_line(&self) -> String {
-        let mut line = format!("{}", self.name);
+        let mut line = self.name.to_string();
 
         if !self.labels.is_empty() {
             line.push('{');
@@ -396,7 +396,7 @@ mod tests {
         };
 
         let prometheus = metrics.to_prometheus();
-        assert!(prometheus.len() > 0);
+        assert!(!prometheus.is_empty());
         assert!(prometheus
             .iter()
             .any(|m| m.name == "tinybridge_boot_time_ms" && m.value == 1500.0));

@@ -27,15 +27,11 @@ pub struct EnvMetadata {
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
+#[derive(Default)]
 pub enum DisplayMode {
+    #[default]
     Headless,
     Gui,
-}
-
-impl Default for DisplayMode {
-    fn default() -> Self {
-        DisplayMode::Headless
-    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

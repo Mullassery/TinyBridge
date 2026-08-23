@@ -1,7 +1,6 @@
 /// Phase 4.0.3: Policy Audit & DDS Networking Tests
 ///
 /// Integration tests for compliance logging and ROS 2 networking
-
 #[cfg(test)]
 mod audit_logging_tests {
     use crate::policy_audit_logger::{AuditLogEntry, PolicyAuditLogger};
@@ -108,7 +107,7 @@ mod audit_logging_tests {
                     "Policy denies"
                 }
                 .to_string(),
-                ["platform", "project", "environment"][(i % 3) as usize].to_string(),
+                ["platform", "project", "environment"][i % 3].to_string(),
             );
             logger.log(entry);
         }
@@ -271,7 +270,7 @@ mod dds_networking_tests {
         let config = DDSParticipantConfig::for_environment("robotics-sim");
 
         assert_eq!(config.domain_id, 0);
-        assert!(config.qos_settings.get("participant").is_some());
+        assert!(config.qos_settings.contains_key("participant"));
     }
 
     #[test]
@@ -292,7 +291,7 @@ mod dds_networking_tests {
         assert!(status.operational);
 
         let heartbeat = chrono::Utc::now().to_rfc3339();
-        assert!(status.last_heartbeat >= heartbeat || status.last_heartbeat.len() > 0);
+        assert!(status.last_heartbeat >= heartbeat || !status.last_heartbeat.is_empty());
     }
 
     #[test]

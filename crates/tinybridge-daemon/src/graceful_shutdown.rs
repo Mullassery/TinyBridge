@@ -223,7 +223,7 @@ mod tests {
     #[test]
     fn test_shutdown_subscribe() {
         let coord = ShutdownCoordinator::new();
-        let mut rx = coord.subscribe();
+        let rx = coord.subscribe();
 
         // Send shutdown signal
         coord.initiate_shutdown();

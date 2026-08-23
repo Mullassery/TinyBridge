@@ -271,7 +271,7 @@ mod tests {
         let span = BootSpan::new(BootPhase::ResourceAlloc).with_config(config.clone());
         assert_eq!(span.config_context.profile, "production");
         assert_eq!(span.config_context.cpus, 8);
-        assert_eq!(span.config_context.gpu, true);
+        assert!(span.config_context.gpu);
     }
 
     #[test]
@@ -324,6 +324,8 @@ mod tests {
         assert_eq!(summary.phases_count, 3);
         assert!(summary.successful);
         assert_eq!(summary.last_phase, Some(BootPhase::Ready));
-        assert!(summary.total_time_ms >= 0);
+        // total_time_ms is u128, so it's always >= 0 by construction -- no
+        // assertion needed for that; the meaningful check is that it's set
+        // at all, which the Some(...) checks above already cover via phases.
     }
 }

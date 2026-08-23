@@ -29,7 +29,7 @@ fn check_disk_health() -> bool {
     use std::process::Command;
 
     // Simple check: try to read disk space info
-    let output = Command::new("df").args(&["-h", "/"]).output();
+    let output = Command::new("df").args(["-h", "/"]).output();
 
     output.is_ok() && output.unwrap().status.success()
 }

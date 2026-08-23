@@ -226,17 +226,15 @@ permissions, the virtualization entitlement requirement, and VirtioFS host-path 
   older `v0.3.1` tag still ships assets internally named `0.3.0` (unchanged, low-priority
   since `v0.5.0` is current). See "Installing" above. Building from source is the only
   install path that doesn't require a manual `DYLD_LIBRARY_PATH` workaround.
-- **CI has been red on every push to `main` since the `v0.5.0` release (5/5 most recent
-  runs)**: `cargo fmt --check` fails on the very first gate in `.github/workflows/ci.yml`,
-  before clippy or the test suite ever run (confirmed via `gh run list`/`gh run view`, and
-  reproduced locally - `cargo fmt --check` reports real formatting diffs in
-  `commands/headless.rs` and `commands/mod.rs`). This means CI has not actually exercised the
-  test suite on any of the last 5 commits to `main`. Run locally instead: with
-  `DYLD_LIBRARY_PATH` pointed at `target/swift-libs`, `cargo test --workspace --exclude
-  tinybridge-daemon` passes 396/396, and `cargo test -p tinybridge-daemon` passes 185/194
-  (the other 9 are the pre-existing, named failures CI already skips - see
-  `.github/workflows/ci.yml`). No unexpected test failures were found; the only real CI
-  problem is the unformatted code blocking the pipeline before it reaches the tests.
+- **CI is now green.** It had been red on every push since the `v0.5.0` release because
+  `cargo fmt --check` failed on the first gate in `.github/workflows/ci.yml`, before clippy
+  or the test suite ever ran. Fixing the formatting surfaced ~50 real clippy warnings across
+  `tinybridge-core`, `tinybridge-cli`, and `tinybridge-daemon` that clippy had also never
+  actually gotten a chance to check (same cascading-hidden-failure shape) - all fixed for
+  real (not suppressed), confirmed via a real, watched CI run. With `DYLD_LIBRARY_PATH`
+  pointed at `target/swift-libs`, `cargo test --workspace --exclude tinybridge-daemon`
+  passes 396/396, and `cargo test -p tinybridge-daemon` passes 185/194 (the other 9 are the
+  pre-existing, named failures CI already skips - see `.github/workflows/ci.yml`).
 - Two `TODO`s left in the CLI: `crates/tinybridge-cli/src/commands/logs.rs` (log retrieval
   from the daemon is not yet implemented) and `crates/tinybridge-cli/src/commands/launch.rs`
   (system detection is not yet implemented).

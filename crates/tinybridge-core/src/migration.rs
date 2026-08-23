@@ -37,9 +37,7 @@ fn migrate_launchd_agent() {
     // Try both possible launchctl domains (old formula's load didn't qualify a domain)
     let domains = ["system/com.tinybridge.daemon", "gui/com.tinybridge.daemon"];
     for domain in &domains {
-        let _ = Command::new("launchctl")
-            .args(&["bootout", domain])
-            .output();
+        let _ = Command::new("launchctl").args(["bootout", domain]).output();
     }
 
     // Remove the plist file

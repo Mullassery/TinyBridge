@@ -11,11 +11,10 @@
 //! future Windows implementation, since a real Hyper-V/WHPX backend cannot be built or
 //! tested from a macOS development sandbox (no Windows host with virtualization available)
 //! - see the "Platform Support" section of the top-level README for the honest,
-//! currently-supported platform (macOS only, via `crates/tinybridge-vz`).
+//!   currently-supported platform (macOS only, via `crates/tinybridge-vz`).
 
 use crate::platform_abstraction::{
-    NetworkMode, PlatformAdapter, PlatformCapabilities, PlatformInfo, StorageMount,
-    VMResourceConfig,
+    NetworkMode, PlatformAdapter, PlatformInfo, StorageMount, VMResourceConfig,
 };
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -254,7 +253,7 @@ impl PlatformAdapter for WindowsHyperVAdapter {
     }
 
     fn enable_gpu(&self, vm_id: &str) -> Result<(), Box<dyn std::error::Error>> {
-        let metadata = self.get_vm(vm_id)?;
+        let _metadata = self.get_vm(vm_id)?;
 
         // GPU acceleration not supported on Hyper-V for Linux VMs
         Err("GPU acceleration not available on Windows Hyper-V".into())
@@ -300,6 +299,7 @@ impl PlatformAdapter for WindowsHyperVAdapter {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::platform_abstraction::PlatformCapabilities;
     use crate::platform_abstraction::{HostPlatform, HypervisorBackend};
 
     fn create_adapter() -> WindowsHyperVAdapter {

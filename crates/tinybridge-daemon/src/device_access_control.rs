@@ -465,7 +465,7 @@ mod tests {
 
     #[test]
     fn test_access_percentage_calculations() {
-        let mut summary = AccessSummary {
+        let summary = AccessSummary {
             environment: "env1".to_string(),
             project: None,
             total_devices: 10,

@@ -65,19 +65,19 @@ pub async fn execute(args: LaunchArgs, socket: Option<PathBuf>) -> Result<()> {
     std::thread::sleep(std::time::Duration::from_millis(100));
 
     // Step 2: Download image (if needed)
-    pb.set_message(format!("⬇️  Downloading Linux image..."));
+    pb.set_message("⬇️  Downloading Linux image...".to_string());
     std::thread::sleep(std::time::Duration::from_millis(100));
 
     // Step 3: Create VM
-    pb.set_message(format!("🔧 Creating virtual machine..."));
+    pb.set_message("🔧 Creating virtual machine...".to_string());
     std::thread::sleep(std::time::Duration::from_millis(100));
 
     // Step 4: Configure network
-    pb.set_message(format!("🌐 Configuring networking..."));
+    pb.set_message("🌐 Configuring networking...".to_string());
     std::thread::sleep(std::time::Duration::from_millis(100));
 
     // Step 5: Start environment
-    pb.set_message(format!("🚀 Starting environment..."));
+    pb.set_message("🚀 Starting environment...".to_string());
     client
         .up(
             args.name.clone(),

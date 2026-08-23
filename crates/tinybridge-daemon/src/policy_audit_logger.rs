@@ -455,7 +455,7 @@ mod tests {
         ));
 
         let recent = logger.get_entries_since(&timestamp);
-        assert!(recent.len() >= 1);
+        assert!(!recent.is_empty());
     }
 
     #[test]

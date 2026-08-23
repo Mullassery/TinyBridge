@@ -142,7 +142,7 @@ impl HealthChecker {
                 );
                 if result == 0 {
                     // Fallback: estimate based on page size (simplified)
-                    page_count as u32 / 256 // Rough estimate
+                    page_count / 256 // Rough estimate
                 } else {
                     0
                 }
@@ -304,8 +304,9 @@ mod tests {
     #[test]
     fn test_health_checker_creation() {
         let checker = HealthChecker::new();
-        let uptime = checker.get_uptime();
-        assert!(uptime >= 0);
+        // get_uptime() returns u64, so it's always >= 0 by construction --
+        // just confirm the call succeeds without panicking.
+        let _uptime = checker.get_uptime();
     }
 
     #[test]
@@ -314,7 +315,8 @@ mod tests {
         let report = checker.check_all();
 
         assert!(!report.resources.is_empty());
-        assert!(report.uptime_seconds >= 0);
+        // uptime_seconds is u64, so it's always >= 0 by construction --
+        // the meaningful check is that the report has resources, above.
     }
 
     #[test]

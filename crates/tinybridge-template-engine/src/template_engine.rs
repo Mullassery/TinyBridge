@@ -89,14 +89,14 @@ mod tests {
     #[test]
     fn test_engine_creation() {
         let engine = TemplateEngine::new();
-        assert!(engine.templates.len() > 0);
+        assert!(!engine.templates.is_empty());
     }
 
     #[test]
     fn test_list_templates() {
         let engine = TemplateEngine::new();
         let templates = engine.list_templates();
-        assert!(templates.len() > 0);
+        assert!(!templates.is_empty());
     }
 
     #[test]
@@ -124,7 +124,7 @@ mod tests {
     fn test_get_by_category() {
         let engine = TemplateEngine::new();
         let dev_templates = engine.get_by_category(TemplateCategory::Dev);
-        assert!(dev_templates.len() > 0);
+        assert!(!dev_templates.is_empty());
     }
 
     #[test]

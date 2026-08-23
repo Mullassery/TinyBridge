@@ -17,3 +17,11 @@ chrono          = { workspace = true }
 dirs            = { workspace = true }
 anyhow          = { workspace = true }
 tracing         = { workspace = true }
+
+[features]
+# Not implemented today -- gate scaffolding in otel_provider.rs for a future
+# real OpenTelemetry/Prometheus integration (see that file's doc comment).
+# Declared so `cfg(feature = "otel"/"metrics")` isn't flagged as referencing
+# an unknown feature; enabling either does nothing yet.
+otel = []
+metrics = []

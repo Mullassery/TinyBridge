@@ -5,7 +5,6 @@
 /// 2. Graceful shutdown signal handling
 /// 3. Health endpoint responses
 /// 4. Structured logging with correlation IDs
-
 #[cfg(test)]
 mod e2e_tests {
     use crate::error_propagation::ErrorPropagator;
@@ -105,7 +104,7 @@ mod e2e_tests {
     #[test]
     fn test_shutdown_signal_propagation() {
         let coordinator = ShutdownCoordinator::new();
-        let mut rx = coordinator.subscribe();
+        let rx = coordinator.subscribe();
 
         // Initiate shutdown
         coordinator.initiate_shutdown();

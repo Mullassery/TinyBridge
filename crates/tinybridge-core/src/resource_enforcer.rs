@@ -225,7 +225,7 @@ impl ResourcePolicy {
 
     /// Set priority
     pub fn with_priority(mut self, priority: i32) -> Self {
-        self.priority = priority.max(-20).min(19);
+        self.priority = priority.clamp(-20, 19);
         self
     }
 
@@ -246,17 +246,17 @@ impl ResourcePolicy {
     /// Export as cgroup configuration
     pub fn to_cgroup_config(&self) -> String {
         let mut config = String::new();
-        config.push_str(&format!("# CPU limits\n"));
+        config.push_str("# CPU limits\n");
         config.push_str(&format!("cpus={}\n", self.cpu.cores));
         config.push_str(&format!("cpu_percent={}\n", self.cpu.percent));
-        config.push_str(&format!("\n# Memory limits\n"));
+        config.push_str("\n# Memory limits\n");
         config.push_str(&format!("memory_limit={}\n", self.memory.bytes));
         config.push_str(&format!("memory_swap_limit={}\n", self.memory.swap_bytes));
-        config.push_str(&format!("\n# Disk limits\n"));
+        config.push_str("\n# Disk limits\n");
         config.push_str(&format!("disk_size={}\n", self.disk.size_gb));
         config.push_str(&format!("read_bw_max={}M\n", self.disk.read_mbps));
         config.push_str(&format!("write_bw_max={}M\n", self.disk.write_mbps));
-        config.push_str(&format!("\n# Process priority\n"));
+        config.push_str("\n# Process priority\n");
         config.push_str(&format!("nice={}\n", self.priority));
         config
     }

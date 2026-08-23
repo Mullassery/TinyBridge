@@ -1,3 +1,11 @@
+//! Interactive REPL mode for the CLI -- built but not yet wired into any
+//! subcommand (verified: nothing outside this module and its own code
+//! constructs `InteractiveMode`, so it's unreachable dead code today, same
+//! situation as `tinybridge-core`'s `windows_adapter.rs`). Kept as
+//! scaffolding for a future `tinybridge interactive`/`tinybridge repl`
+//! subcommand rather than deleted.
+#![allow(dead_code)]
+
 use crate::keyboard::{KeyAction, KeyboardHandler};
 use crate::output;
 use std::io::{self, Write};
@@ -22,7 +30,7 @@ impl InteractiveMode {
         println!("Type 'help' for commands or 'exit' to quit\n");
 
         let mut input = String::new();
-        let mut cursor_pos = 0;
+        let mut cursor_pos;
 
         loop {
             // Print prompt
