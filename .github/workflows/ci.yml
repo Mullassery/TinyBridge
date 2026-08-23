@@ -86,6 +86,15 @@ jobs:
         env:
           DYLD_LIBRARY_PATH: ${{ github.workspace }}/target/swift-libs
 
+      # `cargo test` only guarantees building the hashed `--test` harness
+      # binary for tinybridge-vmhost (it has `#[cfg(test)] mod tests` inline
+      # in main.rs) -- it does not reliably leave the plain, unhashed
+      # `target/debug/tinybridge-vmhost` binary the codesign step below
+      # needs. Build it explicitly rather than assuming a side effect of
+      # the test step above.
+      - name: Build tinybridge-vmhost binary
+        run: cargo build --bin tinybridge-vmhost
+
       - name: Codesign tinybridge-vmhost with the virtualization entitlement
         run: |
           codesign --force --sign - \
