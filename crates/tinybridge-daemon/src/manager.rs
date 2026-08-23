@@ -11,7 +11,7 @@ use uuid::Uuid;
 
 use tinybridge_core::{
     DownResponse, Environment, EnvironmentStatus, EnvironmentSummary, ListResponse, StatusResponse,
-    UpResponse, TinyBridgeConfig,
+    TinyBridgeConfig, UpResponse,
 };
 use tinybridge_ssh::{KeyType, SshConfigEntry, SshConfigManager, SshKeyManager};
 
@@ -439,7 +439,8 @@ impl EnvironmentManager {
         if !env.ssh_configured {
             return Err(anyhow!(
                 "SSH not configured for environment '{}'. Try running: tinybridge repair {}",
-                env_name, env_name
+                env_name,
+                env_name
             ));
         }
 
@@ -447,7 +448,8 @@ impl EnvironmentManager {
         if !env.dds_configured {
             return Err(anyhow!(
                 "DDS configuration missing for environment '{}'. Try running: tinybridge repair {}",
-                env_name, env_name
+                env_name,
+                env_name
             ));
         }
 
@@ -480,7 +482,10 @@ impl EnvironmentManager {
     }
 
     async fn provision_dds(&self, env_name: &str, env_id: Uuid) -> Result<()> {
-        tracing::info!("Provisioning DDS configuration for environment '{}'", env_name);
+        tracing::info!(
+            "Provisioning DDS configuration for environment '{}'",
+            env_name
+        );
 
         let dds_dir = TinyBridgeConfig::data_dir().join("dds").join(env_name);
         std::fs::create_dir_all(&dds_dir)?;
@@ -544,7 +549,10 @@ domain_id: 0
                         let ssh_entry = SshConfigEntry {
                             env_id: env.id,
                             alias: env_name.to_string(),
-                            hostname: env.ip_address.clone().unwrap_or_else(|| "192.168.105.2".to_string()),
+                            hostname: env
+                                .ip_address
+                                .clone()
+                                .unwrap_or_else(|| "192.168.105.2".to_string()),
                             user: "user".to_string(),
                             port: 22,
                             identity_file: keypair.private_key_path,
@@ -585,10 +593,9 @@ domain_id: 0
         // Validate repair was successful
         match self.validate_environment(env_name).await {
             Ok(validation) => {
-                let env = self
-                    .environments
-                    .get(env_name)
-                    .ok_or_else(|| anyhow!("Environment '{}' disappeared during repair", env_name))?;
+                let env = self.environments.get(env_name).ok_or_else(|| {
+                    anyhow!("Environment '{}' disappeared during repair", env_name)
+                })?;
                 tracing::info!("Environment validation result: {}", validation);
                 Ok(json!({
                     "status": "repaired",

@@ -2,7 +2,6 @@
 /// Phase 4.0.1: Config Foundation
 ///
 /// Handles overrides from environment variables and CLI flags
-
 use std::collections::HashMap;
 
 /// Configuration override sources (priority order: CLI > ENV > YAML)
@@ -85,7 +84,10 @@ impl OverrideEngine {
                 let var_name = key.strip_prefix("TB_").unwrap();
                 // Skip already-parsed standard vars
                 if !matches!(var_name, "CPUS" | "MEMORY" | "DISK" | "PROFILE") {
-                    engine.env_overrides.custom_vars.insert(var_name.to_string(), value);
+                    engine
+                        .env_overrides
+                        .custom_vars
+                        .insert(var_name.to_string(), value);
                 }
             }
         }
@@ -214,8 +216,14 @@ mod tests {
     #[test]
     fn test_env_vars_combination() {
         let mut engine = OverrideEngine::new();
-        engine.env_overrides.custom_vars.insert("FOO".to_string(), "bar".to_string());
-        engine.cli_overrides.env_vars.insert("BAZ".to_string(), "qux".to_string());
+        engine
+            .env_overrides
+            .custom_vars
+            .insert("FOO".to_string(), "bar".to_string());
+        engine
+            .cli_overrides
+            .env_vars
+            .insert("BAZ".to_string(), "qux".to_string());
 
         let combined = engine.get_all_env_vars();
         assert_eq!(combined.get("FOO"), Some(&"bar".to_string()));

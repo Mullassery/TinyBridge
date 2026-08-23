@@ -2,7 +2,6 @@
 /// Phase 4.0.3: Profile-Based Resource Management
 ///
 /// Orchestrates daemon startup with config loading, profile selection, and resource allocation
-
 use crate::{
     boot_instrumentation::{BootInstrumentation, BootPhase, BootSpan, ConfigContext},
     config_overrides::OverrideEngine,
@@ -47,16 +46,17 @@ impl ResourceAllocation {
 
     /// Create from profile
     pub fn from_profile(profile: &Profile) -> Self {
-        ResourceAllocation::new(
-            profile.cpus,
-            profile.memory,
-            profile.disk,
-            profile.gpu,
-        )
+        ResourceAllocation::new(profile.cpus, profile.memory, profile.disk, profile.gpu)
     }
 
     /// Merge with override (override wins)
-    pub fn merge_with_override(mut self, cpus: Option<u32>, memory: Option<u32>, disk: Option<u32>, gpu: Option<bool>) -> Self {
+    pub fn merge_with_override(
+        mut self,
+        cpus: Option<u32>,
+        memory: Option<u32>,
+        disk: Option<u32>,
+        gpu: Option<bool>,
+    ) -> Self {
         if let Some(c) = cpus {
             self.cpus = c;
             self.cpu_limit_millicores = c * 1000;
@@ -134,7 +134,11 @@ impl BootstrapConfig {
         // OTel configuration
         let otel_config = OtelConfig {
             service_name: env_config.name.clone(),
-            sampling_rate: if profile.name == "production" { 0.1 } else { 1.0 },
+            sampling_rate: if profile.name == "production" {
+                0.1
+            } else {
+                1.0
+            },
             ..Default::default()
         };
 

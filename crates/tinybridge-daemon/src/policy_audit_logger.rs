@@ -1,13 +1,12 @@
+use chrono::{DateTime, Utc};
+use parking_lot::RwLock;
 /// Policy audit logger for compliance and forensics
 ///
 /// Records every policy decision with full context.
 /// Tamper-evident audit trail for compliance (SOC 2, ISO 27001, PCI-DSS).
-
 use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;
 use std::sync::Arc;
-use parking_lot::RwLock;
-use chrono::{DateTime, Utc};
 
 /// Audit log entry for a policy decision
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -197,9 +196,7 @@ impl PolicyAuditLogger {
         for entry in entries.iter() {
             environments.insert(entry.environment.clone());
             devices.insert(entry.device_id.clone());
-            *policy_levels
-                .entry(entry.policy_level.clone())
-                .or_insert(0) += 1;
+            *policy_levels.entry(entry.policy_level.clone()).or_insert(0) += 1;
         }
 
         let timestamp_start = entries

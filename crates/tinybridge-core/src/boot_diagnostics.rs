@@ -2,7 +2,6 @@
 /// Phase 5: Production Hardening
 ///
 /// Health checks, diagnostics, and performance profiling
-
 use crate::boot_stages::BootTier;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -139,12 +138,18 @@ impl BootPerformanceMetrics {
 
     /// Find slowest phase
     pub fn slowest_phase(&self) -> Option<(String, u64)> {
-        self.phase_timings.iter().max_by_key(|(_, time)| time).cloned()
+        self.phase_timings
+            .iter()
+            .max_by_key(|(_, time)| time)
+            .cloned()
     }
 
     /// Find slowest component
     pub fn slowest_component(&self) -> Option<(String, u64)> {
-        self.component_times.iter().max_by_key(|(_, time)| time).cloned()
+        self.component_times
+            .iter()
+            .max_by_key(|(_, time)| time)
+            .cloned()
     }
 
     /// Calculate average phase time
@@ -290,8 +295,16 @@ impl HealthCheckEngine {
             return;
         }
 
-        let unhealthy = self.components.values().filter(|c| c.status == HealthStatus::Unhealthy).count();
-        let degraded = self.components.values().filter(|c| c.status == HealthStatus::Degraded).count();
+        let unhealthy = self
+            .components
+            .values()
+            .filter(|c| c.status == HealthStatus::Unhealthy)
+            .count();
+        let degraded = self
+            .components
+            .values()
+            .filter(|c| c.status == HealthStatus::Degraded)
+            .count();
 
         if unhealthy > 0 {
             self.overall_status = HealthStatus::Unhealthy;
@@ -304,9 +317,21 @@ impl HealthCheckEngine {
 
     /// Generate health report
     pub fn health_report(&self) -> HealthReport {
-        let healthy = self.components.values().filter(|c| c.status == HealthStatus::Healthy).count();
-        let degraded = self.components.values().filter(|c| c.status == HealthStatus::Degraded).count();
-        let unhealthy = self.components.values().filter(|c| c.status == HealthStatus::Unhealthy).count();
+        let healthy = self
+            .components
+            .values()
+            .filter(|c| c.status == HealthStatus::Healthy)
+            .count();
+        let degraded = self
+            .components
+            .values()
+            .filter(|c| c.status == HealthStatus::Degraded)
+            .count();
+        let unhealthy = self
+            .components
+            .values()
+            .filter(|c| c.status == HealthStatus::Unhealthy)
+            .count();
 
         HealthReport {
             overall_status: self.overall_status,

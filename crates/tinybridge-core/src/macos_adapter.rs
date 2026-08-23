@@ -16,7 +16,8 @@
 //! the real backend; today it should be treated as dead code, not a second macOS backend.
 
 use crate::platform_abstraction::{
-    NetworkMode, PlatformAdapter, PlatformCapabilities, PlatformInfo, StorageMount, VMResourceConfig,
+    NetworkMode, PlatformAdapter, PlatformCapabilities, PlatformInfo, StorageMount,
+    VMResourceConfig,
 };
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -67,7 +68,7 @@ impl MacOSVMMetadata {
             cpu_cores: config.cpu_cores,
             memory_gb: config.memory_gb,
             gpu_enabled: config.gpu_enabled,
-            metal_support: true, // Apple Silicon default
+            metal_support: true,             // Apple Silicon default
             network_mode: "NAT".to_string(), // safe-by-default; was "Bridged" (see SECURITY.md)
             shared_folders: Vec::new(),
             is_running: false,
@@ -156,7 +157,10 @@ impl PlatformAdapter for MacOSAppleAdapter {
 
         // In a real implementation:
         // VZVirtualMachine.start() with completion handler
-        eprintln!("macOS: Starting Apple Virtualization VM '{}'", metadata.name);
+        eprintln!(
+            "macOS: Starting Apple Virtualization VM '{}'",
+            metadata.name
+        );
 
         metadata.is_running = true;
         metadata.is_suspended = false;
@@ -172,7 +176,10 @@ impl PlatformAdapter for MacOSAppleAdapter {
         }
 
         // In a real implementation: VZVirtualMachine.stop()
-        eprintln!("macOS: Stopping Apple Virtualization VM '{}'", metadata.name);
+        eprintln!(
+            "macOS: Stopping Apple Virtualization VM '{}'",
+            metadata.name
+        );
 
         metadata.is_running = false;
         metadata.is_suspended = false;
@@ -188,7 +195,10 @@ impl PlatformAdapter for MacOSAppleAdapter {
         }
 
         // In a real implementation: VZVirtualMachine.pause()
-        eprintln!("macOS: Suspending Apple Virtualization VM '{}'", metadata.name);
+        eprintln!(
+            "macOS: Suspending Apple Virtualization VM '{}'",
+            metadata.name
+        );
 
         metadata.is_running = false;
         metadata.is_suspended = true;
@@ -204,7 +214,10 @@ impl PlatformAdapter for MacOSAppleAdapter {
         }
 
         // In a real implementation: VZVirtualMachine.resume()
-        eprintln!("macOS: Resuming Apple Virtualization VM '{}'", metadata.name);
+        eprintln!(
+            "macOS: Resuming Apple Virtualization VM '{}'",
+            metadata.name
+        );
 
         metadata.is_suspended = false;
         metadata.is_running = true;
@@ -225,7 +238,10 @@ impl PlatformAdapter for MacOSAppleAdapter {
                 .map_err(|e| format!("Failed to delete VM bundle: {}", e))?;
         }
 
-        eprintln!("macOS: Deleting Apple Virtualization VM '{}'", metadata.name);
+        eprintln!(
+            "macOS: Deleting Apple Virtualization VM '{}'",
+            metadata.name
+        );
 
         let mut vms = self.vms.write().unwrap();
         vms.remove(vm_id);
@@ -291,7 +307,10 @@ impl PlatformAdapter for MacOSAppleAdapter {
 
         // In a real implementation:
         // Configure VZMacGraphicsDeviceConfiguration with Metal support
-        eprintln!("macOS: Enabling GPU acceleration with Metal for '{}'", metadata.name);
+        eprintln!(
+            "macOS: Enabling GPU acceleration with Metal for '{}'",
+            metadata.name
+        );
 
         metadata.gpu_enabled = true;
         self.update_vm(metadata)?;
@@ -310,11 +329,7 @@ impl PlatformAdapter for MacOSAppleAdapter {
         Ok(())
     }
 
-    fn allocate_usb(
-        &self,
-        vm_id: &str,
-        device_id: &str,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn allocate_usb(&self, vm_id: &str, device_id: &str) -> Result<(), Box<dyn std::error::Error>> {
         let _metadata = self.get_vm(vm_id)?;
 
         // USB passthrough not supported on macOS virtualization
@@ -325,11 +340,7 @@ impl PlatformAdapter for MacOSAppleAdapter {
         .into())
     }
 
-    fn release_usb(
-        &self,
-        vm_id: &str,
-        device_id: &str,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn release_usb(&self, vm_id: &str, device_id: &str) -> Result<(), Box<dyn std::error::Error>> {
         let _metadata = self.get_vm(vm_id)?;
         Err(format!(
             "USB passthrough not available on macOS (device: {})",
@@ -346,7 +357,7 @@ impl PlatformAdapter for MacOSAppleAdapter {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::platform_abstraction::{HypervisorBackend, HostPlatform};
+    use crate::platform_abstraction::{HostPlatform, HypervisorBackend};
 
     fn create_adapter() -> MacOSAppleAdapter {
         let platform_info = PlatformInfo {

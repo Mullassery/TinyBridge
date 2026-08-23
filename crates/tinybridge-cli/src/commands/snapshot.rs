@@ -1,6 +1,6 @@
 use anyhow::Result;
-use std::path::PathBuf;
 use serde_json::json;
+use std::path::PathBuf;
 
 use crate::client::DaemonClient;
 use crate::output;

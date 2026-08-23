@@ -4,8 +4,8 @@ use serde::{Deserialize, Serialize};
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::{Path, PathBuf};
-use uuid::Uuid;
 use tinybridge_core::TinyBridgeConfig;
+use uuid::Uuid;
 
 /// Type of SSH audit event
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]

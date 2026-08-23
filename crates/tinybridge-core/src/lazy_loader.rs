@@ -2,7 +2,6 @@
 /// Phase 4.0.4: Boot Optimization
 ///
 /// Load non-critical components on demand or after boot tiers complete
-
 use crate::boot_stages::BootTier;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -60,7 +59,11 @@ pub struct Loadable {
 
 impl Loadable {
     /// Create new loadable component
-    pub fn new(name: impl Into<String>, description: impl Into<String>, load_tier: BootTier) -> Self {
+    pub fn new(
+        name: impl Into<String>,
+        description: impl Into<String>,
+        load_tier: BootTier,
+    ) -> Self {
         Loadable {
             name: name.into(),
             description: description.into(),
@@ -123,10 +126,12 @@ impl Loadable {
     pub fn can_load(&self, loaded: &HashMap<String, Loadable>) -> bool {
         self.state == LoadState::Unloaded
             || (self.state == LoadState::Deferred)
-                && self
-                    .dependencies
-                    .iter()
-                    .all(|dep| loaded.get(dep).map(|c| c.state == LoadState::Loaded).unwrap_or(false))
+                && self.dependencies.iter().all(|dep| {
+                    loaded
+                        .get(dep)
+                        .map(|c| c.state == LoadState::Loaded)
+                        .unwrap_or(false)
+                })
     }
 }
 
@@ -174,7 +179,9 @@ impl LazyLoadScheduler {
         self.components
             .iter()
             .filter(|(_, comp)| {
-                (comp.load_tier <= tier) && comp.can_load(&self.components) && comp.state == LoadState::Deferred
+                (comp.load_tier <= tier)
+                    && comp.can_load(&self.components)
+                    && comp.state == LoadState::Deferred
             })
             .map(|(name, comp)| (name.clone(), comp.priority))
             .collect::<Vec<_>>()
@@ -183,7 +190,9 @@ impl LazyLoadScheduler {
         self.components
             .iter()
             .filter(|(_, comp)| {
-                (comp.load_tier <= tier) && comp.can_load(&self.components) && comp.state == LoadState::Unloaded
+                (comp.load_tier <= tier)
+                    && comp.can_load(&self.components)
+                    && comp.state == LoadState::Unloaded
             })
             .map(|(name, comp)| (name.clone(), comp.priority))
             .collect::<Vec<_>>()
@@ -191,9 +200,7 @@ impl LazyLoadScheduler {
 
         self.components
             .iter()
-            .filter(|(_, comp)| {
-                (comp.load_tier <= tier) && comp.can_load(&self.components)
-            })
+            .filter(|(_, comp)| (comp.load_tier <= tier) && comp.can_load(&self.components))
             .map(|(name, _)| name.clone())
             .collect()
     }
@@ -233,9 +240,21 @@ impl LazyLoadScheduler {
     /// Get load summary
     pub fn summary(&self) -> LoaderSummary {
         let total = self.components.len();
-        let loaded = self.components.values().filter(|c| c.state == LoadState::Loaded).count();
-        let failed = self.components.values().filter(|c| c.state == LoadState::Failed).count();
-        let deferred = self.components.values().filter(|c| c.state == LoadState::Deferred).count();
+        let loaded = self
+            .components
+            .values()
+            .filter(|c| c.state == LoadState::Loaded)
+            .count();
+        let failed = self
+            .components
+            .values()
+            .filter(|c| c.state == LoadState::Failed)
+            .count();
+        let deferred = self
+            .components
+            .values()
+            .filter(|c| c.state == LoadState::Deferred)
+            .count();
 
         let total_size = self.components.values().map(|c| c.size_bytes).sum();
         let load_time: u64 = self
@@ -261,7 +280,11 @@ impl LazyLoadScheduler {
         if total == 0 {
             return 0;
         }
-        let loaded = self.components.values().filter(|c| c.state == LoadState::Loaded).count();
+        let loaded = self
+            .components
+            .values()
+            .filter(|c| c.state == LoadState::Loaded)
+            .count();
         ((loaded as f64 / total as f64) * 100.0) as u32
     }
 }
@@ -332,7 +355,8 @@ mod tests {
 
     #[test]
     fn test_loadable_mark_failed() {
-        let loadable = Loadable::new("module", "desc", BootTier::Api).mark_failed("connection error");
+        let loadable =
+            Loadable::new("module", "desc", BootTier::Api).mark_failed("connection error");
         assert_eq!(loadable.state, LoadState::Failed);
         assert_eq!(loadable.error, Some("connection error".to_string()));
     }

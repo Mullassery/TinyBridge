@@ -2,7 +2,6 @@
 /// Phase 4.0.1: Config Foundation
 ///
 /// Parses TinyBridge environment configuration from YAML files with validation
-
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::Path;
@@ -269,7 +268,9 @@ env:
         let mut config = EnvironmentConfig::from_yaml(yaml).unwrap();
         let mut overrides = ConfigOverrides::default();
         overrides.cpus = Some(8);
-        overrides.env_vars.insert("FOO".to_string(), "baz".to_string());
+        overrides
+            .env_vars
+            .insert("FOO".to_string(), "baz".to_string());
 
         config.apply_overrides(&overrides);
         assert_eq!(config.resources.cpus, 8);

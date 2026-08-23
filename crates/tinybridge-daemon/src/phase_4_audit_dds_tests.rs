@@ -102,7 +102,12 @@ mod audit_logging_tests {
                 format!("device-{}", i % 10),
                 ["usb", "serial", "camera", "audio"][i % 4].to_string(),
                 allowed,
-                if allowed { "Policy allows" } else { "Policy denies" }.to_string(),
+                if allowed {
+                    "Policy allows"
+                } else {
+                    "Policy denies"
+                }
+                .to_string(),
                 ["platform", "project", "environment"][(i % 3) as usize].to_string(),
             );
             logger.log(entry);
@@ -232,7 +237,9 @@ mod dds_networking_tests {
     fn test_dds_participant_config_multicast() {
         let config = DDSParticipantConfig::default();
         assert_eq!(config.transport, DDSTransport::Multicast);
-        assert!(config.multicast_addresses.contains(&"239.255.0.1".to_string()));
+        assert!(config
+            .multicast_addresses
+            .contains(&"239.255.0.1".to_string()));
     }
 
     #[test]
@@ -253,7 +260,10 @@ mod dds_networking_tests {
 
         assert!(env_vars.contains_key("ROS_DOMAIN_ID"));
         assert!(env_vars.contains_key("RMW_IMPLEMENTATION"));
-        assert_eq!(env_vars.get("RMW_IMPLEMENTATION"), Some(&"rmw_fastrtps_cpp".to_string()));
+        assert_eq!(
+            env_vars.get("RMW_IMPLEMENTATION"),
+            Some(&"rmw_fastrtps_cpp".to_string())
+        );
     }
 
     #[test]

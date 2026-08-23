@@ -2,7 +2,6 @@
 /// Phase 4.0.2: OTel Integration
 ///
 /// Metrics collection for boot performance, resource usage, and daemon health
-
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -129,30 +128,78 @@ impl BootMetrics {
     /// Export as Prometheus metrics
     pub fn to_prometheus(&self) -> Vec<MetricValue> {
         vec![
-            MetricValue::new("tinybridge_boot_time_ms", MetricType::Gauge, self.boot_time_ms)
-                .with_unit("milliseconds"),
-            MetricValue::new("tinybridge_preflight_duration_ms", MetricType::Gauge, self.preflight_ms)
-                .with_unit("milliseconds"),
-            MetricValue::new("tinybridge_config_load_duration_ms", MetricType::Gauge, self.config_load_ms)
-                .with_unit("milliseconds"),
-            MetricValue::new("tinybridge_profile_select_duration_ms", MetricType::Gauge, self.profile_select_ms)
-                .with_unit("milliseconds"),
-            MetricValue::new("tinybridge_resource_alloc_duration_ms", MetricType::Gauge, self.resource_alloc_ms)
-                .with_unit("milliseconds"),
-            MetricValue::new("tinybridge_network_setup_duration_ms", MetricType::Gauge, self.network_setup_ms)
-                .with_unit("milliseconds"),
-            MetricValue::new("tinybridge_daemon_init_duration_ms", MetricType::Gauge, self.daemon_init_ms)
-                .with_unit("milliseconds"),
-            MetricValue::new("tinybridge_health_monitor_duration_ms", MetricType::Gauge, self.health_monitor_ms)
-                .with_unit("milliseconds"),
-            MetricValue::new("tinybridge_api_server_duration_ms", MetricType::Gauge, self.api_server_ms)
-                .with_unit("milliseconds"),
-            MetricValue::new("tinybridge_config_cpus", MetricType::Gauge, self.cpus as f64)
-                .with_label("profile", &self.profile),
-            MetricValue::new("tinybridge_config_memory_gb", MetricType::Gauge, self.memory as f64)
-                .with_label("profile", &self.profile),
-            MetricValue::new("tinybridge_config_disk_gb", MetricType::Gauge, self.disk as f64)
-                .with_label("profile", &self.profile),
+            MetricValue::new(
+                "tinybridge_boot_time_ms",
+                MetricType::Gauge,
+                self.boot_time_ms,
+            )
+            .with_unit("milliseconds"),
+            MetricValue::new(
+                "tinybridge_preflight_duration_ms",
+                MetricType::Gauge,
+                self.preflight_ms,
+            )
+            .with_unit("milliseconds"),
+            MetricValue::new(
+                "tinybridge_config_load_duration_ms",
+                MetricType::Gauge,
+                self.config_load_ms,
+            )
+            .with_unit("milliseconds"),
+            MetricValue::new(
+                "tinybridge_profile_select_duration_ms",
+                MetricType::Gauge,
+                self.profile_select_ms,
+            )
+            .with_unit("milliseconds"),
+            MetricValue::new(
+                "tinybridge_resource_alloc_duration_ms",
+                MetricType::Gauge,
+                self.resource_alloc_ms,
+            )
+            .with_unit("milliseconds"),
+            MetricValue::new(
+                "tinybridge_network_setup_duration_ms",
+                MetricType::Gauge,
+                self.network_setup_ms,
+            )
+            .with_unit("milliseconds"),
+            MetricValue::new(
+                "tinybridge_daemon_init_duration_ms",
+                MetricType::Gauge,
+                self.daemon_init_ms,
+            )
+            .with_unit("milliseconds"),
+            MetricValue::new(
+                "tinybridge_health_monitor_duration_ms",
+                MetricType::Gauge,
+                self.health_monitor_ms,
+            )
+            .with_unit("milliseconds"),
+            MetricValue::new(
+                "tinybridge_api_server_duration_ms",
+                MetricType::Gauge,
+                self.api_server_ms,
+            )
+            .with_unit("milliseconds"),
+            MetricValue::new(
+                "tinybridge_config_cpus",
+                MetricType::Gauge,
+                self.cpus as f64,
+            )
+            .with_label("profile", &self.profile),
+            MetricValue::new(
+                "tinybridge_config_memory_gb",
+                MetricType::Gauge,
+                self.memory as f64,
+            )
+            .with_label("profile", &self.profile),
+            MetricValue::new(
+                "tinybridge_config_disk_gb",
+                MetricType::Gauge,
+                self.disk as f64,
+            )
+            .with_label("profile", &self.profile),
             MetricValue::new(
                 "tinybridge_boot_success",
                 MetricType::Gauge,
@@ -196,16 +243,32 @@ impl ResourceMetrics {
     /// Export as Prometheus metrics
     pub fn to_prometheus(&self) -> Vec<MetricValue> {
         vec![
-            MetricValue::new("tinybridge_cpu_usage_percent", MetricType::Gauge, self.cpu_percent)
-                .with_unit("percent"),
-            MetricValue::new("tinybridge_memory_usage_mb", MetricType::Gauge, self.memory_mb)
-                .with_unit("megabytes"),
+            MetricValue::new(
+                "tinybridge_cpu_usage_percent",
+                MetricType::Gauge,
+                self.cpu_percent,
+            )
+            .with_unit("percent"),
+            MetricValue::new(
+                "tinybridge_memory_usage_mb",
+                MetricType::Gauge,
+                self.memory_mb,
+            )
+            .with_unit("megabytes"),
             MetricValue::new("tinybridge_disk_usage_mb", MetricType::Gauge, self.disk_mb)
                 .with_unit("megabytes"),
-            MetricValue::new("tinybridge_network_in_bytes", MetricType::Counter, self.network_in_bytes as f64)
-                .with_unit("bytes"),
-            MetricValue::new("tinybridge_network_out_bytes", MetricType::Counter, self.network_out_bytes as f64)
-                .with_unit("bytes"),
+            MetricValue::new(
+                "tinybridge_network_in_bytes",
+                MetricType::Counter,
+                self.network_in_bytes as f64,
+            )
+            .with_unit("bytes"),
+            MetricValue::new(
+                "tinybridge_network_out_bytes",
+                MetricType::Counter,
+                self.network_out_bytes as f64,
+            )
+            .with_unit("bytes"),
         ]
     }
 }

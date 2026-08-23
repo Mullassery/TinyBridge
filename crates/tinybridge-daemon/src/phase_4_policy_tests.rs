@@ -7,7 +7,7 @@ mod policy_engine_hierarchy_tests {
     use crate::device_access_control::DeviceAccessController;
     use crate::device_manager::{Device, DeviceManager, DeviceType};
     use crate::policy_engine::{
-        AccessDecision, DevicePolicy, PolicyContext, PolicyEngine, PolicyDecision,
+        AccessDecision, DevicePolicy, PolicyContext, PolicyDecision, PolicyEngine,
     };
     use std::collections::HashSet;
 
@@ -45,8 +45,12 @@ mod policy_engine_hierarchy_tests {
             DevicePolicy::new(DeviceType::Serial, AccessDecision::Allow),
         );
 
-        let ctx = PolicyContext::new("robot-env".to_string(), "serial-1".to_string(), DeviceType::Serial)
-            .with_project("robotics".to_string());
+        let ctx = PolicyContext::new(
+            "robot-env".to_string(),
+            "serial-1".to_string(),
+            DeviceType::Serial,
+        )
+        .with_project("robotics".to_string());
         let decision = engine.evaluate(&ctx);
 
         assert!(decision.allowed);
@@ -219,12 +223,8 @@ mod access_control_integration_tests {
         let mut controller = DeviceAccessController::new(policy, device_mgr);
 
         // Request access
-        let decision = controller.request_device_access(
-            "ml-env".to_string(),
-            device_id.clone(),
-            None,
-            None,
-        );
+        let decision =
+            controller.request_device_access("ml-env".to_string(), device_id.clone(), None, None);
 
         assert!(decision.allowed);
         assert!(decision.passthrough_result.is_some());
@@ -256,12 +256,8 @@ mod access_control_integration_tests {
         let mut controller = DeviceAccessController::new(policy, device_mgr);
 
         // Try to request access
-        let decision = controller.request_device_access(
-            "suspicious-env".to_string(),
-            device_id,
-            None,
-            None,
-        );
+        let decision =
+            controller.request_device_access("suspicious-env".to_string(), device_id, None, None);
 
         assert!(!decision.allowed);
         assert!(decision.error.is_some());
@@ -304,21 +300,11 @@ mod access_control_integration_tests {
         let mut controller = DeviceAccessController::new(policy, device_mgr);
 
         // Whitelisted should succeed
-        let decision1 = controller.request_device_access(
-            "robot-env".to_string(),
-            id1,
-            None,
-            None,
-        );
+        let decision1 = controller.request_device_access("robot-env".to_string(), id1, None, None);
         assert!(decision1.allowed);
 
         // Non-whitelisted should fail
-        let decision2 = controller.request_device_access(
-            "robot-env".to_string(),
-            id2,
-            None,
-            None,
-        );
+        let decision2 = controller.request_device_access("robot-env".to_string(), id2, None, None);
         assert!(!decision2.allowed);
     }
 
@@ -392,31 +378,18 @@ mod access_control_integration_tests {
         let mut controller = DeviceAccessController::new(policy, device_mgr);
 
         // First env gets the device
-        let decision1 = controller.request_device_access(
-            "env1".to_string(),
-            device_id.clone(),
-            None,
-            None,
-        );
+        let decision1 =
+            controller.request_device_access("env1".to_string(), device_id.clone(), None, None);
         assert!(decision1.allowed);
 
         // Second env should fail (device already allocated)
-        let decision2 = controller.request_device_access(
-            "env2".to_string(),
-            device_id.clone(),
-            None,
-            None,
-        );
+        let decision2 =
+            controller.request_device_access("env2".to_string(), device_id.clone(), None, None);
         assert!(!decision2.allowed);
 
         // But after release, second env should succeed
         assert!(controller.release_device_access(&device_id, "env1"));
-        let decision3 = controller.request_device_access(
-            "env2".to_string(),
-            device_id,
-            None,
-            None,
-        );
+        let decision3 = controller.request_device_access("env2".to_string(), device_id, None, None);
         assert!(decision3.allowed);
     }
 
@@ -534,11 +507,8 @@ mod access_control_integration_tests {
         let controller = DeviceAccessController::new(policy, device_mgr);
 
         // Robotics project: USB allowed, Serial allowed
-        let available1 = controller.get_available_devices_for_environment(
-            "robot-env",
-            Some("robotics"),
-            None,
-        );
+        let available1 =
+            controller.get_available_devices_for_environment("robot-env", Some("robotics"), None);
         assert_eq!(available1.len(), 2);
 
         // Restricted env in robotics: USB allowed, Serial denied

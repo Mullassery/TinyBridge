@@ -2,7 +2,6 @@
 /// Phase 6: Cross-Platform Compatibility
 ///
 /// Common interface for Windows, macOS, Linux, and future platforms
-
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::PathBuf;
@@ -303,7 +302,11 @@ pub trait PlatformAdapter: Send + Sync {
     fn platform_info(&self) -> &PlatformInfo;
 
     /// Create VM instance
-    fn create_vm(&self, name: &str, config: &VMResourceConfig) -> Result<String, Box<dyn std::error::Error>>;
+    fn create_vm(
+        &self,
+        name: &str,
+        config: &VMResourceConfig,
+    ) -> Result<String, Box<dyn std::error::Error>>;
 
     /// Start VM
     fn start_vm(&self, vm_id: &str) -> Result<(), Box<dyn std::error::Error>>;
@@ -321,10 +324,18 @@ pub trait PlatformAdapter: Send + Sync {
     fn delete_vm(&self, vm_id: &str) -> Result<(), Box<dyn std::error::Error>>;
 
     /// Configure networking
-    fn configure_network(&self, vm_id: &str, mode: &NetworkMode) -> Result<(), Box<dyn std::error::Error>>;
+    fn configure_network(
+        &self,
+        vm_id: &str,
+        mode: &NetworkMode,
+    ) -> Result<(), Box<dyn std::error::Error>>;
 
     /// Mount storage
-    fn mount_storage(&self, vm_id: &str, mount: &StorageMount) -> Result<(), Box<dyn std::error::Error>>;
+    fn mount_storage(
+        &self,
+        vm_id: &str,
+        mount: &StorageMount,
+    ) -> Result<(), Box<dyn std::error::Error>>;
 
     /// Enable GPU acceleration
     fn enable_gpu(&self, vm_id: &str) -> Result<(), Box<dyn std::error::Error>>;
@@ -359,7 +370,10 @@ mod tests {
     #[test]
     fn test_hypervisor_backend_display() {
         assert_eq!(HypervisorBackend::HyperV.to_string(), "hyper-v");
-        assert_eq!(HypervisorBackend::AppleVirtualization.to_string(), "apple-virtualization");
+        assert_eq!(
+            HypervisorBackend::AppleVirtualization.to_string(),
+            "apple-virtualization"
+        );
         assert_eq!(HypervisorBackend::KVM.to_string(), "kvm");
     }
 

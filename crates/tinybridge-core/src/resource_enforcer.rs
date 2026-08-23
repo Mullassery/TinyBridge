@@ -2,7 +2,6 @@
 /// Phase 4.0.3: Profile-Based Resource Management
 ///
 /// Apply and enforce resource limits for daemon processes
-
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -195,7 +194,9 @@ impl ResourcePolicy {
         ResourcePolicy {
             cpu: CpuLimit::from_cores(8),
             memory: MemoryLimit::from_gb(16).no_swap(),
-            disk: DiskLimit::from_size_gb(100).with_bandwidth(500, 300).with_iops(10000),
+            disk: DiskLimit::from_size_gb(100)
+                .with_bandwidth(500, 300)
+                .with_iops(10000),
             network: Some(NetworkLimit::new(10000)),
             priority: -5,
             oom_killer: false,
@@ -293,8 +294,11 @@ impl ResourceUsage {
     pub fn to_percentages(&self, policy: &ResourcePolicy) -> ResourcePercentages {
         ResourcePercentages {
             cpu_percent: (self.cpu_percent / policy.cpu.percent as f64 * 100.0).min(100.0),
-            memory_percent: (self.memory_bytes as f64 / policy.memory.bytes as f64 * 100.0).min(100.0),
-            disk_percent: (self.disk_bytes as f64 / (policy.disk.size_gb as u64 * 1024 * 1024 * 1024) as f64 * 100.0)
+            memory_percent: (self.memory_bytes as f64 / policy.memory.bytes as f64 * 100.0)
+                .min(100.0),
+            disk_percent: (self.disk_bytes as f64
+                / (policy.disk.size_gb as u64 * 1024 * 1024 * 1024) as f64
+                * 100.0)
                 .min(100.0),
         }
     }
@@ -350,7 +354,9 @@ mod tests {
 
     #[test]
     fn test_disk_limit() {
-        let disk = DiskLimit::from_size_gb(100).with_bandwidth(500, 300).with_iops(10000);
+        let disk = DiskLimit::from_size_gb(100)
+            .with_bandwidth(500, 300)
+            .with_iops(10000);
         assert_eq!(disk.size_gb, 100);
         assert_eq!(disk.read_mbps, 500);
         assert_eq!(disk.write_mbps, 300);

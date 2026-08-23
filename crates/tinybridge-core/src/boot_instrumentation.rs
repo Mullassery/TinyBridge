@@ -2,7 +2,6 @@
 /// Phase 4.0.2: OTel Integration
 ///
 /// Spans and events for daemon boot phases with config context
-
 use crate::otel_provider::TraceContext;
 use serde::{Deserialize, Serialize};
 use std::time::{Duration, Instant};

@@ -1,6 +1,6 @@
 use anyhow::Result;
-use std::path::PathBuf;
 use serde_json::json;
+use std::path::PathBuf;
 
 use crate::client::DaemonClient;
 use crate::output;
@@ -30,10 +30,7 @@ pub async fn execute(args: ShutdownArgs, socket: Option<PathBuf>) -> Result<()> 
 
     client.call("environment.shutdown", params).await?;
 
-    output::print_success(&format!(
-        "Environment '{}' is shutting down",
-        env_name
-    ));
+    output::print_success(&format!("Environment '{}' is shutting down", env_name));
     output::print_info("Use 'tinybridge up' to start it again (same state preserved)");
 
     Ok(())

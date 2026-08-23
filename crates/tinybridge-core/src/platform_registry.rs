@@ -2,7 +2,6 @@
 /// Phase 6: Cross-Platform Compatibility
 ///
 /// Dynamic registration and selection of platform adapters
-
 use crate::platform_abstraction::{HostPlatform, PlatformAdapter, PlatformInfo};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;

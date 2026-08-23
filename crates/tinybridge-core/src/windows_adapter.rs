@@ -14,7 +14,8 @@
 //! currently-supported platform (macOS only, via `crates/tinybridge-vz`).
 
 use crate::platform_abstraction::{
-    NetworkMode, PlatformAdapter, PlatformCapabilities, PlatformInfo, StorageMount, VMResourceConfig,
+    NetworkMode, PlatformAdapter, PlatformCapabilities, PlatformInfo, StorageMount,
+    VMResourceConfig,
 };
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -49,7 +50,10 @@ impl WindowsVMMetadata {
     /// Create new VM metadata
     pub fn new(name: &str, config: &VMResourceConfig) -> Self {
         let vm_id = uuid::Uuid::new_v4().to_string();
-        let hyperv_path = PathBuf::from(format!("C:\\ProgramData\\Microsoft\\Windows\\Hyper-V\\{}", vm_id));
+        let hyperv_path = PathBuf::from(format!(
+            "C:\\ProgramData\\Microsoft\\Windows\\Hyper-V\\{}",
+            vm_id
+        ));
         let vhd_path = hyperv_path.join(format!("{}.vhdx", name));
 
         WindowsVMMetadata {
@@ -123,8 +127,10 @@ impl PlatformAdapter for WindowsHyperVAdapter {
 
         // In a real implementation, this would call Hyper-V APIs via PowerShell or WinRM
         // For now, we simulate the operation
-        eprintln!("Windows: Creating Hyper-V VM '{}' with {} CPU cores, {} GB RAM",
-                  name, config.cpu_cores, config.memory_gb);
+        eprintln!(
+            "Windows: Creating Hyper-V VM '{}' with {} CPU cores, {} GB RAM",
+            name, config.cpu_cores, config.memory_gb
+        );
 
         self.update_vm(metadata)?;
         Ok(vm_id)
@@ -214,7 +220,10 @@ impl PlatformAdapter for WindowsHyperVAdapter {
         };
 
         // In a real implementation: Add-VMNetworkAdapter -VMName $vmName -SwitchName $switchName
-        eprintln!("Windows: Configuring network for '{}' as {}", metadata.name, mode_name);
+        eprintln!(
+            "Windows: Configuring network for '{}' as {}",
+            metadata.name, mode_name
+        );
 
         metadata.network_mode = mode_name.to_string();
         self.update_vm(metadata)?;
@@ -263,11 +272,7 @@ impl PlatformAdapter for WindowsHyperVAdapter {
         Ok(())
     }
 
-    fn allocate_usb(
-        &self,
-        vm_id: &str,
-        device_id: &str,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn allocate_usb(&self, vm_id: &str, device_id: &str) -> Result<(), Box<dyn std::error::Error>> {
         let _metadata = self.get_vm(vm_id)?;
 
         // USB passthrough not supported on Hyper-V
@@ -278,11 +283,7 @@ impl PlatformAdapter for WindowsHyperVAdapter {
         .into())
     }
 
-    fn release_usb(
-        &self,
-        vm_id: &str,
-        device_id: &str,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn release_usb(&self, vm_id: &str, device_id: &str) -> Result<(), Box<dyn std::error::Error>> {
         let _metadata = self.get_vm(vm_id)?;
         Err(format!(
             "USB passthrough not available on Windows Hyper-V (device: {})",
@@ -299,7 +300,7 @@ impl PlatformAdapter for WindowsHyperVAdapter {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::platform_abstraction::{HypervisorBackend, HostPlatform};
+    use crate::platform_abstraction::{HostPlatform, HypervisorBackend};
 
     fn create_adapter() -> WindowsHyperVAdapter {
         let platform_info = PlatformInfo {

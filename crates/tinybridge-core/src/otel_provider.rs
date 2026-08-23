@@ -2,7 +2,6 @@
 /// Phase 4.0.2: OTel Integration
 ///
 /// Initialize trace provider with Jaeger backend and Prometheus metrics
-
 use std::time::Duration;
 
 /// OTel provider configuration
@@ -55,8 +54,8 @@ impl OtelProvider {
         if config.enable_tracing {
             #[cfg(feature = "otel")]
             {
-                use opentelemetry_jaeger as jaeger;
                 use opentelemetry::global;
+                use opentelemetry_jaeger as jaeger;
 
                 let tracer = jaeger::new_agent_pipeline()
                     .install_simple()

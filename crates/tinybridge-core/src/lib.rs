@@ -28,25 +28,30 @@ pub mod resource_enforcer;
 pub mod ssh_keys;
 pub mod windows_adapter;
 
-pub use boot_diagnostics::{BootDiagnosticReport, BootPerformanceMetrics, ComponentHealth, HealthCheckEngine, HealthReport, HealthStatus};
-pub use boot_instrumentation::{BootInstrumentation, BootPhase, BootSpan, BootSummary, ConfigContext, SpanStatus};
-pub use boot_integration::{BootIntegrationTester, BootReadinessValidator, BootScenario, BootTestResult};
-pub use boot_recovery::{BootFailure, BootFailureType, BootRecoveryHandler, DegradationPolicy, RecoveryStrategy, RecoverySummary};
-pub use linux_adapter::{LinuxKVMAdapter, LinuxVMMetadata};
-pub use macos_adapter::{MacOSAppleAdapter, MacOSVMMetadata};
-pub use platform_abstraction::{HostPlatform, HypervisorBackend, NetworkMode, PlatformAdapter, PlatformCapabilities, PlatformInfo, StorageMount, VMResourceConfig};
-pub use platform_registry::{PlatformRegistry, RegistryStatus};
-pub use windows_adapter::{WindowsHyperVAdapter, WindowsVMMetadata};
+pub use boot_diagnostics::{
+    BootDiagnosticReport, BootPerformanceMetrics, ComponentHealth, HealthCheckEngine, HealthReport,
+    HealthStatus,
+};
+pub use boot_instrumentation::{
+    BootInstrumentation, BootPhase, BootSpan, BootSummary, ConfigContext, SpanStatus,
+};
+pub use boot_integration::{
+    BootIntegrationTester, BootReadinessValidator, BootScenario, BootTestResult,
+};
+pub use boot_recovery::{
+    BootFailure, BootFailureType, BootRecoveryHandler, DegradationPolicy, RecoveryStrategy,
+    RecoverySummary,
+};
 pub use boot_stages::{BootReadiness, BootTier, BootTimeline, BootTimelineSummary, TierFeatures};
 pub use config::{DefaultResources, TinyBridgeConfig};
 pub use config_overrides::{CliOverrides, EnvOverrides, OverrideEngine};
-pub use config_parser::{ConfigError, ConfigOverrides, EnvironmentConfig, NetworkConfig, PortMapping, ResourceSpec, VolumeMount};
-pub use daemon_bootstrap::{BootstrapConfig, BootstrapResult, DaemonBootstrapper, ResourceAllocation};
-pub use lazy_loader::{Loadable, LazyLoadScheduler, LoadState, LoaderSummary};
-pub use metrics::{BootMetrics, MetricType, MetricValue, MetricsRegistry, ResourceMetrics};
-pub use otel_provider::{OtelConfig, OtelProvider, TraceContext};
-pub use profiles::Profile;
-pub use resource_enforcer::{CpuLimit, DiskLimit, MemoryLimit, NetworkLimit, ResourcePercentages, ResourcePolicy, ResourceUsage};
+pub use config_parser::{
+    ConfigError, ConfigOverrides, EnvironmentConfig, NetworkConfig, PortMapping, ResourceSpec,
+    VolumeMount,
+};
+pub use daemon_bootstrap::{
+    BootstrapConfig, BootstrapResult, DaemonBootstrapper, ResourceAllocation,
+};
 pub use dds::{
     DdsAuditEvent, DdsConfig, DdsEventType, DdsFeatures, DdsNetworkingConfig, DdsProfile,
     DdsSecurityConfig,
@@ -60,3 +65,19 @@ pub use ipc::{
     error_codes, methods, DownResponse, EnvironmentSummary, JsonRpcError, JsonRpcRequest,
     JsonRpcResponse, ListResponse, ShellResponse, StatusResponse, UpResponse,
 };
+pub use lazy_loader::{LazyLoadScheduler, LoadState, Loadable, LoaderSummary};
+pub use linux_adapter::{LinuxKVMAdapter, LinuxVMMetadata};
+pub use macos_adapter::{MacOSAppleAdapter, MacOSVMMetadata};
+pub use metrics::{BootMetrics, MetricType, MetricValue, MetricsRegistry, ResourceMetrics};
+pub use otel_provider::{OtelConfig, OtelProvider, TraceContext};
+pub use platform_abstraction::{
+    HostPlatform, HypervisorBackend, NetworkMode, PlatformAdapter, PlatformCapabilities,
+    PlatformInfo, StorageMount, VMResourceConfig,
+};
+pub use platform_registry::{PlatformRegistry, RegistryStatus};
+pub use profiles::Profile;
+pub use resource_enforcer::{
+    CpuLimit, DiskLimit, MemoryLimit, NetworkLimit, ResourcePercentages, ResourcePolicy,
+    ResourceUsage,
+};
+pub use windows_adapter::{WindowsHyperVAdapter, WindowsVMMetadata};

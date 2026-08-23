@@ -2,8 +2,9 @@
 ///
 /// Integrates policy engine with device manager to enforce access decisions.
 /// Provides the enforcement point where policies are checked before passthrough.
-
-use crate::device_manager::{Device, DeviceManager, DeviceType, PassthroughRequest, PassthroughResult};
+use crate::device_manager::{
+    Device, DeviceManager, DeviceType, PassthroughRequest, PassthroughResult,
+};
 use crate::policy_engine::{PolicyContext, PolicyDecision, PolicyEngine};
 use serde::{Deserialize, Serialize};
 
@@ -74,7 +75,8 @@ impl DeviceAccessController {
         };
 
         // Build policy context
-        let mut ctx = PolicyContext::new(environment.clone(), device_id.clone(), device.device_type);
+        let mut ctx =
+            PolicyContext::new(environment.clone(), device_id.clone(), device.device_type);
         if let Some(proj) = project {
             ctx = ctx.with_project(proj);
         }
@@ -171,13 +173,10 @@ impl DeviceAccessController {
     }
 
     /// Get access summary for an environment
-    pub fn get_access_summary(
-        &self,
-        environment: &str,
-        project: Option<&str>,
-    ) -> AccessSummary {
+    pub fn get_access_summary(&self, environment: &str, project: Option<&str>) -> AccessSummary {
         let all_devices = self.device_manager.available_devices();
-        let accessible_devices = self.get_available_devices_for_environment(environment, project, None);
+        let accessible_devices =
+            self.get_available_devices_for_environment(environment, project, None);
 
         let usb_total = self.device_manager.count_by_type(DeviceType::Usb);
         let usb_accessible = self
@@ -185,16 +184,14 @@ impl DeviceAccessController {
             .len();
 
         let serial_total = self.device_manager.count_by_type(DeviceType::Serial);
-        let serial_accessible =
-            self
-                .get_devices_by_type_and_policy(DeviceType::Serial, environment, project)
-                .len();
+        let serial_accessible = self
+            .get_devices_by_type_and_policy(DeviceType::Serial, environment, project)
+            .len();
 
         let camera_total = self.device_manager.count_by_type(DeviceType::Camera);
-        let camera_accessible =
-            self
-                .get_devices_by_type_and_policy(DeviceType::Camera, environment, project)
-                .len();
+        let camera_accessible = self
+            .get_devices_by_type_and_policy(DeviceType::Camera, environment, project)
+            .len();
 
         let audio_total = self.device_manager.count_by_type(DeviceType::Audio);
         let audio_accessible = self
@@ -289,7 +286,9 @@ mod tests {
         let device_mgr = DeviceManager::new();
         let controller = DeviceAccessController::new(policy, device_mgr);
 
-        assert!(controller.get_available_devices_for_environment("env1", None, None).is_empty());
+        assert!(controller
+            .get_available_devices_for_environment("env1", None, None)
+            .is_empty());
     }
 
     #[test]
@@ -316,12 +315,8 @@ mod tests {
         let mut controller = DeviceAccessController::new(policy, device_mgr);
 
         // Request access
-        let decision = controller.request_device_access(
-            "ml-env".to_string(),
-            device_id,
-            None,
-            None,
-        );
+        let decision =
+            controller.request_device_access("ml-env".to_string(), device_id, None, None);
 
         assert!(decision.allowed);
         assert!(decision.passthrough_result.is_some());

@@ -4,8 +4,8 @@ use std::path::PathBuf;
 use crate::client::DaemonClient;
 use crate::output;
 use clap::Parser;
-use tinybridge_core::methods;
 use serde_json::json;
+use tinybridge_core::methods;
 
 #[derive(Parser)]
 pub struct RepairArgs {
@@ -33,7 +33,10 @@ pub async fn execute(args: RepairArgs, socket: Option<PathBuf>) -> Result<()> {
     if let Some(status) = result.get("status").and_then(|v| v.as_str()) {
         match status {
             "repaired" => {
-                output::print_success(&format!("✓ Environment '{}' repaired successfully", env_name));
+                output::print_success(&format!(
+                    "✓ Environment '{}' repaired successfully",
+                    env_name
+                ));
 
                 if let Some(validation) = result.get("validation").and_then(|v| v.as_str()) {
                     println!("\nValidation results:");

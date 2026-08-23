@@ -4,7 +4,6 @@
 /// Platform > Project > VM > User
 ///
 /// Each level can override the level above it.
-
 use crate::device_manager::DeviceType;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
@@ -254,7 +253,10 @@ impl PolicyEngine {
 
         // 1. Check environment-level policy (highest priority)
         if let Some(env_policy) = self.environment_policies.get(&context.environment) {
-            decision_path.push(format!("Checked environment policy: {}", &context.environment));
+            decision_path.push(format!(
+                "Checked environment policy: {}",
+                &context.environment
+            ));
             if let Some(device_policy) = env_policy.get_policy(context.device_type) {
                 match device_policy.decision {
                     AccessDecision::Allow => {
@@ -336,11 +338,8 @@ impl PolicyEngine {
                             "Device {} not in whitelist/blacklist",
                             &context.device_id
                         ));
-                        return PolicyDecision::deny(
-                            "Device not in whitelist",
-                            "platform",
-                        )
-                        .with_path(decision_path);
+                        return PolicyDecision::deny("Device not in whitelist", "platform")
+                            .with_path(decision_path);
                     }
                 }
                 AccessDecision::Deny => {
@@ -474,8 +473,12 @@ mod tests {
             DevicePolicy::new(DeviceType::Usb, AccessDecision::Allow),
         );
 
-        let ctx = PolicyContext::new("robot-env".to_string(), "usb-123".to_string(), DeviceType::Usb)
-            .with_project("robotics".to_string());
+        let ctx = PolicyContext::new(
+            "robot-env".to_string(),
+            "usb-123".to_string(),
+            DeviceType::Usb,
+        )
+        .with_project("robotics".to_string());
         let decision = engine.evaluate(&ctx);
 
         assert!(decision.allowed);
@@ -561,13 +564,19 @@ mod tests {
         );
 
         // Blacklisted device should be denied
-        let ctx1 =
-            PolicyContext::new("env1".to_string(), "forbidden-device-1".to_string(), DeviceType::Serial);
+        let ctx1 = PolicyContext::new(
+            "env1".to_string(),
+            "forbidden-device-1".to_string(),
+            DeviceType::Serial,
+        );
         assert!(!engine.evaluate(&ctx1).allowed);
 
         // Non-blacklisted device should be allowed
-        let ctx2 =
-            PolicyContext::new("env1".to_string(), "allowed-device".to_string(), DeviceType::Serial);
+        let ctx2 = PolicyContext::new(
+            "env1".to_string(),
+            "allowed-device".to_string(),
+            DeviceType::Serial,
+        );
         assert!(engine.evaluate(&ctx2).allowed);
     }
 
@@ -621,9 +630,8 @@ mod tests {
             DevicePolicy::new(DeviceType::Usb, AccessDecision::Inherit),
         );
 
-        let ctx =
-            PolicyContext::new("env1".to_string(), "usb-123".to_string(), DeviceType::Usb)
-                .with_project("proj1".to_string());
+        let ctx = PolicyContext::new("env1".to_string(), "usb-123".to_string(), DeviceType::Usb)
+            .with_project("proj1".to_string());
         let decision = engine.evaluate(&ctx);
 
         assert!(decision.allowed);

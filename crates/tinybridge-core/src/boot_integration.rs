@@ -2,12 +2,11 @@
 /// Phase 4.0.5: Boot Testing & Validation
 ///
 /// Complete boot sequence testing through all 4 tiers with timing, features, and metrics
-
 use crate::{
     boot_instrumentation::{BootInstrumentation, BootPhase, BootSpan},
     boot_stages::{BootReadiness, BootTier, BootTimeline},
     daemon_bootstrap::{BootstrapConfig, DaemonBootstrapper},
-    lazy_loader::{Loadable, LazyLoadScheduler, LoadState},
+    lazy_loader::{LazyLoadScheduler, LoadState, Loadable},
     metrics::BootMetrics,
 };
 use serde::{Deserialize, Serialize};
@@ -234,7 +233,9 @@ impl BootIntegrationTester {
         self.scheduler.advance_tier(BootTier::Ssh);
 
         // Mark config_service as failed
-        let _ = self.scheduler.mark_failed("config_service", "initialization error");
+        let _ = self
+            .scheduler
+            .mark_failed("config_service", "initialization error");
 
         self.create_result(
             false,
@@ -253,7 +254,9 @@ impl BootIntegrationTester {
         self.scheduler.advance_tier(BootTier::Ssh);
 
         // Mark network_service as failed (which blocks ssh_tunnel)
-        let _ = self.scheduler.mark_failed("network_service", "connection failed");
+        let _ = self
+            .scheduler
+            .mark_failed("network_service", "connection failed");
 
         self.create_result(
             false,
@@ -395,8 +398,14 @@ impl BootReadinessValidator {
         let mut report = String::new();
         report.push_str(&format!("Boot Test Report: {:?}\n", result.scenario));
         report.push_str(&format!("Success: {}\n", result.success));
-        report.push_str(&format!("Components Loaded: {}\n", result.components_loaded));
-        report.push_str(&format!("Components Failed: {}\n", result.components_failed));
+        report.push_str(&format!(
+            "Components Loaded: {}\n",
+            result.components_loaded
+        ));
+        report.push_str(&format!(
+            "Components Failed: {}\n",
+            result.components_failed
+        ));
 
         if let Some(tier1) = result.timeline.tier1_ms {
             report.push_str(&format!("Tier 1 (SSH): {}ms\n", tier1));
@@ -514,9 +523,21 @@ mod tests {
 
     #[test]
     fn test_boot_readiness_validator_features() {
-        assert!(BootReadinessValidator::validate_features(BootTier::Ssh, 4, 4));
-        assert!(BootReadinessValidator::validate_features(BootTier::Ssh, 4, 5));
-        assert!(!BootReadinessValidator::validate_features(BootTier::Ssh, 5, 4));
+        assert!(BootReadinessValidator::validate_features(
+            BootTier::Ssh,
+            4,
+            4
+        ));
+        assert!(BootReadinessValidator::validate_features(
+            BootTier::Ssh,
+            4,
+            5
+        ));
+        assert!(!BootReadinessValidator::validate_features(
+            BootTier::Ssh,
+            5,
+            4
+        ));
     }
 
     #[test]

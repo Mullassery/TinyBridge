@@ -30,7 +30,7 @@ impl SshKeyManager {
             .arg("-f")
             .arg(private_key)
             .arg("-N")
-            .arg("")  // Empty passphrase
+            .arg("") // Empty passphrase
             .arg("-C")
             .arg("tinybridge@vm")
             .output()?;

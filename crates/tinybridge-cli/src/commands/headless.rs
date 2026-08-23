@@ -14,7 +14,10 @@ pub async fn execute(args: HeadlessArgs, socket: Option<PathBuf>) -> Result<()> 
 
     client.hide_window(Some(env_name.to_string())).await?;
 
-    output::print_success(&format!("✓ Display detached from {}. VM continues running headless.", env_name));
+    output::print_success(&format!(
+        "✓ Display detached from {}. VM continues running headless.",
+        env_name
+    ));
 
     Ok(())
 }

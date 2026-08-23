@@ -14,7 +14,8 @@
 //! `crates/tinybridge-vz`).
 
 use crate::platform_abstraction::{
-    NetworkMode, PlatformAdapter, PlatformCapabilities, PlatformInfo, StorageMount, VMResourceConfig,
+    NetworkMode, PlatformAdapter, PlatformCapabilities, PlatformInfo, StorageMount,
+    VMResourceConfig,
 };
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -66,7 +67,7 @@ impl LinuxVMMetadata {
             cpu_cores: config.cpu_cores,
             memory_gb: config.memory_gb,
             gpu_enabled: config.gpu_enabled,
-            iommu_support: true, // Assume modern Linux
+            iommu_support: true,             // Assume modern Linux
             network_mode: "NAT".to_string(), // safe-by-default; was "Bridged" (see SECURITY.md)
             shared_folders: Vec::new(),
             usb_devices: Vec::new(),
@@ -292,11 +293,7 @@ impl PlatformAdapter for LinuxKVMAdapter {
         Ok(())
     }
 
-    fn allocate_usb(
-        &self,
-        vm_id: &str,
-        device_id: &str,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn allocate_usb(&self, vm_id: &str, device_id: &str) -> Result<(), Box<dyn std::error::Error>> {
         let mut metadata = self.get_vm(vm_id)?;
 
         if !metadata.iommu_support {
@@ -315,11 +312,7 @@ impl PlatformAdapter for LinuxKVMAdapter {
         Ok(())
     }
 
-    fn release_usb(
-        &self,
-        vm_id: &str,
-        device_id: &str,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn release_usb(&self, vm_id: &str, device_id: &str) -> Result<(), Box<dyn std::error::Error>> {
         let mut metadata = self.get_vm(vm_id)?;
 
         if !metadata.usb_devices.contains(&device_id.to_string()) {
@@ -346,7 +339,7 @@ impl PlatformAdapter for LinuxKVMAdapter {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::platform_abstraction::{HypervisorBackend, HostPlatform};
+    use crate::platform_abstraction::{HostPlatform, HypervisorBackend};
 
     fn create_adapter() -> LinuxKVMAdapter {
         let platform_info = PlatformInfo {

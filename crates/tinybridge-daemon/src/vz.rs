@@ -41,9 +41,12 @@ impl VmManager {
         let socket_path = config.vmhost_socket_path(&env_id);
 
         // Ensure vmhost directory exists
-        let socket_dir = socket_path
-            .parent()
-            .ok_or_else(|| anyhow!("vmhost socket path {} has no parent directory", socket_path.display()))?;
+        let socket_dir = socket_path.parent().ok_or_else(|| {
+            anyhow!(
+                "vmhost socket path {} has no parent directory",
+                socket_path.display()
+            )
+        })?;
         std::fs::create_dir_all(socket_dir)?;
 
         // Spawn tinybridge-vmhost child process. This process is the one that actually owns
@@ -56,7 +59,10 @@ impl VmManager {
             .env("TINYBRIDGE_KERNEL_PATH", &kernel_path)
             .env("TINYBRIDGE_DISK_PATH", &disk_path)
             .env("TINYBRIDGE_CPU_COUNT", resources.cpu.to_string())
-            .env("TINYBRIDGE_MEMORY_BYTES", resources.memory_bytes.to_string())
+            .env(
+                "TINYBRIDGE_MEMORY_BYTES",
+                resources.memory_bytes.to_string(),
+            )
             .env("TINYBRIDGE_DISK_BYTES", resources.disk_bytes.to_string())
             .env("TINYBRIDGE_DISPLAY_WIDTH", "1920")
             .env("TINYBRIDGE_DISPLAY_HEIGHT", "1080")

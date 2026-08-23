@@ -2,7 +2,6 @@
 /// Phase 4.0.4: Boot Optimization
 ///
 /// Define boot tiers with specific features and timing targets
-
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
@@ -81,10 +80,7 @@ impl TierFeatures {
                 "network_setup".to_string(),
                 "ssh_tunnel".to_string(),
             ],
-            required_services: vec![
-                "config_service".to_string(),
-                "network_service".to_string(),
-            ],
+            required_services: vec!["config_service".to_string(), "network_service".to_string()],
             optional_services: vec![
                 "health_monitor".to_string(),
                 "metrics_service".to_string(),
@@ -107,11 +103,12 @@ impl TierFeatures {
             "resource_alloc".to_string(),
             "basic_operations".to_string(),
         ]);
-        features.required_services.push("health_monitor".to_string());
-        features.loaded_modules.extend(vec![
-            "health".to_string(),
-            "resources".to_string(),
-        ]);
+        features
+            .required_services
+            .push("health_monitor".to_string());
+        features
+            .loaded_modules
+            .extend(vec!["health".to_string(), "resources".to_string()]);
         features
     }
 
@@ -125,10 +122,9 @@ impl TierFeatures {
             "command_execution".to_string(),
         ]);
         features.required_services.push("api_server".to_string());
-        features.loaded_modules.extend(vec![
-            "api".to_string(),
-            "rpc".to_string(),
-        ]);
+        features
+            .loaded_modules
+            .extend(vec!["api".to_string(), "rpc".to_string()]);
         features
     }
 
@@ -171,7 +167,9 @@ impl TierFeatures {
 
     /// Check if all required services are available
     pub fn has_required_services(&self, available: &[String]) -> bool {
-        self.required_services.iter().all(|svc| available.contains(svc))
+        self.required_services
+            .iter()
+            .all(|svc| available.contains(svc))
     }
 
     /// Get services that need to be deferred
@@ -290,7 +288,9 @@ impl BootTimeline {
 
     /// Check all tiers met targets
     pub fn all_targets_met(&self) -> bool {
-        if let (Some(t1), Some(t2), Some(t3), Some(t4)) = (self.tier1_ms, self.tier2_ms, self.tier3_ms, self.tier4_ms) {
+        if let (Some(t1), Some(t2), Some(t3), Some(t4)) =
+            (self.tier1_ms, self.tier2_ms, self.tier3_ms, self.tier4_ms)
+        {
             BootTier::Ssh.meets_target(t1)
                 && BootTier::Usable.meets_target(t2)
                 && BootTier::Api.meets_target(t3)
@@ -366,14 +366,18 @@ mod tests {
     fn test_tier_features_usable() {
         let features = TierFeatures::usable();
         assert!(features.features.contains(&"health_check".to_string()));
-        assert!(features.required_services.contains(&"health_monitor".to_string()));
+        assert!(features
+            .required_services
+            .contains(&"health_monitor".to_string()));
     }
 
     #[test]
     fn test_tier_features_api() {
         let features = TierFeatures::api();
         assert!(features.features.contains(&"api_server".to_string()));
-        assert!(features.required_services.contains(&"api_server".to_string()));
+        assert!(features
+            .required_services
+            .contains(&"api_server".to_string()));
     }
 
     #[test]
@@ -410,10 +414,22 @@ mod tests {
 
     #[test]
     fn test_boot_readiness_percent() {
-        assert_eq!(BootReadiness::new(BootTier::Ssh, 1000, 0).readiness_percent(), 25);
-        assert_eq!(BootReadiness::new(BootTier::Usable, 4000, 0).readiness_percent(), 50);
-        assert_eq!(BootReadiness::new(BootTier::Api, 25000, 0).readiness_percent(), 75);
-        assert_eq!(BootReadiness::new(BootTier::Full, 100000, 0).readiness_percent(), 100);
+        assert_eq!(
+            BootReadiness::new(BootTier::Ssh, 1000, 0).readiness_percent(),
+            25
+        );
+        assert_eq!(
+            BootReadiness::new(BootTier::Usable, 4000, 0).readiness_percent(),
+            50
+        );
+        assert_eq!(
+            BootReadiness::new(BootTier::Api, 25000, 0).readiness_percent(),
+            75
+        );
+        assert_eq!(
+            BootReadiness::new(BootTier::Full, 100000, 0).readiness_percent(),
+            100
+        );
     }
 
     #[test]

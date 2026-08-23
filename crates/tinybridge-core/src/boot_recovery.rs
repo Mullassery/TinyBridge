@@ -2,7 +2,6 @@
 /// Phase 5: Production Hardening
 ///
 /// Error recovery strategies, retry logic, and graceful degradation
-
 use crate::boot_stages::BootTier;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -41,10 +40,7 @@ pub enum BootFailureType {
         actual_ms: u64,
     },
     /// Component initialization failed
-    ComponentFailure {
-        component: String,
-        error: String,
-    },
+    ComponentFailure { component: String, error: String },
     /// Dependency not available
     DependencyFailure {
         component: String,
@@ -57,29 +53,44 @@ pub enum BootFailureType {
         required: u64,
     },
     /// Configuration error
-    ConfigError {
-        error: String,
-    },
+    ConfigError { error: String },
     /// Network error
-    NetworkError {
-        error: String,
-    },
+    NetworkError { error: String },
 }
 
 impl std::fmt::Display for BootFailureType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            BootFailureType::Timeout { tier, actual_ms, target_ms } => {
-                write!(f, "Timeout on {:?}: {}ms > {}ms target", tier, actual_ms, target_ms)
+            BootFailureType::Timeout {
+                tier,
+                actual_ms,
+                target_ms,
+            } => {
+                write!(
+                    f,
+                    "Timeout on {:?}: {}ms > {}ms target",
+                    tier, actual_ms, target_ms
+                )
             }
             BootFailureType::ComponentFailure { component, error } => {
                 write!(f, "Component {} failed: {}", component, error)
             }
-            BootFailureType::DependencyFailure { component, dependency } => {
+            BootFailureType::DependencyFailure {
+                component,
+                dependency,
+            } => {
                 write!(f, "Component {} depends on {}", component, dependency)
             }
-            BootFailureType::ResourceExhaustion { resource, available, required } => {
-                write!(f, "{} exhausted: {} available, {} required", resource, available, required)
+            BootFailureType::ResourceExhaustion {
+                resource,
+                available,
+                required,
+            } => {
+                write!(
+                    f,
+                    "{} exhausted: {} available, {} required",
+                    resource, available, required
+                )
             }
             BootFailureType::ConfigError { error } => write!(f, "Config error: {}", error),
             BootFailureType::NetworkError { error } => write!(f, "Network error: {}", error),
@@ -216,8 +227,10 @@ impl BootRecoveryHandler {
             .filter(|f| {
                 matches!(
                     f.failure_type,
-                    BootFailureType::Timeout { tier: BootTier::Ssh, .. }
-                        | BootFailureType::ConfigError { .. }
+                    BootFailureType::Timeout {
+                        tier: BootTier::Ssh,
+                        ..
+                    } | BootFailureType::ConfigError { .. }
                 )
             })
             .count();

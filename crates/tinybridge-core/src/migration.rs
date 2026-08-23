@@ -29,7 +29,10 @@ fn migrate_launchd_agent() {
         return;
     }
 
-    debug!("Found legacy LaunchDaemon plist at {}, attempting cleanup", old_launchd_path);
+    debug!(
+        "Found legacy LaunchDaemon plist at {}, attempting cleanup",
+        old_launchd_path
+    );
 
     // Try both possible launchctl domains (old formula's load didn't qualify a domain)
     let domains = ["system/com.tinybridge.daemon", "gui/com.tinybridge.daemon"];
@@ -41,7 +44,10 @@ fn migrate_launchd_agent() {
 
     // Remove the plist file
     if let Err(e) = fs::remove_file(&old_launchd_path) {
-        warn!("Failed to remove old LaunchDaemon plist {}: {}", old_launchd_path, e);
+        warn!(
+            "Failed to remove old LaunchDaemon plist {}: {}",
+            old_launchd_path, e
+        );
     } else {
         debug!("Removed old LaunchDaemon plist");
     }

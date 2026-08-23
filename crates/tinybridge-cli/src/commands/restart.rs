@@ -32,7 +32,9 @@ pub async fn execute(args: RestartArgs, socket: Option<PathBuf>) -> Result<()> {
     client.down(args.name.clone(), args.force).await?;
 
     pb.set_message(format!("Starting {}...", env_name));
-    client.up(args.name.clone(), None, None, None, None, None, None).await?;
+    client
+        .up(args.name.clone(), None, None, None, None, None, None)
+        .await?;
 
     pb.finish_with_message(format!("✅ {} restarted", env_name));
 

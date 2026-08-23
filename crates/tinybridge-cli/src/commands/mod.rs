@@ -12,14 +12,14 @@ pub mod repair;
 pub mod restart;
 pub mod resume;
 pub mod shell;
+pub mod shutdown;
 pub mod snapshot;
 pub mod ssh;
 pub mod status;
 pub mod suspend;
-pub mod shutdown;
 pub mod templates;
-pub mod update;
 pub mod up;
+pub mod update;
 
 use clap::Parser;
 

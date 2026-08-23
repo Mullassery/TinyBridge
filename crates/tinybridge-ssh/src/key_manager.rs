@@ -4,8 +4,8 @@ use serde::{Deserialize, Serialize};
 use ssh_key::PrivateKey;
 use std::fs;
 use std::path::{Path, PathBuf};
-use uuid::Uuid;
 use tinybridge_core::TinyBridgeConfig;
+use uuid::Uuid;
 
 /// SSH key type
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]

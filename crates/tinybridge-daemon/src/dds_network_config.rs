@@ -2,7 +2,6 @@
 ///
 /// Configures DDS middleware for ROS 2 native networking.
 /// Supports multicast, UDP, and TCP transport.
-
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -91,10 +90,9 @@ impl Default for DDSParticipantConfig {
 impl DDSParticipantConfig {
     pub fn for_environment(env_name: &str) -> Self {
         let mut config = DDSParticipantConfig::default();
-        config.qos_settings.insert(
-            "participant".to_string(),
-            format!("env-{}", env_name),
-        );
+        config
+            .qos_settings
+            .insert("participant".to_string(), format!("env-{}", env_name));
         config
     }
 
@@ -152,9 +150,15 @@ impl DDSParticipantConfig {
 </dds>"#,
             self.domain_id,
             self.port_base,
-            self.multicast_addresses.first().unwrap_or(&"239.255.0.1".to_string()),
+            self.multicast_addresses
+                .first()
+                .unwrap_or(&"239.255.0.1".to_string()),
             self.port_base + 1,
-            if self.enable_multicast { "true" } else { "false" }
+            if self.enable_multicast {
+                "true"
+            } else {
+                "false"
+            }
         )
     }
 
@@ -162,10 +166,7 @@ impl DDSParticipantConfig {
     pub fn to_env_vars(&self) -> HashMap<String, String> {
         let mut env = HashMap::new();
 
-        env.insert(
-            "ROS_DOMAIN_ID".to_string(),
-            self.domain_id.to_string(),
-        );
+        env.insert("ROS_DOMAIN_ID".to_string(), self.domain_id.to_string());
 
         env.insert(
             "RMW_IMPLEMENTATION".to_string(),
@@ -180,10 +181,7 @@ impl DDSParticipantConfig {
                 );
             }
             DDSTransport::Tcp => {
-                env.insert(
-                    "ROS_DOMAIN_ID".to_string(),
-                    self.domain_id.to_string(),
-                );
+                env.insert("ROS_DOMAIN_ID".to_string(), self.domain_id.to_string());
                 env.insert(
                     "FASTRTPS_DEFAULT_PROFILES_FILE".to_string(),
                     "/etc/ros/fastdds_tcp_profiles.xml".to_string(),
