@@ -28,6 +28,9 @@ TinyBridge transitions from **engineering-focused** (Phase 1-3: boot perf, OTel,
 - **Diagnostics:** No health check system (`doctor` command doesn't exist)
 - **Templates:** No pre-built environments (rust, python, ros2, etc.)
 - **Error Handling:** Stack traces instead of actionable guidance
+- **Orphaned-process registry** (external critique, verified real gap): `daemon.rs`/`socket_server.rs` blindly `remove_file` a stale Unix socket on startup with no check for whether the owning process is still alive — no PID-file/lock registry to detect orphaned `tinybridge-vmhost` processes after a force-kill. Note: `VirtualMachine` already implements `Drop` correctly (`crates/tinybridge-vz/src/vm.rs:214-220`) for clean shutdown; the gap is specifically the *crash-recovery* path, not normal teardown.
+- **Runtime nested-virt/CPU-extension diagnostics** (external critique, verified real gap): `VirtualizationCheck::run` (`crates/tinybridge-diagnostics/src/checks/virtualization.rs`) only does a compile-time `cfg!(target_arch)` check (Intel vs Apple Silicon) — no runtime detection of nested-virtualization support or specific CPU extensions.
+- Note: two other external-critique items were checked and don't apply — there's no tap/tun/bridge networking code at all (uses Apple's unprivileged `VZNATNetworkDeviceAttachment`, so no root-prompt/sandboxing issue), and there's no multi-hypervisor capability-flag problem today since only the Apple VZ backend (`tinybridge-vz`) actually ships — the Hyper-V/KVM adapter files are explicitly dead code per a doc comment in `macos_adapter.rs`.
 
 ---
 
