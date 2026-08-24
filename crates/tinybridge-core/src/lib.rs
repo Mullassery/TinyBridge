@@ -21,6 +21,7 @@ pub mod macos_adapter;
 pub mod metrics;
 pub mod migration;
 pub mod otel_provider;
+pub mod pid_lock;
 pub mod platform_abstraction;
 pub mod platform_registry;
 pub mod profiles;

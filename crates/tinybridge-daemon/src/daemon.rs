@@ -2,6 +2,7 @@ use anyhow::Result;
 use std::os::unix::net::UnixListener;
 use std::path::PathBuf;
 use std::sync::Arc;
+use tinybridge_core::pid_lock::PidLock;
 use tinybridge_dds::DdsManager;
 use tokio::sync::Mutex;
 
@@ -9,15 +10,17 @@ use crate::manager::EnvironmentManager;
 use crate::server;
 
 pub async fn run(socket_path: PathBuf) -> Result<()> {
-    // Remove existing socket if it exists
-    if socket_path.exists() {
-        std::fs::remove_file(&socket_path)?;
-    }
-
     // Create parent directories if needed
     if let Some(parent) = socket_path.parent() {
         std::fs::create_dir_all(parent)?;
     }
+
+    // Only removes the existing socket (if any) once it's confirmed to be
+    // orphaned -- i.e. left behind by a process that's no longer running,
+    // not a still-live instance. See pid_lock.rs. The lock is held for the
+    // rest of this function's lifetime (it's dropped, cleaning up the PID
+    // file, when `run` returns).
+    let _pid_lock = PidLock::acquire(&socket_path)?;
 
     let listener = UnixListener::bind(&socket_path)?;
     listener.set_nonblocking(true)?;

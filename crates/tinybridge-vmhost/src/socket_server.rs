@@ -1,6 +1,7 @@
 use anyhow::Result;
 use serde_json::json;
 use std::path::PathBuf;
+use tinybridge_core::pid_lock::PidLock;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::net::{UnixListener, UnixStream};
 
@@ -9,18 +10,23 @@ use crate::vm_controller::VmController;
 pub struct SocketServer {
     socket_path: PathBuf,
     vm_controller: VmController,
+    // Held for SocketServer's lifetime; Drop removes the PID lock file on
+    // clean shutdown. Never read after construction, so field access
+    // itself isn't expected -- its existence is the point.
+    _pid_lock: PidLock,
 }
 
 impl SocketServer {
     pub fn new(socket_path: PathBuf, vm_controller: VmController) -> Result<Self> {
-        // Remove existing socket if it exists
-        if socket_path.exists() {
-            std::fs::remove_file(&socket_path)?;
-        }
+        // Only removes an existing socket once confirmed orphaned (left by
+        // a process that's no longer running, e.g. after a force-kill),
+        // not a still-live instance actively using it. See pid_lock.rs.
+        let pid_lock = PidLock::acquire(&socket_path)?;
 
         Ok(SocketServer {
             socket_path,
             vm_controller,
+            _pid_lock: pid_lock,
         })
     }
 

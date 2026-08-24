@@ -215,6 +215,20 @@ permissions, the virtualization entitlement requirement, and VirtioFS host-path 
 (implemented and tested ahead of the share-mounting FFI call itself being wired up - see
 `crates/tinybridge-vz/src/virtiofs.rs`).
 
+## Recent fixes (v0.6.0)
+
+- **Orphaned-process detection**: the daemon and `tinybridge-vmhost` used to blindly delete
+  a leftover control socket on startup with no check for whether the process that created
+  it was still running. `tinybridge-core::pid_lock::PidLock` now writes a `<socket>.pid`
+  file and checks whether that PID is actually alive (via `ps -p`) before touching
+  anything: a live instance's socket is left alone (startup errors out instead), a dead
+  instance's stale socket+lock is cleaned up automatically.
+- **`tinybridge doctor` virtualization check is now a runtime check, not just an
+  architecture check**: it now also reads `sysctl kern.hv_support` (the same signal
+  Hypervisor.framework/Virtualization.framework consult internally), so it correctly fails
+  when hardware virtualization is unavailable even on Apple Silicon - e.g. running nested
+  inside another VM without virtualization passthrough, or disabled by an MDM profile.
+
 ## Known debt / deliberately deferred
 
 - **Distribution is still broken for external users, though partially fixed**: the Homebrew
