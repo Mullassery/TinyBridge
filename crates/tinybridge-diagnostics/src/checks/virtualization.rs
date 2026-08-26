@@ -15,7 +15,10 @@ impl DiagnosticCheck for VirtualizationCheck {
             )
             .with_recommendation("TinyBridge requires macOS 13 or later");
         }
-        build_macos_result(check_apple_silicon(), check_hardware_virtualization_support())
+        build_macos_result(
+            check_apple_silicon(),
+            check_hardware_virtualization_support(),
+        )
     }
 }
 
