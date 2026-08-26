@@ -13,7 +13,7 @@ env:
 jobs:
   rust-lint-and-test:
     name: Rust (Lint & Test)
-    runs-on: macos-15
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
 
