@@ -217,8 +217,12 @@ impl DeviceManager {
             };
         }
 
-        // Mark as in use
+        // Mark as in use. Setting `status` (not just `in_use_by`) matters:
+        // `is_available()` only checks `status`, so leaving it at `Available`
+        // let a second environment pass this same availability check and
+        // allocate a device that was already handed to another environment.
         device.in_use_by = Some(request.environment.clone());
+        device.status = DeviceStatus::InUse;
 
         PassthroughResult {
             request_id: request.request_id,

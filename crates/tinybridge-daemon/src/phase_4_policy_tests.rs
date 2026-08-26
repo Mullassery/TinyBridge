@@ -268,23 +268,15 @@ mod access_control_integration_tests {
         let mut policy = PolicyEngine::new();
         let mut device_mgr = DeviceManager::new();
 
-        let mut whitelist = HashSet::new();
-        whitelist.insert("approved-serial".to_string());
-
-        // Platform allows Serial with whitelist
-        policy.set_platform_policy(
-            DeviceType::Serial,
-            DevicePolicy::new(DeviceType::Serial, AccessDecision::Allow).with_whitelist(whitelist),
-        );
-
-        // Register devices
+        // Register devices first: Device::new assigns a fresh UUID, so the
+        // whitelist must be built from the real generated id, not a literal.
         let device1 = Device::new(
             DeviceType::Serial,
             "Arduino".to_string(),
             "Serial 1".to_string(),
             "/dev/serial1".to_string(),
         );
-        let id1 = "approved-serial".to_string();
+        let id1 = device1.id.clone();
         device_mgr.register_device(device1);
 
         let device2 = Device::new(
@@ -295,6 +287,15 @@ mod access_control_integration_tests {
         );
         let id2 = device2.id.clone();
         device_mgr.register_device(device2);
+
+        let mut whitelist = HashSet::new();
+        whitelist.insert(id1.clone());
+
+        // Platform allows Serial with whitelist
+        policy.set_platform_policy(
+            DeviceType::Serial,
+            DevicePolicy::new(DeviceType::Serial, AccessDecision::Allow).with_whitelist(whitelist),
+        );
 
         let mut controller = DeviceAccessController::new(policy, device_mgr);
 
@@ -458,7 +459,10 @@ mod access_control_integration_tests {
         assert_eq!(summary.total_devices, 5);
         assert_eq!(summary.usb.1, 2);
         assert_eq!(summary.serial.1, 3);
-        assert_eq!(summary.overall_access_percentage(), 100.0); // All allowed by default
+        // PolicyEngine fails closed: with no platform/project/environment
+        // policy configured for a device type, evaluate() returns "No
+        // matching policy (default deny)". Nothing is accessible by default.
+        assert_eq!(summary.overall_access_percentage(), 0.0);
     }
 
     #[test]

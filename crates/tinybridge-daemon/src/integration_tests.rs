@@ -18,7 +18,8 @@ mod e2e_tests {
     fn test_error_propagation_flow() {
         // Simulate error at daemon level
         let error = BridgeError::vm("Memory allocation failed".to_string())
-            .with_severity(ErrorSeverity::Error);
+            .with_severity(ErrorSeverity::Error)
+            .with_context(tinybridge_error::ErrorContext::memory_allocation(512));
 
         // Convert to JSON-RPC format
         let (code, msg, data) = ErrorPropagator::to_json_rpc_error(&error);
@@ -270,12 +271,12 @@ mod e2e_tests {
         for error in error_kinds {
             let (code, _, _) = ErrorPropagator::to_json_rpc_error(&error);
 
-            // All codes should be valid JSON-RPC error codes (< -32000 or standard)
+            // All codes should be valid JSON-RPC error codes (<= -32000 or standard)
             assert!(code < 0, "Error code should be negative: {}", code);
 
             // Should not be reserved standard codes
             assert!(
-                code < -32000
+                code <= -32000
                     || code == -32603
                     || code == -32602
                     || code == -32601

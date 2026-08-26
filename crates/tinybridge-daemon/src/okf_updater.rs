@@ -104,13 +104,15 @@ pub enum OkfStatus {
 impl OkfSnapshot {
     #[allow(dead_code)]
     pub fn new(phase: String, metrics: ProductionMetrics) -> Self {
-        OkfSnapshot {
+        let mut snapshot = OkfSnapshot {
             phase,
             updated_at: Utc::now(),
             metrics: metrics.clone(),
             history: vec![metrics],
             status: OkfStatus::Healthy,
-        }
+        };
+        snapshot.status = snapshot.calculate_status();
+        snapshot
     }
 
     #[allow(dead_code)]

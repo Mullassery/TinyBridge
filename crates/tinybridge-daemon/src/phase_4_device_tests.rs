@@ -131,7 +131,7 @@ mod device_manager_integration {
 
         // Verify status changed
         let device = manager.get_device(&device_id).unwrap();
-        assert_eq!(device.status, DeviceStatus::Available); // Our mock doesn't change status to InUse
+        assert_eq!(device.status, DeviceStatus::InUse);
 
         // After release, status reverts
         manager.release_device(&device_id, "ml-training");
