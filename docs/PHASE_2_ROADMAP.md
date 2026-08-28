@@ -278,9 +278,10 @@ Extensibility, community contributions, production-grade tooling.
 
 **Commands:**
 ```bash
-# Download kernel
-curl -L -o ~/.tinybridge/assets/vmlinux \
-  https://github.com/cloud-hypervisor/cloud-hypervisor/releases/download/v31.0/arch-arm64-vmlinux
+# Download kernel (cloud-hypervisor release URL 404s as of 2026-08-28 - see
+# docs/BUILD_ASSETS_GUIDE.md; this is the confirmed-working replacement)
+curl -fL -o ~/.tinybridge/assets/vmlinux \
+  https://s3.amazonaws.com/spec.ccfc.min/firecracker-ci/v1.10/aarch64/vmlinux-5.10.223
 
 # Build rootfs (on Linux/WSL2)
 sudo debootstrap --arch arm64 --variant minbase noble ~/rootfs http://ports.ubuntu.com/ubuntu-ports/

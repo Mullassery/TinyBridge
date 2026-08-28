@@ -83,6 +83,42 @@ made with a real, complete guest disk image - not just a placeholder:
   currently no known app-level workaround. Re-verification is blocked on either an Apple OS
   update or testing on a macOS build that doesn't have this regression.
 
+**Re-verified 2026-08-28 on macOS 26.5.2 (Apple Silicon): a different failure mode, not the
+one above.** Repeated the same real-asset setup (Ubuntu 24.04 ARM64 cloud image, checksum
+verified, `qemu-img convert -O raw`, confirmed `EFI PART` GPT signature at offset 512; kernel
+from Firecracker's CI bucket, `vmlinux-5.10.223`, confirmed `file`-identified as a real ARM64
+boot Image — the cloud-hypervisor and firecracker-microvm release URLs `BUILD_ASSETS_GUIDE.md`
+documents both now 404, a separate doc-rot issue worth fixing) and ran `vz_boot_test` end to
+end:
+
+- `vm.start()` returned `Ok(())` (no `VZErrorDomain` error at all this time), and the VM
+  reached `state: Running` with a real NAT-assigned guest IP (`192.168.105.2`) within 5.5s —
+  further than the documented Code=1 immediate failure.
+- Despite that, the serial console log (`console=hvc0`, wired to a real
+  `VZFileHandleSerialPortAttachment`) stayed completely empty (0 bytes) for the full 60-second
+  observation window. A kernel that actually executed even one instruction past early boot
+  would have written something to `hvc0`; zero bytes after 60s means the guest CPU almost
+  certainly never ran real code, despite the hypervisor-level state machine saying `Running`.
+- `log show` around VM creation shows a concrete, reproducible AMFI rejection of the Swift
+  bridge's dylib that doesn't appear anywhere in the previous investigation:
+  `amfid: .../libTinyBridgeVZBridge.dylib not valid: Error Domain=AppleMobileFileIntegrityError
+  Code=-423 "The file is adhoc signed or signed by an unknown certificate chain"`. `syspolicyd`
+  still ultimately allows the library to load (`GK evaluateScanResult` succeeds, "allowed,
+  cache" in the kernel log), so this isn't an outright load failure — but it's a real, distinct
+  signal worth investigating as a possible contributor to the silent-no-boot symptom, since
+  Virtualization.framework may degrade privileged operations (like serial port wiring) when the
+  calling code's identity isn't AMFI-trusted, even with the `com.apple.security.virtualization`
+  entitlement present on the outer process. Explicitly re-codesigning the dylib itself
+  (`codesign --force --sign - --entitlements ... libTinyBridgeVZBridge.dylib`) did not change
+  the outcome — same AMFI complaint, same empty console.
+- Net effect: guest boot is still not achievable on this exact machine/OS build, but the
+  concrete symptom has changed from "immediate explicit error" to "silent hang with a
+  misleadingly optimistic `Running`+IP status," and there's now a specific, logged AMFI
+  signature error to chase (Error -423) that wasn't part of the prior investigation. Getting a
+  full Developer ID signature (not just ad-hoc) to test whether that resolves the AMFI
+  complaint would require a paid Apple Developer account, which the project has otherwise
+  avoided needing — worth a decision call before investing in that path.
+
 ## Platform Support
 
 | Platform | Hypervisor | Status |

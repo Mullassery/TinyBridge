@@ -26,27 +26,29 @@ The skeleton demonstrates the proper structure but is non-functional. A real sys
 
 ### Option 1: Download Pre-Built Kernel (Easiest)
 
-Cloud-Hypervisor releases include optimized arm64 kernels:
+**Note (2026-08-28):** the `cloud-hypervisor/cloud-hypervisor` release asset and the
+`firecracker-microvm/firecracker` `vmlinux.bin` release asset this section used to point at
+both now 404 — neither project ships a standalone prebuilt arm64 `vmlinux` in its release
+assets anymore (confirmed against the current `v53.0`/`v1.3.0` release asset lists). The
+Firecracker CI artifact bucket below is a real, currently-working replacement, confirmed by
+`file` to be a genuine `Linux kernel ARM64 boot executable Image`:
 
 ```bash
 cd ~/.tinybridge/assets
 
-# Download kernel
-curl -L -o vmlinux \
-  https://github.com/cloud-hypervisor/cloud-hypervisor/releases/download/v31.0/arch-arm64-vmlinux
+# Download kernel (Firecracker's CI artifact bucket - not a GitHub release asset, but a
+# real, working, versioned kernel build)
+curl -fL -o vmlinux \
+  https://s3.amazonaws.com/spec.ccfc.min/firecracker-ci/v1.10/aarch64/vmlinux-5.10.223
 
 # Verify
 file vmlinux
 sha256sum vmlinux
 ```
 
-**Alternatives if Cloud-Hypervisor isn't available:**
+**Alternatives:**
 
 ```bash
-# Firecracker kernel
-curl -L -o vmlinux \
-  https://github.com/firecracker-microvm/firecracker/releases/download/v1.3.0/vmlinux.bin
-
 # Direct Ubuntu arm64 kernel
 curl -L -o vmlinux \
   https://kernel.ubuntu.com/~kernel-ppa/mainline/v6.8/arm64/vmlinuz-6.8-generic
@@ -300,10 +302,11 @@ Expected timeline:
 
 ### On Your M5 MacBook:
 
-1. **Get kernel**
+1. **Get kernel** (the `cloud-hypervisor` release URL 404s as of 2026-08-28 — see the note
+   earlier in this file; this is the confirmed-working replacement)
    ```bash
-   curl -L -o ~/.tinybridge/assets/vmlinux \
-     https://github.com/cloud-hypervisor/cloud-hypervisor/releases/download/v31.0/arch-arm64-vmlinux
+   curl -fL -o ~/.tinybridge/assets/vmlinux \
+     https://s3.amazonaws.com/spec.ccfc.min/firecracker-ci/v1.10/aarch64/vmlinux-5.10.223
    ```
 
 2. **Build rootfs**
