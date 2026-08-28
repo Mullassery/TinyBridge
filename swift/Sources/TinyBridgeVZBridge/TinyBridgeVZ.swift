@@ -21,6 +21,10 @@ import CTinyBridgeVZ
 internal class VirtualMachineHost: NSObject, VZVirtualMachineDelegate, @unchecked Sendable {
     let vm: VZVirtualMachine
     let configuredMemoryBytes: UInt64
+    /// Matched against bootpd's `/var/db/dhcpd_leases` "name=" field (the
+    /// guest's own DHCP host-name option) to find this VM's real IP - see
+    /// `resolveGuestIP()`. Nil means IP detection is not attempted.
+    let vmName: String?
     var window: NSWindow?
     var machineView: VZVirtualMachineView?
     var ipAddress: String?
@@ -28,9 +32,10 @@ internal class VirtualMachineHost: NSObject, VZVirtualMachineDelegate, @unchecke
     var lastError: String?
     var bootMonitorTask: DispatchSourceTimer?
 
-    init(vm: VZVirtualMachine, configuredMemoryBytes: UInt64) {
+    init(vm: VZVirtualMachine, configuredMemoryBytes: UInt64, vmName: String? = nil) {
         self.vm = vm
         self.configuredMemoryBytes = configuredMemoryBytes
+        self.vmName = vmName
         super.init()
         vm.delegate = self
     }
@@ -84,15 +89,49 @@ internal class VirtualMachineHost: NSObject, VZVirtualMachineDelegate, @unchecke
         let timer = DispatchSource.makeTimerSource(queue: .main)
         timer.schedule(deadline: .now() + 2, repeating: 1.0)
         timer.setEventHandler { [weak self] in
-            // TODO: probe guest-side (e.g. SSH reachability through the NAT device) instead
-            // of assuming the default VZ NAT gateway-assigned address once we have a real
-            // guest image to test against.
-            if self?.vm.state == .running {
-                self?.ipAddress = self?.ipAddress ?? "192.168.105.2"
+            guard let self = self, self.vm.state == .running else { return }
+            if self.ipAddress == nil, let name = self.vmName {
+                self.ipAddress = Self.resolveGuestIP(vmName: name)
             }
         }
         timer.resume()
         bootMonitorTask = timer
+    }
+
+    /// Real (not guessed/hardcoded) guest IP lookup: parses
+    /// `/var/db/dhcpd_leases`, the file bootpd/vmnet actually writes real
+    /// DHCP leases to for VZNATNetworkDeviceAttachment-based networking,
+    /// and returns the `ip_address` of the entry whose `name=` field
+    /// (the guest's own DHCP host-name option, e.g. from cloud-init's
+    /// `hostname:` field) matches `vmName`. Returns nil - never a
+    /// fabricated fallback - if the file is unreadable, has no matching
+    /// entry, or the guest hasn't sent its DHCP request yet.
+    static func resolveGuestIP(vmName: String) -> String? {
+        guard let contents = try? String(contentsOfFile: "/var/db/dhcpd_leases", encoding: .utf8) else {
+            return nil
+        }
+        var currentName: String?
+        var currentIP: String?
+        for rawLine in contents.split(separator: "\n") {
+            let line = rawLine.trimmingCharacters(in: .whitespaces)
+            if line == "{" {
+                currentName = nil
+                currentIP = nil
+            } else if let eq = line.firstIndex(of: "=") {
+                let key = line[line.startIndex..<eq]
+                let value = String(line[line.index(after: eq)...])
+                if key == "name" {
+                    currentName = value
+                } else if key == "ip_address" {
+                    currentIP = value
+                }
+            } else if line == "}" {
+                if currentName == vmName, let ip = currentIP {
+                    return ip
+                }
+            }
+        }
+        return nil
     }
 
     private func stopBootMonitor() {
@@ -206,13 +245,21 @@ public func tb_vm_create(_ configPtr: UnsafeRawPointer?) -> UnsafeMutableRawPoin
         vmConfig.cpuCount = max(1, Int(config.cpu_count))
         vmConfig.memorySize = config.memory_bytes
 
-        // Storage device
+        // Storage device(s)
+        var storageDevices: [VZVirtioBlockDeviceConfiguration] = []
         if let diskPathC = config.disk_image_path {
             let diskURL = URL(fileURLWithPath: String(cString: diskPathC))
             let attachment = try VZDiskImageStorageDeviceAttachment(url: diskURL, readOnly: false)
-            let storage = VZVirtioBlockDeviceConfiguration(attachment: attachment)
-            vmConfig.storageDevices = [storage]
+            storageDevices.append(VZVirtioBlockDeviceConfiguration(attachment: attachment))
         }
+        // Second, read-only disk for a cloud-init NoCloud seed image - see
+        // the header's doc comment on seed_image_path for why this exists.
+        if let seedPathC = config.seed_image_path {
+            let seedURL = URL(fileURLWithPath: String(cString: seedPathC))
+            let seedAttachment = try VZDiskImageStorageDeviceAttachment(url: seedURL, readOnly: true)
+            storageDevices.append(VZVirtioBlockDeviceConfiguration(attachment: seedAttachment))
+        }
+        vmConfig.storageDevices = storageDevices
 
         // Network (NAT) - safe-by-default: NAT only, never bridged to the host LAN.
         let networkDevice = VZVirtioNetworkDeviceConfiguration()
@@ -264,7 +311,8 @@ public func tb_vm_create(_ configPtr: UnsafeRawPointer?) -> UnsafeMutableRawPoin
         try vmConfig.validate()
         let virtualMachine = VZVirtualMachine(configuration: vmConfig)
 
-        let host = VirtualMachineHost(vm: virtualMachine, configuredMemoryBytes: config.memory_bytes)
+        let vmName = config.vm_name.map { String(cString: $0) }
+        let host = VirtualMachineHost(vm: virtualMachine, configuredMemoryBytes: config.memory_bytes, vmName: vmName)
         let handle = Unmanaged.passRetained(host).toOpaque()
         host.vmHandle = handle
 

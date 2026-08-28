@@ -27,6 +27,21 @@ typedef struct {
     const char *initrd_path;
     const char *cmdline;
     const char *disk_image_path;
+    // Optional: a second, read-only storage device (e.g. a cloud-init
+    // NoCloud seed ISO/image labeled "cidata"). NULL means no second disk
+    // is attached. Needed because a raw cloud disk image with no
+    // datasource has no way to set a login password or SSH key on first
+    // boot - cloud-init's NoCloud datasource looks for exactly this kind
+    // of labeled block device.
+    const char *seed_image_path;
+    // Optional: used only for real guest-IP detection (see
+    // tb_vm_get_status's ip_address field) - matched against the "name="
+    // field bootpd writes to /var/db/dhcpd_leases, which comes from the
+    // guest's own DHCP host-name option. For this to actually resolve to
+    // an IP, the guest's hostname (e.g. cloud-init's `hostname:` seed
+    // field) must be set to the same value as this. NULL means no IP
+    // detection is attempted (ip_address is left empty, never a guess).
+    const char *vm_name;
     uint32_t cpu_count;
     uint64_t memory_bytes;
     bool enable_rosetta;

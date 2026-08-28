@@ -55,8 +55,13 @@ to work:
 5. Ad-hoc codesigning with the virtualization entitlement (no paid Apple Developer account
    required) was confirmed sufficient for local use - see `justfile`'s `sign-vmhost` recipe.
 
-**Not yet verified**: booting all the way to a real guest login/SSH prompt. A real attempt was
-made with a real, complete guest disk image - not just a placeholder:
+**RESOLVED 2026-08-28: guest boot to a real login prompt, with real credentials, now works.**
+The root cause of every prior failure below was never an unfixable Apple regression - it was
+using the wrong kernel. Kept the failed attempts below for a complete record, then see "The
+actual fix" underneath for what resolved it.
+
+**Prior failed attempts** (kept for a complete record - a real guest disk image was used
+throughout, not a placeholder):
 
 - A real Ubuntu 24.04 ARM64 cloud image was downloaded, checksum-verified, and converted from
   QCOW2 to the raw format `VZDiskImageStorageDeviceAttachment` requires (`qemu-img convert -O
@@ -119,11 +124,67 @@ end:
   complaint would require a paid Apple Developer account, which the project has otherwise
   avoided needing — worth a decision call before investing in that path.
 
+### The actual fix (2026-08-28, same macOS 26.5.2 machine)
+
+The AMFI signature theory above was a red herring. The real root cause: **the Firecracker CI
+kernel used in every attempt above (`vmlinux-5.10.223`) is built for Firecracker's own minimal
+microVM hardware model (virtio-mmio transport, no PCI), not Apple's Virtualization.framework
+hardware model (which needs virtio-pci)** - so the kernel could never have found its root
+disk or console regardless of any code-signing issue. Confirmed by extracting the *same
+cloud image's own* matching kernel and initrd (loop-mounting `disk.raw`'s `/boot` partition -
+partition 16 in this GPT layout, not partition 1, in a privileged Linux container since macOS
+can't mount ext4 natively) and booting with those instead:
+
+- `vmlinuz-6.8.0-138-generic` (gzip-wrapped; `gunzip -c` first to get the real
+  `Linux kernel ARM64 boot executable Image` `VZLinuxBootLoader` needs) + its matching
+  `initrd.img-6.8.0-138-generic`, both pulled straight out of the cloud image's own `/boot` -
+  guaranteed to match (unlike guessing a kernel from an unrelated project's release).
+- With this kernel+initrd (`VmConfig::with_initrd`, already present in the API but never
+  exercised by `vz_boot_test` until now - the example only accepted 3 args, not 4), the
+  console log fills with real boot output: `virtio_blk virtio2: [vda] ... vda: vda1 vda15
+  vda16` (the disk is found, GPT partitions correctly enumerated), then a full systemd boot
+  (dbus, rsyslog, polkit, snapd, ModemManager, cloud-init, ...) all the way to
+  `Ubuntu 24.04.4 LTS ubuntu hvc0 / ubuntu login:` - a real, complete guest boot.
+- A raw cloud image with no datasource boots but has no usable login (no password, no SSH
+  key - cloud-init has nothing to configure). Added second-disk support
+  (`seed_image_path`/`VmConfig::with_seed_image`, threaded through the C header, Swift
+  bridge, and Rust FFI) to attach a cloud-init NoCloud seed ISO (`user-data`/`meta-data`,
+  volume label `cidata`, built with `hdiutil makehybrid -iso -joliet
+  -default-volume-name cidata`) as a second, read-only `VZVirtioBlockDeviceConfiguration`.
+  Confirmed in the console log: `Datasource DataSourceNoCloud [seed=/dev/vdb]`, password set,
+  SSH host keys generated - a real, working login now exists.
+- **Also found and fixed a real, separate bug while validating this**: `tb_vm_get_status`'s
+  `ip_address` was **hardcoded** to the literal string `"192.168.105.2"`
+  (`self?.ipAddress = self?.ipAddress ?? "192.168.105.2"`, with an honest `// TODO: probe
+  guest-side ... once we have a real guest image to test against` comment above it - not
+  hidden, but never actually revisited until this session had a real guest to test against).
+  Every prior "verified ... with a detected NAT guest IP" claim in this file (including
+  earlier in this same investigation) was reading that constant, not a real value. Fixed
+  with a real mechanism: `/var/db/dhcpd_leases` (bootpd's real DHCP lease file for
+  vmnet-based NAT networking) has one entry per client with a `name=` field taken from the
+  guest's own DHCP host-name option. `TBVMConfig` gained a `vm_name` field (the same name
+  string already passed to `VirtualMachine::new`); the boot monitor now parses that lease
+  file and returns the `ip_address` of the entry whose `name=` matches, or `nil` - never a
+  guess - if there's no match yet. Confirmed against the real lease file: `name=tinybridge-vm
+  / ip_address=192.168.64.3`, and `vm.status()` now reports exactly that real, resolved
+  address instead of the old placeholder. Requires the guest's hostname (e.g. cloud-init's
+  `hostname:` seed field) to match the VM's `name` - documented on the header field.
+
+**Remaining known gap**: SSH/TCP/ICMP from the *host* to the guest's real, confirmed IP
+(`192.168.64.3`) doesn't get a response, even though the DHCP lease proves the guest is up
+and networked (`bridge100`'s ARP table shows the address as unresolved/incomplete). This
+looks like macOS's "Local Network" privacy permission gating the *calling* process
+(Terminal.app, in this investigation) rather than a TinyBridge bug - `tccutil`/`TCC.db` shows
+no local-network grant recorded for it, and that permission can only be granted through a
+real System Settings prompt, not scripted. Whoever picks this up next should grant Local
+Network access to whatever terminal/app is being used, then retry SSH to the guest's real IP
+(read from `vm.status()` or `/var/db/dhcpd_leases`) before assuming there's a code bug here.
+
 ## Platform Support
 
 | Platform | Hypervisor | Status |
 |---|---|---|
-| macOS (Apple Silicon / Intel, macOS 13+) | Apple Virtualization.framework | **Real, wired, verified to boot a VM to the hypervisor `Running` state.** Guest-image pipeline (kernel/rootfs download + checksum) still needs to be completed for a full guest boot. |
+| macOS (Apple Silicon / Intel, macOS 13+) | Apple Virtualization.framework | **Real, wired, verified to boot a complete real guest to a login prompt with working cloud-init credentials** (2026-08-28 - see "The actual fix" above). Host-to-guest SSH is blocked on a local, one-time macOS "Local Network" permission grant, not a code issue. |
 | Windows | Hyper-V / WHPX | Not implemented. `windows_adapter.rs` is unimplemented scaffolding, not wired to anything. |
 | Linux | KVM/QEMU | Not implemented. `linux_adapter.rs` is unimplemented scaffolding, not wired to anything. |
 

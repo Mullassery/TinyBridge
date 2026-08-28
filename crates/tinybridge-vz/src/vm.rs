@@ -79,6 +79,17 @@ impl VirtualMachine {
             .as_ref()
             .and_then(|p| CString::new(p.clone()).ok());
 
+        let seed_image_cstring = config
+            .seed_image_path
+            .as_ref()
+            .and_then(|p| CString::new(p.clone()).ok());
+
+        // Used only for real guest-IP detection (see TBVMConfig's
+        // vm_name doc comment) - matched against the DHCP lease file's
+        // "name=" field, which comes from the guest's own DHCP host-name
+        // option (e.g. cloud-init's `hostname:`).
+        let vm_name_cstring = CString::new(name.clone()).ok();
+
         let vz_config = tinybridge_vz_sys::TBVMConfig {
             kernel_path: kernel_cstring.as_ptr(),
             initrd_path: initrd_cstring
@@ -87,6 +98,14 @@ impl VirtualMachine {
                 .unwrap_or(null_mut()),
             cmdline: cmdline_cstring.as_ptr(),
             disk_image_path: disk_cstring.as_ptr(),
+            seed_image_path: seed_image_cstring
+                .as_ref()
+                .map(|c| c.as_ptr())
+                .unwrap_or(null_mut()),
+            vm_name: vm_name_cstring
+                .as_ref()
+                .map(|c| c.as_ptr())
+                .unwrap_or(null_mut()),
             cpu_count: config.cpu_count,
             memory_bytes: config.memory_bytes,
             enable_rosetta: config.enable_rosetta,

@@ -8,6 +8,9 @@ pub struct VmConfig {
     pub initrd_path: Option<String>,
     pub cmdline: String,
     pub disk_image_path: String,
+    /// A second, read-only disk (e.g. a cloud-init NoCloud seed
+    /// image/ISO labeled "cidata") - see `with_seed_image`.
+    pub seed_image_path: Option<String>,
     pub enable_rosetta: bool,
     pub display_width: u32,
     pub display_height: u32,
@@ -31,6 +34,7 @@ impl VmConfig {
             initrd_path: None,
             cmdline: "root=/dev/vda1 rw console=hvc0 quiet".to_string(),
             disk_image_path,
+            seed_image_path: None,
             enable_rosetta: true,
             display_width: 1920,
             display_height: 1080,
@@ -42,6 +46,15 @@ impl VmConfig {
 
     pub fn with_initrd(mut self, path: String) -> Self {
         self.initrd_path = Some(path);
+        self
+    }
+
+    /// Attaches a second, read-only disk - typically a cloud-init NoCloud
+    /// seed image/ISO (volume label "cidata") so a raw cloud disk image
+    /// with no other datasource can still create a login/SSH-key on first
+    /// boot.
+    pub fn with_seed_image(mut self, path: String) -> Self {
+        self.seed_image_path = Some(path);
         self
     }
 
