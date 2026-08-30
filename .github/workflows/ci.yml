@@ -55,34 +55,14 @@ jobs:
       - name: Run clippy
         run: cargo clippy --workspace --all-targets -- -D warnings
 
-      # tinybridge-vz's tests link against the real Virtualization.framework bridge dylib
-      # built above; DYLD_LIBRARY_PATH makes the linker/loader find it at test-binary
-      # runtime. tinybridge-daemon and tinybridge-vz are no longer skipped - this is the
-      # whole point of wiring VmController to a real VirtualMachine: their tests now
-      # exercise real FFI code, not a mock.
-      - name: Run workspace tests (excluding tinybridge-daemon)
-        run: cargo test --workspace --exclude tinybridge-daemon --verbose
-        env:
-          DYLD_LIBRARY_PATH: ${{ github.workspace }}/target/swift-libs
-
-      # tinybridge-daemon has 9 pre-existing, deterministic test failures in subsystems
-      # unrelated to VM lifecycle/Virtualization.framework (device access policy, OKF
-      # updater, generic error-code-mapping integration tests) that predate this pass and
-      # were not part of its scope. They are skipped explicitly by name (not via a broad
-      # --workspace skip) so a *new* regression in this crate still fails CI, and so this
-      # known debt is visible rather than silently masked.
-      - name: Run tinybridge-daemon tests (skipping known pre-existing failures)
-        run: |
-          cargo test -p tinybridge-daemon --verbose -- \
-            --skip integration_tests::e2e_tests::test_error_code_mapping_completeness \
-            --skip integration_tests::e2e_tests::test_error_propagation_flow \
-            --skip okf_updater::tests::test_okf_snapshot_status_at_risk \
-            --skip okf_updater::tests::test_okf_snapshot_status_failed \
-            --skip phase_4_device_tests::device_manager_integration::test_device_isolation_between_environments \
-            --skip phase_4_device_tests::device_manager_integration::test_passthrough_lifecycle_single_environment \
-            --skip phase_4_policy_tests::access_control_integration_tests::test_access_control_device_allocation \
-            --skip phase_4_policy_tests::access_control_integration_tests::test_access_control_whitelist \
-            --skip phase_4_policy_tests::access_control_integration_tests::test_access_summary_generation
+      # tinybridge-vz's and tinybridge-daemon's tests link against the real
+      # Virtualization.framework bridge dylib built above; DYLD_LIBRARY_PATH makes the
+      # linker/loader find it at test-binary runtime. The 9 tinybridge-daemon tests
+      # (device access policy, OKF updater, error-code-mapping) that were previously
+      # skipped here as "known pre-existing failures" now pass -- verified locally,
+      # all 194/194 -- so they're no longer excluded.
+      - name: Run workspace tests
+        run: cargo test --workspace --verbose
         env:
           DYLD_LIBRARY_PATH: ${{ github.workspace }}/target/swift-libs
 
