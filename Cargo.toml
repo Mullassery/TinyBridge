@@ -25,7 +25,7 @@ version       = "0.6.0"
 edition       = "2021"
 rust-version  = "1.87"
 authors       = ["Georgi Mammen Mullassery <mullassery@gmail.com>"]
-license       = "Proprietary"
+license       = "Apache-2.0"
 repository    = "https://github.com/Mullassery/tinybridge"
 
 [workspace.dependencies]
