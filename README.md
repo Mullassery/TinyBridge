@@ -30,6 +30,18 @@ If you're evaluating this project: treat it as a real, working macOS-only VM run
 a genuine (if young) Virtualization.framework integration, not a finished cross-platform
 product.
 
+## Use cases
+
+- **Running a real Linux VM on Apple Silicon/Intel Mac via
+  Virtualization.framework**, verified to boot a real kernel with a real
+  NAT guest IP — see "What's actually been verified" below for the exact
+  chain.
+- **Not yet a good fit for:** Windows or Linux hosts (both hypervisor
+  backends are unimplemented scaffolding); a turnkey guest image out of
+  the box (the automated build pipeline for a bundled kernel+rootfs isn't
+  verified yet — see "Known debt" below); host-directory sharing via
+  VirtioFS (not wired to a real FFI call yet).
+
 ## What's actually been verified
 
 Directly observed on Apple Silicon (M-series, macOS 26), not just implemented and assumed
