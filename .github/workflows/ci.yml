@@ -15,7 +15,7 @@ jobs:
     name: Rust (Lint & Test)
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -86,7 +86,7 @@ jobs:
     name: Verify Assets
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Check sample-env.yaml exists
         run: |
@@ -107,7 +107,7 @@ jobs:
     # Advisory only: reports known-vulnerable dependencies without failing the build.
     # Flip to a hard failure once the workspace's current advisories (if any) are triaged.
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
