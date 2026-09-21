@@ -22,7 +22,7 @@ tinybridge-core = { workspace = true }
 
 # SSH key generation
 ssh-key = { version = "0.6", features = ["ed25519", "encryption"] }
-rand = "0.8"
+rand = "0.10"
 
 # File operations
 tempfile = { workspace = true }
