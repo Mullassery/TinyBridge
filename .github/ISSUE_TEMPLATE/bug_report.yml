@@ -1,0 +1,43 @@
+name: Bug Report
+description: Report something that's broken
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before filing: TinyBridge is macOS-only (see README's "Honest status"). Windows/Linux
+        hypervisor backends are unimplemented scaffolding, not bugs to report.
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened
+      description: What did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Run `tinybridge ...`
+        2. ...
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs / output
+      render: shell
+  - type: input
+    id: version
+    attributes:
+      label: TinyBridge version
+      description: Output of `tinybridge --version`
+    validations:
+      required: true
+  - type: input
+    id: macos
+    attributes:
+      label: macOS version and chip (Apple Silicon / Intel)
+    validations:
+      required: true

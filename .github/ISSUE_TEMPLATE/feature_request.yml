@@ -1,0 +1,24 @@
+name: Feature Request
+description: Suggest something new
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Check `ROADMAP_HONEST.md` first — some things that look missing are actually
+        unwired/dead code already sitting in the repo (e.g. device passthrough, IP
+        monitoring) that just need to be connected rather than built from scratch.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered

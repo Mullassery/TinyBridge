@@ -100,3 +100,20 @@ jobs:
           else
             echo "yamllint not available, skipping detailed validation"
           fi
+
+  security-audit:
+    name: Dependency Security Audit
+    runs-on: ubuntu-latest
+    # Advisory only: reports known-vulnerable dependencies without failing the build.
+    # Flip to a hard failure once the workspace's current advisories (if any) are triaged.
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install cargo-audit
+        run: cargo install cargo-audit --locked
+
+      - name: Run cargo audit
+        run: cargo audit || echo "cargo audit reported findings - see log above, not yet triaged"

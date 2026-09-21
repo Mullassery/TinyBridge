@@ -313,8 +313,12 @@ virtualization entitlement), which owns exactly one real `VZVirtualMachine` and 
 (`tinybridged`) spawns and talks to these per-VM processes; it never touches
 Virtualization.framework directly.
 
-See `docs/ARCHITECTURE.md` for more detail (note: some of that document predates this pass
-and may still describe the pre-wiring state in places).
+There is no separate, accurate architecture deep-dive doc beyond the diagram above yet: the
+old `docs/ARCHITECTURE.md` predated this project's honesty pass and described a SwiftUI
+menu-bar app, `.dmg`/notarized installer, and crates.io package that don't exist as a
+working product, so it has been moved to `docs/archive/` rather than kept as if current —
+see `docs/archive/README.md` for specifics. See `docs/README.md` for what documentation is
+current.
 
 ## Security
 
@@ -354,10 +358,17 @@ permissions, the virtualization entitlement requirement, and VirtioFS host-path 
   or the test suite ever ran. Fixing the formatting surfaced ~50 real clippy warnings across
   `tinybridge-core`, `tinybridge-cli`, and `tinybridge-daemon` that clippy had also never
   actually gotten a chance to check (same cascading-hidden-failure shape) - all fixed for
-  real (not suppressed), confirmed via a real, watched CI run. With `DYLD_LIBRARY_PATH`
-  pointed at `target/swift-libs`, `cargo test --workspace --exclude tinybridge-daemon`
-  passes 396/396, and `cargo test -p tinybridge-daemon` passes 185/194 (the other 9 are the
-  pre-existing, named failures CI already skips - see `.github/workflows/ci.yml`).
+  real (not suppressed), confirmed via a real, watched CI run. Re-verified directly during
+  the 2026-09-21 OSS-standardization pass: with `DYLD_LIBRARY_PATH` set to an *absolute*
+  path pointing at `target/swift-libs` (a relative path silently fails to load the dylib -
+  `cargo build`/`cargo fmt`/`cargo clippy` all pass regardless, but `cargo test` needs the
+  absolute form), `cargo build --workspace`, `cargo fmt --check`, and
+  `cargo clippy --workspace --all-targets -- -D warnings` all pass clean;
+  `cargo test --workspace --exclude tinybridge-daemon` passes 408/408 (this number has grown
+  from the previously-recorded 396/396 as tests were added since); `cargo test -p
+  tinybridge-daemon` now passes 194/194 (0 failed) - the 9 previously-skipped failures
+  mentioned in an earlier version of this section are gone from both the code and
+  `.github/workflows/ci.yml`, which no longer excludes or skips any daemon tests.
 - Two `TODO`s left in the CLI: `crates/tinybridge-cli/src/commands/logs.rs` (log retrieval
   from the daemon is not yet implemented) and `crates/tinybridge-cli/src/commands/launch.rs`
   (system detection is not yet implemented).

@@ -2,6 +2,16 @@
 
 **TinyBridge is the Linux environment for macOS that actually respects your time.**
 
+> **This is an aspirational vision document, not a description of current behavior.**
+> For what's actually built, tested, and verified today, read [README.md](README.md) first
+> — it documents real gaps this document glosses over: host→guest SSH doesn't currently
+> work out of the box (blocked on a one-time macOS permission grant), only Ubuntu 24.04 has
+> been verified to boot (not Debian/Alpine/Fedora), there's no parallel-environments or
+> resource-dashboard feature in the code, and none of the "seconds"/"1.5 second boot"
+> numbers below have been measured. Windows/Linux support, GPU routing, and ROS 2-native
+> multicast (Phases 2-5 below) do not exist in any form beyond the real, wired
+> `tinybridge dds` command described in README — see `ROADMAP_HONEST.md` for specifics.
+
 ---
 
 ## The Problem We Solve
@@ -98,7 +108,7 @@ Apache 2.0. No license costs. No vendor lock-in. Read the code, contribute, fork
 
 ## How TinyBridge Scales
 
-### Phase 1: Local Environment (Shipping Now)
+### Phase 1: Local Environment (partially built — see README for exact status)
 - Optimized boot with lazy-loading of services
 - SSH access available early in startup
 - Fast file sharing between macOS and Linux
@@ -195,4 +205,6 @@ No commercial tiers. No proprietary add-ons. No licensing costs. The Linux devel
 
 ---
 
-**Start today:** [5-Minute Getting Started Guide](./GETTING_STARTED.md)
+**Start today:** [README.md](README.md) for real install/build instructions and current
+status (the `GETTING_STARTED.md` this used to link to has been moved to `docs/archive/` —
+it described an install flow, `.dmg`, and macOS GUI app that don't exist).

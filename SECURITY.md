@@ -12,24 +12,14 @@ Include:
 - Potential impact
 - Suggested fix (if any)
 
-We will acknowledge receipt within 24 hours and provide updates on remediation progress.
+This is a one-person project (see [README.md](README.md)); there is no security team and
+no committed response-time SLA. Reports will be looked at as soon as reasonably possible,
+but treat this as best-effort, not a guaranteed turnaround.
 
 ## Supported Versions
 
-| Version | Supported |
-|---------|-----------|
-| Latest | Yes |
-| Previous | Limited |
-| Older | No |
-
-## Security Best Practices
-
-- Always use the latest version
-- Report vulnerabilities privately
-- Never share vulnerability details publicly before patch
-- Use environment variables for secrets (not hardcoded)
-- Keep dependencies updated
-- Enable GitHub security features
+Only the latest tagged release is supported. There is no backport policy for older
+versions.
 
 ## Guest Network Exposure
 
@@ -102,11 +92,12 @@ share into a VM's configuration.
 ## Vulnerability Disclosure
 
 When a security issue is confirmed:
-1. We develop and test a fix
-2. We release a new version with security patch
-3. We notify users of the vulnerability and fix
-4. We credit the reporter (if desired)
+1. A fix is developed and tested
+2. A new version is released with the fix
+3. Users are notified of the vulnerability and fix
+4. The reporter is credited (if desired)
 
 ## Contact
 
-Security Team: mullassery@gmail.com
+mullassery@gmail.com (same contact as the rest of this project — there is no separate
+security team).

@@ -34,7 +34,10 @@ env/
 
 # Rust
 target/
-Cargo.lock
+# Cargo.lock is intentionally committed: this workspace produces binaries
+# (tinybridge-cli, tinybridged, tinybridge-vmhost), not a library, so the lockfile
+# should be version-controlled for reproducible builds. It is already tracked in git;
+# do not add "Cargo.lock" back here or `git add`/CI reproducibility silently regresses.
 
 # Swift build output. This was previously (accidentally) committed - see
 # swift/.build/arm64-apple-macosx/release/libTinyBridgeVZBridge.dylib in git history - which
