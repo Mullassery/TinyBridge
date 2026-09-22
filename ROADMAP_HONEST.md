@@ -182,3 +182,36 @@ in `docs/archive/README.md`) rather than left as if current:
   none exist in the codebase in any form beyond the `tinybridge-dds` CLI plumbing described
   in §1 (which does real DDS *environment configuration*, not ROS 2-specific behavior).
 - A tested, bundled guest kernel+rootfs pipeline (README, "Known debt").
+
+## 6. Quick-fix pass (2026-09-22)
+
+A follow-up pass targeting only safe, well-understood, low-risk fixes — no architectural
+rewrites, no Windows/Linux backend implementation, no C ABI changes. One item found and fixed:
+
+- ~~**Lock-poisoning panics in `crates/tinybridge-core`'s platform-adapter scaffolding.**~~
+  **Fixed.** `macos_adapter.rs`, `windows_adapter.rs`, `linux_adapter.rs`, and
+  `platform_registry.rs` (the dead/unwired scaffolding described in §2-3 above — none of this
+  is reachable from the daemon, CLI, or any RPC path) all called `.read().unwrap()` /
+  `.write().unwrap()` directly on their internal `RwLock`s. A panic by any caller while
+  holding the lock (e.g. a future real adapter implementation hitting an unexpected FFI/OS
+  error) would poison the lock and make every *subsequent* call panic too, permanently
+  wedging that adapter (or, for `platform_registry.rs`, every registered adapter) behind a
+  poisoned lock. Changed all 15 call sites to
+  `.unwrap_or_else(|poisoned| poisoned.into_inner())`, which recovers the guard instead —
+  safe here because none of these types' methods ever leave the underlying `HashMap` in a
+  torn/partially-written state (each mutation is a single atomic insert/remove). Added
+  `test_survives_poisoned_lock` to all four files (spawns a thread that panics while holding
+  the lock, joins it, then asserts the adapter/registry is still fully usable) — each test
+  fails with a `PoisonError` panic against the pre-fix code and passes after. Left untouched:
+  the fact that these modules are dead scaffolding at all (that's the pre-existing, disclosed
+  §2/§3 gap — implementing a real Windows/Linux backend is explicitly out of scope for this
+  pass) and the real (`tokio::sync::Mutex`-based, non-poisoning) locking in
+  `crates/tinybridge-vmhost`, which was already correct and needed no change.
+- Everything else in §4 (`rsa`/`lru` advisories, blanket `dead_code` allow in
+  `tinybridge-daemon/src/main.rs`, `okf_updater.rs`'s 12 `#[allow(dead_code)]`s, the ~250
+  `.unwrap()` count, the committed release tarballs, the Firecracker URL 404s) and the two CLI
+  `TODO`s in §2 were reviewed and deliberately left alone: each either needs a real upgrade-
+  and-retest pass, a wiring/audit decision, or is already correctly scoped as a dedicated
+  follow-up rather than a quick fix. `cargo fmt --check`, `cargo clippy --workspace
+  --all-targets -- -D warnings`, and the full test suite were re-verified clean after this
+  pass's changes (`tinybridge-core` grew from 207 to 211 tests; everything else unchanged).

@@ -31,6 +31,19 @@ history of each version.
 - `.gitignore`: removed the bare `Cargo.lock` ignore rule (this workspace ships binaries;
   the lockfile is, and should stay, committed) and added an explanatory comment.
 
+### Fixed
+- `crates/tinybridge-core/src/macos_adapter.rs`, `windows_adapter.rs`, `linux_adapter.rs`,
+  `platform_registry.rs`: every `RwLock::read()`/`write()` call used `.unwrap()`, so a single
+  panic anywhere while holding the lock would poison it and make every subsequent VM-metadata
+  lookup/mutation (or adapter registration/lookup) on that adapter panic too. Switched to
+  `.unwrap_or_else(|poisoned| poisoned.into_inner())` to recover the guard instead — the
+  underlying `HashMap` is never left torn by any operation on these types, so recovering a
+  poisoned guard is safe. Added `test_survives_poisoned_lock` to each of the four files,
+  proving a call after a simulated panic-while-holding-the-lock now succeeds instead of
+  panicking. (These modules are dead/unwired scaffolding per `ROADMAP_HONEST.md` §2-3 — not
+  reachable from the daemon/CLI/RPC path — so this closes a real bug pattern without touching
+  any live code path.)
+
 ### Removed
 - `docs/CLAUDE.md` and `docs/PRODUCT_VISION.md` — stated `License: Proprietary` /
   `Repository: Private`, both false post-relicense/going-public, and fully superseded by

@@ -95,7 +95,16 @@ impl MacOSAppleAdapter {
 
     /// Get VM metadata
     fn get_vm(&self, vm_id: &str) -> Result<MacOSVMMetadata, Box<dyn std::error::Error>> {
-        let vms = self.vms.read().unwrap();
+        // Recover the guard on poison rather than panicking: a panic in one caller while
+        // holding this lock (e.g. a future real implementation hitting an FFI error) must
+        // not permanently wedge every other VM's metadata lookups behind a poisoned lock.
+        // The stored `HashMap` itself is never left in a torn/partial state by any method
+        // here (each insert/remove is a single atomic map operation), so recovering it is
+        // safe.
+        let vms = self
+            .vms
+            .read()
+            .unwrap_or_else(|poisoned| poisoned.into_inner());
         vms.get(vm_id)
             .cloned()
             .ok_or_else(|| format!("VM not found: {}", vm_id).into())
@@ -103,7 +112,11 @@ impl MacOSAppleAdapter {
 
     /// Update VM metadata
     fn update_vm(&self, metadata: MacOSVMMetadata) -> Result<(), Box<dyn std::error::Error>> {
-        let mut vms = self.vms.write().unwrap();
+        // See the comment in `get_vm` above: recover from poison instead of panicking.
+        let mut vms = self
+            .vms
+            .write()
+            .unwrap_or_else(|poisoned| poisoned.into_inner());
         vms.insert(metadata.vm_id.clone(), metadata);
         Ok(())
     }
@@ -242,7 +255,10 @@ impl PlatformAdapter for MacOSAppleAdapter {
             metadata.name
         );
 
-        let mut vms = self.vms.write().unwrap();
+        let mut vms = self
+            .vms
+            .write()
+            .unwrap_or_else(|poisoned| poisoned.into_inner());
         vms.remove(vm_id);
         Ok(())
     }
@@ -541,5 +557,42 @@ mod tests {
 
         let result = adapter.mount_storage(&vm_id, &mount);
         assert!(result.is_ok());
+    }
+
+    /// Before the fix, `get_vm`/`update_vm` called `.read().unwrap()` / `.write().unwrap()`
+    /// directly on the `vms` `RwLock`, which panics with "PoisonError" if any holder of the
+    /// lock ever panicked while holding it. This proves the adapter now recovers instead of
+    /// wedging every subsequent call behind a poisoned lock.
+    #[test]
+    fn test_survives_poisoned_lock() {
+        let adapter = create_adapter();
+        let config = VMResourceConfig {
+            cpu_cores: 2,
+            memory_gb: 4,
+            disk_gb: 20,
+            gpu_enabled: false,
+        };
+        let vm_id = adapter.create_vm("test-vm", &config).unwrap();
+
+        // Poison the internal RwLock by panicking on another thread while holding a write
+        // guard on it directly - simulating what happens if a future real implementation
+        // panics mid-mutation.
+        let vms_for_thread = std::sync::Arc::clone(&adapter.vms);
+        let join_result = std::thread::spawn(move || {
+            let _guard = vms_for_thread.write().unwrap();
+            panic!("simulated panic while holding the write lock");
+        })
+        .join();
+        assert!(
+            join_result.is_err(),
+            "background thread should have panicked, poisoning the lock"
+        );
+
+        // Every call below would itself panic here (propagating the poison) before the fix.
+        assert!(
+            adapter.start_vm(&vm_id).is_ok(),
+            "adapter must recover from a poisoned lock instead of panicking"
+        );
+        assert!(adapter.stop_vm(&vm_id).is_ok());
     }
 }
