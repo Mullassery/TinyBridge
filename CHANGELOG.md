@@ -11,6 +11,26 @@ history of each version.
 
 ## [Unreleased]
 
+### Fixed
+- `EnvironmentManager::up()` (`tinybridge launch`'s real code path) called
+  `VmManager::create_vm` with no way to pass an initrd or cloud-init seed
+  image, so it could never use the same config the only proven-working
+  guest boot (2026-08-28) actually needs - `create_vm`/`tinybridge-vmhost`
+  now accept optional `initrd`/`seed_image` paths
+  (`TINYBRIDGE_INITRD_PATH`/`TINYBRIDGE_SEED_IMAGE_PATH`) and thread them
+  into `VmConfig::with_initrd`/`with_seed_image`. `up()` also now fails
+  fast with an actionable error naming the missing file(s) if
+  `kernel`/`disk.raw` aren't present, instead of spawning
+  `tinybridge-vmhost` with paths that don't exist. Live-verified: the real
+  daemon code path now reaches a real `Running` VZ state in ~1s with real
+  boot assets (see README's "vs Lima" section for the full account).
+- `up()`'s generated SSH config entry hardcoded `hostname: "192.168.105.2"`
+  unconditionally, ignoring the real resolved guest IP computed a few
+  lines earlier in the same function - silently pointed SSH at the wrong
+  host whenever they differed. Now only writes an entry once a real IP is
+  known (`EnvironmentManager::build_ssh_entry`, unit-tested); skips
+  writing one at all rather than guessing.
+
 ## [0.6.1] - 2026-09-26
 
 ### Added

@@ -36,3 +36,6 @@ libc               = { version = "0.2" }
 # opentelemetry-http  = { version = "0.13" }
 # opentelemetry-otlp  = { version = "0.17", features = ["trace", "metrics", "http-proto"] }
 # tracing-opentelemetry = { version = "0.25", features = ["metrics"] }
+
+[dev-dependencies]
+tempfile = { workspace = true }

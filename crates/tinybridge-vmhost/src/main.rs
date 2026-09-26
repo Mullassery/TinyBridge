@@ -10,6 +10,8 @@ struct VmhostArgs {
     env_id: String,
     kernel_path: String,
     disk_path: String,
+    initrd_path: Option<String>,
+    seed_image_path: Option<String>,
     cpu_count: u32,
     memory_bytes: u64,
     disk_bytes: u64,
@@ -25,6 +27,8 @@ impl VmhostArgs {
             .map_err(|_| anyhow!("Missing TINYBRIDGE_KERNEL_PATH"))?;
         let disk_path = std::env::var("TINYBRIDGE_DISK_PATH")
             .map_err(|_| anyhow!("Missing TINYBRIDGE_DISK_PATH"))?;
+        let initrd_path = std::env::var("TINYBRIDGE_INITRD_PATH").ok();
+        let seed_image_path = std::env::var("TINYBRIDGE_SEED_IMAGE_PATH").ok();
         let cpu_count: u32 = std::env::var("TINYBRIDGE_CPU_COUNT")
             .unwrap_or_else(|_| "2".to_string())
             .parse()?;
@@ -45,6 +49,8 @@ impl VmhostArgs {
             env_id,
             kernel_path,
             disk_path,
+            initrd_path,
+            seed_image_path,
             cpu_count,
             memory_bytes,
             disk_bytes,
@@ -117,7 +123,7 @@ fn main() -> Result<()> {
 
 async fn async_main(args: VmhostArgs) -> Result<()> {
     // Create VM configuration
-    let vm_config = VmConfig::new(
+    let mut vm_config = VmConfig::new(
         args.kernel_path.clone(),
         args.disk_path.clone(),
         Resources {
@@ -131,6 +137,17 @@ async fn async_main(args: VmhostArgs) -> Result<()> {
         "root=/dev/vda1 rw console=hvc0 quiet systemd.unified_cgroup_hierarchy=1".to_string(),
     )
     .with_display(args.display_width, args.display_height);
+
+    // Both optional - see README's "The actual fix" for why a real cloud image needs its
+    // own matching initrd (Firecracker/cloud-hypervisor kernels use virtio-mmio, not the
+    // virtio-pci this hardware model needs) and a cloud-init seed image (a raw cloud image
+    // has no datasource, so no password/SSH key gets configured without one).
+    if let Some(initrd_path) = args.initrd_path.clone() {
+        vm_config = vm_config.with_initrd(initrd_path);
+    }
+    if let Some(seed_image_path) = args.seed_image_path.clone() {
+        vm_config = vm_config.with_seed_image(seed_image_path);
+    }
 
     // Initialize VM controller. This now attempts to create a real tinybridge_vz::VirtualMachine
     // (see vm_controller.rs) - if Virtualization.framework is unavailable or the process lacks

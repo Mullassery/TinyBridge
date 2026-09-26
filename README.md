@@ -395,6 +395,59 @@ its guest-image acquisition (download the real cloud image, boot it
 directly with its own kernel) is actually wired end-to-end — the exact
 gap on the TinyBridge side documented above.
 
+**RESOLVED 2026-09-27: `manager.rs::up()` is now wired to the same config
+API the verified 2026-08-28 boot used.** `VmManager::create_vm` and
+`tinybridge-vmhost` (`TINYBRIDGE_INITRD_PATH`/`TINYBRIDGE_SEED_IMAGE_PATH`
+env vars) now accept optional `initrd`/`seed.iso` paths and thread them
+into `VmConfig::with_initrd`/`with_seed_image`, exactly like
+`vz_boot_test` already proved works. `up()` also now fails fast with an
+actionable error naming the missing file(s) if `kernel`/`disk.raw` aren't
+present under the assets directory, instead of spawning `tinybridge-vmhost`
+with paths that don't exist and getting an opaque `VZErrorDomain` failure
+several layers deeper.
+
+**Real, live re-verification of the fixed code path** (not just the
+standalone example this time): populated the real assets directory
+(`kernel`, `initrd`, `disk.raw` — the same files extracted from the cloud
+image's own `/boot` per "The actual fix" above; no `seed.iso` in this
+specific run) and called the actual `EnvironmentManager::up()` used by
+`tinybridge launch`. Result: `Ok`, hypervisor state `Running`, in ~1s.
+`down(force=true)` cleanly tore it down afterward with no orphaned
+process. This is a real
+`#[ignore]`-gated regression test —
+`tinybridge-daemon/src/manager.rs::tests::up_drives_a_real_vm_to_running_state_via_the_daemon_code_path`
+— run manually with a codesigned `tinybridge-vmhost` on `PATH` and real
+assets in place; it can't run in CI (no Virtualization.framework there).
+**Not re-verified in this pass**: the `seed.iso`-equipped, full
+cloud-init-to-login-prompt path specifically through `up()` (only the
+hypervisor-reaches-Running layer was live-tested here) — the underlying
+API is unchanged from the already-proven-working `vz_boot_test` path, but
+nobody has exercised `up()` with all four files present in the same run
+yet.
+
+**Also found and fixed while doing this**: `up()`'s SSH config generation
+had a second, separate hardcoded-IP bug of the same shape as the
+`tb_vm_get_status` one already fixed above — every environment's
+`~/.ssh/config` entry wrote `hostname: "192.168.105.2"` unconditionally,
+regardless of `real_ip_address` (the actual resolved guest IP computed a
+few lines earlier in the same function). This silently pointed SSH at the
+wrong host whenever the real IP differed, with no error — a real
+correctness/security concern (connecting to a stale or unrelated VM that
+happens to hold that address), not just a cosmetic one. Fixed: the SSH
+entry is only written once a real IP is known
+(`EnvironmentManager::build_ssh_entry`, unit-tested); if the guest hasn't
+been assigned one yet within the boot-status poll window, no entry is
+written rather than one known to be wrong.
+
+**Still not built**: an automated asset-acquisition pipeline. Producing
+`kernel`/`initrd`/`disk.raw`/`seed.iso` from a fresh Ubuntu cloud image is
+still the fully-manual process documented in "The actual fix" (download,
+`qemu-img convert`, loop-mount in a privileged Linux container to extract
+`/boot`, `hdiutil` for the seed ISO) — `up()` now correctly *uses* these
+files once they exist, but nothing in the codebase produces them yet. A
+real user running `tinybridge launch` today still needs to place these
+four files under `dirs::cache_dir()/TinyBridge/assets/` by hand first.
+
 ## Known debt / deliberately deferred
 
 - **Distribution is still broken for external users, though partially fixed**: the Homebrew

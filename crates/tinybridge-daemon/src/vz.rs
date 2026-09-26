@@ -17,6 +17,16 @@ struct VmhostProcess {
     child: Child,
 }
 
+/// Boot assets for a new VM. `kernel_path`/`disk_path` are required; `initrd_path`/
+/// `seed_image_path` are optional (a raw cloud image with neither still boots, just
+/// with no datasource-provided login - see README's "The actual fix").
+pub struct VmBootAssets {
+    pub kernel_path: String,
+    pub disk_path: String,
+    pub initrd_path: Option<String>,
+    pub seed_image_path: Option<String>,
+}
+
 pub struct VmManager {
     vmhosts: HashMap<Uuid, VmhostProcess>,
 }
@@ -32,10 +42,15 @@ impl VmManager {
         &mut self,
         id: Uuid,
         name: String,
-        kernel_path: String,
-        disk_path: String,
+        boot_assets: VmBootAssets,
         resources: Resources,
     ) -> Result<()> {
+        let VmBootAssets {
+            kernel_path,
+            disk_path,
+            initrd_path,
+            seed_image_path,
+        } = boot_assets;
         let env_id = name.clone();
         let config = TinyBridgeConfig::default();
         let socket_path = config.vmhost_socket_path(&env_id);
@@ -54,7 +69,8 @@ impl VmManager {
         // codesigned with the com.apple.security.virtualization entitlement
         // (crates/tinybridge-vmhost/tinybridge-vmhost.entitlements) or every VM lifecycle
         // call below will fail with a real, honestly-surfaced FFI error.
-        let child = tokio::process::Command::new("tinybridge-vmhost")
+        let mut command = tokio::process::Command::new("tinybridge-vmhost");
+        command
             .env("TINYBRIDGE_ENV_ID", &env_id)
             .env("TINYBRIDGE_KERNEL_PATH", &kernel_path)
             .env("TINYBRIDGE_DISK_PATH", &disk_path)
@@ -67,7 +83,19 @@ impl VmManager {
             .env("TINYBRIDGE_DISPLAY_WIDTH", "1920")
             .env("TINYBRIDGE_DISPLAY_HEIGHT", "1080")
             .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
+            .stderr(Stdio::piped());
+
+        // Both optional: a raw cloud image with neither still boots to a kernel prompt,
+        // just with no VirtIO-blk root filesystem separate from the disk and no
+        // datasource-provided login (see README's "The actual fix").
+        if let Some(initrd_path) = &initrd_path {
+            command.env("TINYBRIDGE_INITRD_PATH", initrd_path);
+        }
+        if let Some(seed_image_path) = &seed_image_path {
+            command.env("TINYBRIDGE_SEED_IMAGE_PATH", seed_image_path);
+        }
+
+        let child = command
             .spawn()
             .map_err(|e| anyhow!("failed to spawn tinybridge-vmhost: {e}"))?;
 

@@ -16,6 +16,18 @@ concrete follow-up punch list.
   verified" section. Verified by direct observation, not just by tests passing.
 - **Guest boot to a real login prompt** with cloud-init credentials — verified 2026-08-28,
   see README.
+- **`tinybridge launch`'s real code path (`EnvironmentManager::up()`) now drives a real VM
+  to `Running`** — fixed and live-verified 2026-09-27 (see README's "vs Lima" section). Was
+  previously guaranteed to fail on a fresh install (`create_vm` called with a hardcoded
+  `vmlinux`/`rootfs.img` pair that never existed, and no way to pass the `initrd`/seed-image
+  config the only proven-working boot path actually needs). Now wired end-to-end and
+  covered by a real, `#[ignore]`-gated regression test that spawns an actual codesigned
+  `tinybridge-vmhost` against real assets
+  (`tinybridge-daemon/src/manager.rs::tests::up_drives_a_real_vm_to_running_state_via_the_daemon_code_path`).
+  Also fixed in the same pass: the SSH config entry `up()` generates hardcoded
+  `"192.168.105.2"` unconditionally instead of using the real resolved guest IP — silently
+  wrong whenever they differed. No automated asset-acquisition pipeline exists yet; see
+  README for the still-manual steps.
 - **Build/lint/test gates**, re-verified directly during this pass:
   - `swift build --package-path swift/ -c release` — succeeds.
   - `cargo build --workspace` — succeeds (one pre-existing, documented warning: `block

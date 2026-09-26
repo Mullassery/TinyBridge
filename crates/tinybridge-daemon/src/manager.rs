@@ -17,7 +17,7 @@ use tinybridge_ssh::{KeyType, SshConfigEntry, SshConfigManager, SshKeyManager};
 
 use crate::boot_tiers::BootTierConfig;
 use crate::clipboard_sync::ClipboardSyncManager;
-use crate::vz::VmManager;
+use crate::vz::{VmBootAssets, VmManager};
 
 #[derive(Debug, Clone)]
 struct ShellSession {
@@ -56,6 +56,13 @@ impl EnvironmentManager {
         }
     }
 
+    #[cfg(test)]
+    fn with_assets_dir(assets_dir: PathBuf) -> Self {
+        let mut manager = Self::new();
+        manager.assets_dir = assets_dir;
+        manager
+    }
+
     #[instrument(skip(self), fields(env_name = %name.as_ref().unwrap_or(&"default".to_string())))]
     pub async fn up(
         &mut self,
@@ -82,18 +89,44 @@ impl EnvironmentManager {
             gpu: None,
         };
 
-        // Create VM via tinybridge-vz
-        let kernel_path = self.assets_dir.join("vmlinux");
-        let disk_path = self.assets_dir.join("rootfs.img");
+        // Create VM via tinybridge-vz. `kernel`/`disk.raw` are required; `initrd`/`seed.iso`
+        // are optional (a raw cloud image with no initrd/seed still boots, just with no
+        // datasource-provided login - see README's "The actual fix" for how these four
+        // files are produced today; there is no automated download/extraction pipeline
+        // yet, so populating `self.assets_dir` is still a manual, documented step).
+        let kernel_path = self.assets_dir.join("kernel");
+        let disk_path = self.assets_dir.join("disk.raw");
+        let initrd_path = self.assets_dir.join("initrd");
+        let seed_image_path = self.assets_dir.join("seed.iso");
+
+        // Fail fast with an actionable message instead of handing tinybridge-vmhost paths
+        // that don't exist - previously this spawned the vmhost process regardless, which
+        // then failed deep inside Virtualization.framework with an opaque VZErrorDomain
+        // error that gave no hint the real problem was "no boot assets were ever placed
+        // here."
+        if !kernel_path.is_file() || !disk_path.is_file() {
+            return Err(anyhow!(
+                "missing boot assets in {}: need at least `kernel` and `disk.raw` (see \
+                 README.md's \"The actual fix\" section for how to produce them from a \
+                 real Ubuntu cloud image; `initrd` and `seed.iso` are optional but \
+                 required for a usable login)",
+                self.assets_dir.display()
+            ));
+        }
+
+        let boot_assets = VmBootAssets {
+            kernel_path: kernel_path.to_string_lossy().to_string(),
+            disk_path: disk_path.to_string_lossy().to_string(),
+            initrd_path: initrd_path
+                .is_file()
+                .then(|| initrd_path.to_string_lossy().to_string()),
+            seed_image_path: seed_image_path
+                .is_file()
+                .then(|| seed_image_path.to_string_lossy().to_string()),
+        };
 
         self.vm_manager
-            .create_vm(
-                env_id,
-                env_name.clone(),
-                kernel_path.to_string_lossy().to_string(),
-                disk_path.to_string_lossy().to_string(),
-                resources.clone(),
-            )
+            .create_vm(env_id, env_name.clone(), boot_assets, resources.clone())
             .await?;
 
         // Create environment entry
@@ -249,7 +282,7 @@ impl EnvironmentManager {
         if let Some(env) = self.environments.get_mut(&env_name) {
             env.status = EnvironmentStatus::Running { uptime_secs: 0 };
             env.started_at = Some(Utc::now());
-            env.ip_address = real_ip_address;
+            env.ip_address = real_ip_address.clone();
         }
 
         // Generate SSH key for this environment
@@ -262,22 +295,33 @@ impl EnvironmentManager {
             Ok(keypair) => {
                 tracing::info!("SSH key generated: {}", keypair.fingerprint);
 
-                // Create SSH config entry
-                let ssh_entry = SshConfigEntry {
+                // Create SSH config entry - only once the guest's real IP is known. This
+                // used to hardcode "192.168.105.2" unconditionally, so every environment's
+                // ~/.ssh/config entry pointed at the same fixed address regardless of the
+                // VM's actual, real IP (`real_ip_address` above, resolved from the real DHCP
+                // lease file) - silently wrong whenever that differs, and a real risk of
+                // connecting to a stale/different VM that happens to hold that address.
+                match Self::build_ssh_entry(
                     env_id,
-                    alias: env_name.clone(),
-                    hostname: "192.168.105.2".to_string(),
-                    user: "user".to_string(),
-                    port: 22,
-                    identity_file: keypair.private_key_path.clone(),
-                    options: Default::default(),
-                };
-
-                if let Err(e) = self.ssh_config_manager.add_entry(&ssh_entry) {
-                    tracing::warn!("Failed to add SSH config entry: {}", e);
-                } else {
-                    ssh_configured = true;
-                    tracing::debug!("SSH configuration registered");
+                    &env_name,
+                    &real_ip_address,
+                    &keypair.private_key_path,
+                ) {
+                    Some(ssh_entry) => {
+                        let hostname = ssh_entry.hostname.clone();
+                        if let Err(e) = self.ssh_config_manager.add_entry(&ssh_entry) {
+                            tracing::warn!("Failed to add SSH config entry: {}", e);
+                        } else {
+                            ssh_configured = true;
+                            tracing::debug!(hostname, "SSH configuration registered");
+                        }
+                    }
+                    None => {
+                        tracing::warn!(
+                            "Guest IP not yet resolved; skipping SSH config entry rather \
+                             than writing one with a guessed address"
+                        );
+                    }
                 }
             }
             Err(e) => {
@@ -698,6 +742,26 @@ domain_id: 0
         }))
     }
 
+    /// Builds the SSH config entry for a freshly-started environment, or `None` if the
+    /// guest's real IP hasn't been resolved yet - never fabricates a hostname.
+    fn build_ssh_entry(
+        env_id: Uuid,
+        env_name: &str,
+        real_ip_address: &Option<String>,
+        identity_file: &std::path::Path,
+    ) -> Option<SshConfigEntry> {
+        let hostname = real_ip_address.clone()?;
+        Some(SshConfigEntry {
+            env_id,
+            alias: env_name.to_string(),
+            hostname,
+            user: "user".to_string(),
+            port: 22,
+            identity_file: identity_file.to_path_buf(),
+            options: Default::default(),
+        })
+    }
+
     fn to_summary(&self, env: &Environment) -> EnvironmentSummary {
         let uptime_secs = match env.status {
             EnvironmentStatus::Running { uptime_secs } => Some(uptime_secs),
@@ -717,5 +781,126 @@ domain_id: 0
 impl Default for EnvironmentManager {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn build_ssh_entry_is_none_when_guest_ip_is_not_yet_resolved() {
+        let entry = EnvironmentManager::build_ssh_entry(
+            Uuid::new_v4(),
+            "test-env",
+            &None,
+            std::path::Path::new("/tmp/id_ed25519"),
+        );
+        assert!(
+            entry.is_none(),
+            "must not fabricate a hostname when the guest IP is unknown"
+        );
+    }
+
+    #[test]
+    fn build_ssh_entry_uses_the_real_resolved_ip_not_a_hardcoded_placeholder() {
+        let entry = EnvironmentManager::build_ssh_entry(
+            Uuid::new_v4(),
+            "test-env",
+            &Some("192.168.64.3".to_string()),
+            std::path::Path::new("/tmp/id_ed25519"),
+        )
+        .expect("a real IP was provided");
+
+        assert_eq!(entry.hostname, "192.168.64.3");
+        assert_ne!(
+            entry.hostname, "192.168.105.2",
+            "must not fall back to the old hardcoded placeholder IP"
+        );
+        assert_eq!(entry.alias, "test-env");
+    }
+
+    #[tokio::test]
+    async fn up_fails_fast_with_actionable_error_when_boot_assets_are_missing() {
+        let empty_dir = tempfile::tempdir().unwrap();
+        let mut manager = EnvironmentManager::with_assets_dir(empty_dir.path().to_path_buf());
+
+        let err = manager
+            .up(Some("test-env".to_string()), None)
+            .await
+            .expect_err("up() must fail when kernel/disk.raw don't exist");
+
+        let message = err.to_string();
+        assert!(
+            message.contains("missing boot assets"),
+            "expected an actionable missing-assets error, got: {message}"
+        );
+        assert!(
+            message.contains("kernel") && message.contains("disk.raw"),
+            "error should name the required files, got: {message}"
+        );
+        // Must fail before ever touching the environments map or spawning a vmhost.
+        assert!(manager.environments.is_empty());
+    }
+
+    #[tokio::test]
+    async fn up_passes_asset_validation_once_required_files_exist() {
+        let assets_dir = tempfile::tempdir().unwrap();
+        std::fs::write(assets_dir.path().join("kernel"), b"fake-kernel").unwrap();
+        std::fs::write(assets_dir.path().join("disk.raw"), b"fake-disk").unwrap();
+        let mut manager = EnvironmentManager::with_assets_dir(assets_dir.path().to_path_buf());
+
+        let err = manager
+            .up(Some("test-env".to_string()), None)
+            .await
+            .expect_err(
+                "up() still fails - there's no real tinybridge-vmhost binary in a test PATH",
+            );
+
+        // The point of this test: it must fail for a *different* reason than missing
+        // assets (spawning tinybridge-vmhost, which isn't installed in the test
+        // environment) - proving the fail-fast check itself no longer fires once
+        // kernel/disk.raw are present, even without initrd/seed.iso.
+        assert!(
+            !err.to_string().contains("missing boot assets"),
+            "asset validation should have passed, got: {err}"
+        );
+    }
+
+    /// Real-hardware verification that `up()` - the actual `tinybridge launch`/daemon code
+    /// path, not the standalone `vz_boot_test` example - drives a real
+    /// Virtualization.framework VM to a real `Running` state using the
+    /// initrd/seed_image plumbing added in this pass.
+    ///
+    /// Requires (not available in CI, hence `#[ignore]`):
+    /// - `kernel`, `disk.raw`, `initrd` present under the real
+    ///   `dirs::cache_dir()/TinyBridge/assets` (see README's "The actual fix" for how to
+    ///   produce them from a real Ubuntu cloud image; `seed.iso` is optional - this test
+    ///   only checks the hypervisor reaches `Running`, not a full guest login).
+    /// - A `tinybridge-vmhost` binary on `PATH`, codesigned with
+    ///   `crates/tinybridge-vmhost/tinybridge-vmhost.entitlements`, with
+    ///   `libTinyBridgeVZBridge.dylib` alongside it (`@executable_path` rpath).
+    ///
+    /// Run manually: `cargo test -p tinybridge-daemon --release -- --ignored real_vm_boot`
+    /// with `PATH="$(pwd)/target/release:$PATH"`.
+    #[tokio::test]
+    #[ignore = "requires real boot assets + a codesigned tinybridge-vmhost on PATH"]
+    async fn up_drives_a_real_vm_to_running_state_via_the_daemon_code_path() {
+        let mut manager = EnvironmentManager::new();
+
+        let up_result = manager.up(Some("real-boot-verify".to_string()), None).await;
+        // Always try to tear the VM down, even if `up()` failed partway through, so a
+        // failed run doesn't leave a real vmhost process/socket behind.
+        let down_result = manager
+            .down(Some("real-boot-verify".to_string()), true)
+            .await;
+
+        let up_value = up_result.expect("up() should reach Running with real assets present");
+        assert_eq!(
+            up_value.get("status").and_then(|s| s.as_str()),
+            Some("running"),
+            "expected a running status, got: {up_value}"
+        );
+        down_result.expect("down(force=true) should always succeed as cleanup");
     }
 }
