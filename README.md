@@ -342,6 +342,59 @@ permissions, the virtualization entitlement requirement, and VirtioFS host-path 
   when hardware virtualization is unavailable even on Apple Silicon - e.g. running nested
   inside another VM without virtualization passthrough, or disabled by an MDM profile.
 
+## vs Lima
+
+Lima (also Virtualization.framework-based, CLI-driven) is the closest OSS
+comparison. Ran both for real on this machine (Apple Silicon, macOS 26).
+
+**`tinybridge launch bench-test --template ubuntu` fails today, and here's
+exactly why:** the daemon's `up()` (`crates/tinybridge-daemon/src/manager.rs`)
+still calls `vm_manager.create_vm(...)` with a fixed
+`assets_dir.join("vmlinux")` / `assets_dir.join("rootfs.img")` pair that
+doesn't exist on a fresh install — real error, reproduced live: `VM failed
+to start: ... VM creation failed`. This isn't the same gap as "Windows/Linux
+backends are unimplemented" above — the macOS hypervisor path is real and
+was directly verified to boot to a working Ubuntu login on 2026-08-28 (see
+"The actual fix" above) — but that verified boot used a *different* config
+API (`VmConfig::with_initrd` + a cloud-init seed ISO, kernel+initrd pulled
+from the cloud image's own `/boot`) than what `manager.rs::up()` actually
+calls. The real, working boot path and the CLI's `launch` command were
+never wired together. Building a truly bootable kernel+rootfs from scratch
+to force a live boot-time number through anyway was out of scope for this
+benchmark — `scripts/build-rootfs-multi-tier.sh` itself admits (step 2) it
+only "creates config structure" for CI, not a real image, so this isn't
+something a quick fix resolves.
+
+**Two real bugs found and fixed while reproducing the above, unrelated to
+the asset gap itself:**
+1. `tinybridge images`, `tinybridge templates`, and `tinybridge repair`
+   each declared their own local `verbose: bool` arg, colliding with the
+   root `Cli` struct's `global = true` `-v`/`--verbose` count flag (same
+   clap arg id, different type). Clap panicked (`Mismatch between
+   definition and access of 'verbose'`) on every invocation of these three
+   commands, even with no flags at all — not an edge case, the base
+   command was broken. Fixed by renaming the local fields to `details`.
+2. A launch whose VM failed to start (exactly the scenario above) left the
+   environment permanently stuck in `Starting { progress_pct: 0 }` forever
+   — not `Running` (so `down`/`destroy` refused it: "Environment not
+   running"), and not `Stopped`/`Error` either (the only two states
+   `down`/`destroy` will touch), so there was no way to ever remove or
+   relaunch a failed environment short of restarting the whole daemon.
+   Fixed in two places: the early `start_vm` failure path in `up()` now
+   transitions to `Error` (mirroring the handling already correct a few
+   lines later in the same function), and `down()`'s running-check is now
+   skipped when `force=true` (which is what `destroy` always passes) so a
+   broken environment in any state can actually be cleaned up.
+
+**For contrast, Lima's real numbers** (`limactl start template:default`,
+2 CPUs/4GB, same machine): ~39s from VZ start to SSH-ready + full
+cloud-init (a live, real Ubuntu 26.04 boot, not a cached image on this
+run), plus a one-time ~2m16s image download/conversion not counted as
+boot time. Lima's install-and-boot path works today, unmodified, because
+its guest-image acquisition (download the real cloud image, boot it
+directly with its own kernel) is actually wired end-to-end — the exact
+gap on the TinyBridge side documented above.
+
 ## Known debt / deliberately deferred
 
 - **Distribution is still broken for external users, though partially fixed**: the Homebrew

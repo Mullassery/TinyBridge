@@ -132,7 +132,20 @@ impl EnvironmentManager {
         // tinybridge_vz::VirtualMachine::start() -> Virtualization.framework). Any real
         // failure (missing entitlement, framework unavailable, invalid image, ...)
         // propagates from here rather than being swallowed.
-        self.vm_manager.start_vm(env_id).await?;
+        if let Err(e) = self.vm_manager.start_vm(env_id).await {
+            // Without this, a failure here leaves the environment permanently stuck in
+            // Starting (set above) -- not Running, so `down`/`destroy` refuse to touch it
+            // (they require is_running()), and not terminal either (only Stopped/Error
+            // are), so there is no way to ever remove or relaunch it. Mirror the same
+            // Error transition used by the polling-loop failure paths below.
+            let message = e.to_string();
+            if let Some(env) = self.environments.get_mut(&env_name) {
+                env.status = EnvironmentStatus::Error {
+                    message: message.clone(),
+                };
+            }
+            return Err(anyhow!("VM failed to start: {message}"));
+        }
 
         // Poll the vmhost for the VM's real hypervisor-level state instead of fabricating
         // boot progress. This only proves the hypervisor itself reached "Running" - it does
@@ -335,7 +348,15 @@ impl EnvironmentManager {
                 .get(&env_name)
                 .ok_or_else(|| anyhow!("Environment not found"))?;
 
-            if !env.status.is_running() {
+            // A non-forced `down` only makes sense on a genuinely running
+            // environment. But `destroy` calls this with force=true
+            // specifically to clean up broken state -- an environment stuck
+            // in Starting (a launch whose VM failed to start, see `up`
+            // above) or already in Error is neither Running (so this check
+            // would reject it) nor Stopped (so nothing else can remove it
+            // either), which otherwise leaves it permanently stuck with no
+            // escape hatch. Only enforce the running-check when not forcing.
+            if !force && !env.status.is_running() {
                 return Err(anyhow!("Environment not running"));
             }
 
