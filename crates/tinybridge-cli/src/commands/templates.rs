@@ -11,7 +11,7 @@ pub struct TemplatesArgs {
 
     /// Show full descriptions
     #[arg(long)]
-    pub verbose: bool,
+    pub details: bool,
 
     /// Output as JSON
     #[arg(long)]
@@ -41,7 +41,7 @@ pub async fn execute(args: TemplatesArgs, _socket: Option<PathBuf>) -> Result<()
             output::print_template(&template.name, &template.description);
         }
 
-        if args.verbose {
+        if args.details {
             println!();
             for template in &filtered {
                 output::print_info(&format!("{}:", template.name));

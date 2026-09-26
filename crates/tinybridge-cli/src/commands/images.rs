@@ -11,7 +11,7 @@ pub struct ImagesArgs {
 
     /// Show full details
     #[arg(long)]
-    pub verbose: bool,
+    pub details: bool,
 
     /// Output as JSON
     #[arg(long)]

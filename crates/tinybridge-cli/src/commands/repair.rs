@@ -13,7 +13,7 @@ pub struct RepairArgs {
     pub name: Option<String>,
 
     #[arg(long, help = "Verbose output")]
-    pub verbose: bool,
+    pub details: bool,
 }
 
 pub async fn execute(args: RepairArgs, socket: Option<PathBuf>) -> Result<()> {
