@@ -11,6 +11,8 @@ history of each version.
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-09-26
+
 ### Added
 - `.github/dependabot.yml` (cargo, swift, github-actions ecosystems).
 - `security-audit` CI job running `cargo audit` (advisory-only for now — see
