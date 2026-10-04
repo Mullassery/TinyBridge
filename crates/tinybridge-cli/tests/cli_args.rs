@@ -45,7 +45,10 @@ fn templates_details_flag_still_works() {
         !stderr.contains("Mismatch between definition and access"),
         "templates --details panicked: {stderr}"
     );
-    assert!(out.status.success(), "templates --details exited non-zero: {stderr}");
+    assert!(
+        out.status.success(),
+        "templates --details exited non-zero: {stderr}"
+    );
 }
 
 #[test]
@@ -56,5 +59,8 @@ fn repair_help_does_not_panic_on_the_shared_verbose_arg_id() {
         !stderr.contains("Mismatch between definition and access"),
         "repair --help panicked: {stderr}"
     );
-    assert!(out.status.success(), "repair --help exited non-zero: {stderr}");
+    assert!(
+        out.status.success(),
+        "repair --help exited non-zero: {stderr}"
+    );
 }
