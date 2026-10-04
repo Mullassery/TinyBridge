@@ -286,6 +286,34 @@ public func tb_vm_create(_ configPtr: UnsafeRawPointer?) -> UnsafeMutableRawPoin
             vmConfig.pointingDevices = [VZUSBScreenCoordinatePointingDeviceConfiguration()]
         }
 
+        // VirtioFS host<->guest directory shares — must be configured here, before
+        // VZVirtualMachine is constructed (see TBVMConfig.virtiofs_shares's doc comment
+        // in the header for why there's no hot-add API). Each share is a real
+        // VZSharedDirectory + VZSingleDirectoryShare wrapped in its own
+        // VZVirtioFileSystemDeviceConfiguration, tagged with the caller-supplied mount
+        // tag the guest uses to mount it (e.g. `mount -t virtiofs <tag> /mnt/...`).
+        if config.virtiofs_share_count > 0, let sharesPtr = config.virtiofs_shares {
+            var directorySharingDevices: [VZDirectorySharingDeviceConfiguration] = []
+            for i in 0..<Int(config.virtiofs_share_count) {
+                let shareConfig = sharesPtr[i]
+                guard let hostPathC = shareConfig.host_path, let mountTagC = shareConfig.mount_tag else {
+                    NSLog("TinyBridgeVZBridge: skipping VirtioFS share %d: missing host_path/mount_tag", i)
+                    continue
+                }
+                let hostPath = String(cString: hostPathC)
+                let mountTag = String(cString: mountTagC)
+                let sharedDirectory = VZSharedDirectory(
+                    url: URL(fileURLWithPath: hostPath),
+                    readOnly: shareConfig.read_only
+                )
+                let directoryShare = VZSingleDirectoryShare(directory: sharedDirectory)
+                let fsConfig = VZVirtioFileSystemDeviceConfiguration(tag: mountTag)
+                fsConfig.share = directoryShare
+                directorySharingDevices.append(fsConfig)
+            }
+            vmConfig.directorySharingDevices = directorySharingDevices
+        }
+
         // Serial console — real boot/init output, not just VM-lifecycle
         // status. Without this, `console=hvc0` in the kernel cmdline
         // points to a device that was never attached, so there was no way

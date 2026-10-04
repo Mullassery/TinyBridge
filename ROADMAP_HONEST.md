@@ -52,8 +52,28 @@ concrete follow-up punch list.
 ## 2. Partially works / disclosed gaps (already covered in README, cross-referenced here)
 
 - Windows/Linux hypervisor backends: unimplemented scaffolding (README, "Honest status").
-- VirtioFS host-directory sharing: scoping logic implemented and tested; the actual FFI
-  wiring is not (README, "Known debt").
+- **FIXED (2026-10-04): VirtioFS host-directory sharing is now wired to the real FFI.**
+  The fundamental constraint (Virtualization.framework has no API to hot-add a share to an
+  already-created VM -- `VZVirtioFileSystemDeviceConfiguration`/`VZSharedDirectory` must be
+  set on `VZVirtualMachineConfiguration.directorySharingDevices` *before*
+  `VZVirtualMachine` is constructed) meant `VirtioFS::attach(&self, vm: &VirtualMachine)`
+  could never work no matter how it was implemented -- it still returns a real,
+  honest error. The real fix moves share configuration to VM-creation time instead:
+  `TBVMConfig` (C ABI) gained `virtiofs_shares`/`virtiofs_share_count`; `TinyBridgeVZ.swift`'s
+  `tb_vm_create` now builds real `VZSharedDirectory` + `VZVirtioFileSystemDeviceConfiguration`
+  objects from them before calling `vmConfig.validate()`; `VmConfig` (Rust) gained
+  `with_virtiofs_share(spec)`; `VirtioFS::into_spec(allowed_roots)` validates scope (same
+  `validate_scope` logic as before, unchanged) and produces the spec. Verified with a real
+  ad-hoc-codesigned test binary (the `com.apple.security.virtualization` entitlement
+  `tinybridge-vmhost` already has, which a plain `cargo test` binary doesn't): a real VM
+  config with a real, validly-scoped VirtioFS share passes
+  `VZVirtualMachineConfiguration.validate()` and `VZVirtualMachine(configuration:)`
+  construction. The committed regression test
+  (`tinybridge-vz::vm::tests::test_vm_create_with_real_virtiofs_share_succeeds`) gracefully
+  skips under the unsigned `cargo test` binary CI normally runs (can't create any VM at
+  all without the entitlement, so there's nothing to assert) rather than requiring ad-hoc
+  signing as part of the test suite -- see the commit for the manual verification
+  transcript.
 - Host→guest SSH/TCP: blocked on a one-time macOS "Local Network" permission grant, not a
   code bug (README, "Remaining known gap").
 - Homebrew distribution: tap is private, `tinybridge-vmhost` in the release tarball has no

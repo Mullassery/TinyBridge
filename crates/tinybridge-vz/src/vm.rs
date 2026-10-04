@@ -90,6 +90,34 @@ impl VirtualMachine {
         // option (e.g. cloud-init's `hostname:`).
         let vm_name_cstring = CString::new(name.clone()).ok();
 
+        // Real VirtioFS shares, built into the C-ABI array `tb_vm_create`
+        // reads at VM-creation time (see TBVMConfig.virtiofs_shares's doc
+        // comment for why this can't be a post-creation hot-add call).
+        // `share_cstrings` must outlive `share_ffi_configs`/`vz_config`
+        // below, since the FFI struct only holds borrowed pointers into it.
+        let share_cstrings: Vec<(CString, CString)> = config
+            .virtiofs_shares
+            .iter()
+            .map(|s| {
+                Ok((
+                    CString::new(s.host_path.clone()).map_err(|_| VzError::InvalidConfig)?,
+                    CString::new(s.mount_tag.clone()).map_err(|_| VzError::InvalidConfig)?,
+                ))
+            })
+            .collect::<Result<Vec<_>>>()?;
+
+        let share_ffi_configs: Vec<tinybridge_vz_sys::TBVirtioFSConfig> = share_cstrings
+            .iter()
+            .zip(config.virtiofs_shares.iter())
+            .map(
+                |((host_c, tag_c), spec)| tinybridge_vz_sys::TBVirtioFSConfig {
+                    host_path: host_c.as_ptr(),
+                    mount_tag: tag_c.as_ptr(),
+                    read_only: spec.read_only,
+                },
+            )
+            .collect();
+
         let vz_config = tinybridge_vz_sys::TBVMConfig {
             kernel_path: kernel_cstring.as_ptr(),
             initrd_path: initrd_cstring
@@ -117,6 +145,12 @@ impl VirtualMachine {
                 .as_ref()
                 .map(|c| c.as_ptr())
                 .unwrap_or(null_mut()),
+            virtiofs_shares: if share_ffi_configs.is_empty() {
+                null_mut()
+            } else {
+                share_ffi_configs.as_ptr()
+            },
+            virtiofs_share_count: share_ffi_configs.len(),
         };
 
         let vm = unsafe { tb_vm_create(&vz_config) };
@@ -292,6 +326,95 @@ mod tests {
         assert!(
             matches!(result, Err(VzError::CreationFailed)),
             "expected a real CreationFailed error from Virtualization.framework, got: {result:?}"
+        );
+    }
+
+    /// Real end-to-end proof that a VirtioFS share survives the full
+    /// Rust -> C ABI -> Swift -> Virtualization.framework chain: using the
+    /// real kernel/disk assets this machine already has cached from prior
+    /// real-boot verification (see `~/.tinybridge/assets/`), constructs a
+    /// VM with a real, validly-scoped VirtioFS share attached and compares
+    /// against an otherwise-identical VM with no share.
+    ///
+    /// `VirtualMachine::new()` internally calls
+    /// `VZVirtualMachineConfiguration.validate()` and
+    /// `VZVirtualMachine(configuration:)`, which require the calling
+    /// process to hold the `com.apple.security.virtualization` entitlement
+    /// -- a plain, unsigned `cargo test` binary does not have it, and the
+    /// C ABI collapses every creation failure (missing entitlement, bad
+    /// kernel, bad config, ...) into the same generic `CreationFailed`, so
+    /// there's no way to distinguish "the share was rejected" from "this
+    /// process can't create VMs at all right now" from the return value
+    /// alone. This differential check sidesteps that: if the no-share
+    /// baseline *also* fails, the environment can't create VMs at all
+    /// (skip, don't fail); if the baseline succeeds but the real-share
+    /// variant doesn't, that's a real regression in the new
+    /// `TBVMConfig.virtiofs_shares` plumbing, which this asserts against.
+    /// (Verified manually against an ad-hoc-codesigned test binary with
+    /// the entitlement present: both succeed -- see the commit that added
+    /// this test.) Does not start/boot the VM (unnecessary here --
+    /// `validate()` is synchronous and instant, and is exactly what would
+    /// reject a malformed share).
+    #[test]
+    fn test_vm_create_with_real_virtiofs_share_succeeds() {
+        if !VirtualMachine::is_available() {
+            eprintln!("skipping: Virtualization.framework not available on this host");
+            return;
+        }
+
+        let home = std::env::var("HOME").expect("HOME must be set");
+        let kernel_path = format!("{home}/.tinybridge/assets/ubuntu-vmlinuz");
+        let disk_path = format!("{home}/.tinybridge/assets/disk.raw");
+        if !std::path::Path::new(&kernel_path).exists()
+            || !std::path::Path::new(&disk_path).exists()
+        {
+            eprintln!(
+                "skipping: real kernel/disk assets not present at {kernel_path} / {disk_path} \
+                 (expected from prior real-boot verification runs)"
+            );
+            return;
+        }
+
+        let resources = tinybridge_core::Resources {
+            cpu: 1,
+            memory_bytes: 512 * 1024 * 1024,
+            disk_bytes: 0,
+            gpu: None,
+        };
+
+        let baseline_config =
+            VmConfig::new(kernel_path.clone(), disk_path.clone(), resources.clone());
+        let baseline_result =
+            VirtualMachine::new("virtiofs-ffi-baseline".to_string(), baseline_config);
+        if baseline_result.is_err() {
+            eprintln!(
+                "skipping: this process can't create VMs at all right now (likely missing the \
+                 com.apple.security.virtualization entitlement -- a plain `cargo test` binary \
+                 isn't codesigned with it; see justfile's `sign-vmhost` for how `tinybridge-vmhost` \
+                 gets it). baseline result: {baseline_result:?}"
+            );
+            return;
+        }
+
+        let share_dir = std::env::temp_dir().join("tinybridge-virtiofs-share-test");
+        std::fs::create_dir_all(&share_dir).unwrap();
+        let share = crate::virtiofs::VirtioFS::new(
+            share_dir.to_string_lossy().to_string(),
+            "tbshare".to_string(),
+        )
+        .read_only(false);
+        let share_spec = share.into_spec(&[share_dir.clone()]).unwrap();
+
+        let config =
+            VmConfig::new(kernel_path, disk_path, resources).with_virtiofs_share(share_spec);
+        let result = VirtualMachine::new("virtiofs-ffi-test".to_string(), config);
+
+        let _ = std::fs::remove_dir_all(&share_dir);
+
+        assert!(
+            result.is_ok(),
+            "baseline VM creation succeeded, but adding a real VirtioFS share made \
+             VZVirtualMachineConfiguration.validate() fail: {result:?}"
         );
     }
 }

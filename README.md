@@ -39,8 +39,7 @@ product.
 - **Not yet a good fit for:** Windows or Linux hosts (both hypervisor
   backends are unimplemented scaffolding); a turnkey guest image out of
   the box (the automated build pipeline for a bundled kernel+rootfs isn't
-  verified yet — see "Known debt" below); host-directory sharing via
-  VirtioFS (not wired to a real FFI call yet).
+  verified yet — see "Known debt" below).
 
 ## What's actually been verified
 
@@ -325,8 +324,9 @@ current.
 See [SECURITY.md](SECURITY.md) for the current, accurate security posture: guest network
 mode (NAT-only by default), guest image checksum verification, VM control socket
 permissions, the virtualization entitlement requirement, and VirtioFS host-path scoping
-(implemented and tested ahead of the share-mounting FFI call itself being wired up - see
-`crates/tinybridge-vz/src/virtiofs.rs`).
+(implemented, tested, and -- as of 2026-10-04 -- wired into the real
+`VZVirtioFileSystemDeviceConfiguration`/`VZSharedDirectory` FFI call at VM-creation time;
+see `crates/tinybridge-vz/src/virtiofs.rs`).
 
 ## Recent fixes (v0.6.0)
 
@@ -485,12 +485,17 @@ four files under `dirs::cache_dir()/TinyBridge/assets/` by hand first.
   bootable rootfs image end-to-end is still open work. A real, complete boot attempt was made
   (see "What's actually been verified" above) and is currently blocked by an external macOS
   26.x ARM64 Virtualization.framework bug, not by anything in this pipeline.
-- **VirtioFS host-directory sharing**: not wired to a real FFI call.
-  Virtualization.framework requires directory shares to be configured at VM-creation time,
-  and the config plumbing for that doesn't exist yet, so `VirtioFS::attach()` returns an
-  explicit "not implemented" error rather than silently doing nothing. Host-path scoping
-  (canonicalize + allowlist, reject `..` escapes, default read-only) is implemented and
-  unit-tested ahead of that wiring.
+- **FIXED (2026-10-04): VirtioFS host-directory sharing is wired to the real FFI.**
+  Virtualization.framework requires directory shares to be configured at VM-creation time
+  (no hot-add API), so `VirtioFS::attach(&self, vm: &VirtualMachine)` -- which operates on
+  an already-created VM -- still correctly returns an honest error; the real path is
+  `VirtioFS::into_spec(allowed_roots)` + `VmConfig::with_virtiofs_share(spec)` *before*
+  `VirtualMachine::new()`. Host-path scoping (canonicalize + allowlist, reject `..` escapes,
+  default read-only) is unchanged, still real and unit-tested. Verified end-to-end with a
+  real ad-hoc-codesigned test binary: a VM configured with a real VirtioFS share passes
+  `VZVirtualMachineConfiguration.validate()` and `VZVirtualMachine(configuration:)`
+  construction. See `ROADMAP_HONEST.md` for full detail, including why the committed
+  regression test gracefully skips under a normal (unsigned) `cargo test` run.
 - **`objc` 0.2 / `block` 0.1.6`** (used by `tinybridge-clipboard`'s macOS pasteboard
   integration) are unmaintained; `block` already triggers a Rust future-incompatibility
   warning. `objc2` is the maintained successor but migrating is a real API rewrite,

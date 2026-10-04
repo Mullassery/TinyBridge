@@ -12,6 +12,22 @@ history of each version.
 ## [Unreleased]
 
 ### Fixed
+- **VirtioFS host-directory sharing is now wired to the real FFI.** Virtualization.framework
+  has no API to hot-add a directory share to an already-created VM --
+  `VZVirtioFileSystemDeviceConfiguration`/`VZSharedDirectory` must be set on
+  `VZVirtualMachineConfiguration.directorySharingDevices` *before*
+  `VZVirtualMachine` is constructed -- so `VirtioFS::attach(&self, vm: &VirtualMachine)`
+  could never have worked regardless of implementation; it still returns a real, honest
+  error. The real fix moves share configuration to VM-creation time: `TBVMConfig` (C ABI)
+  gained `virtiofs_shares`/`virtiofs_share_count`; `TinyBridgeVZ.swift`'s `tb_vm_create`
+  now builds real `VZSharedDirectory` + `VZVirtioFileSystemDeviceConfiguration` objects
+  from them before `vmConfig.validate()`; `VmConfig` (Rust) gained
+  `with_virtiofs_share(spec)`; `VirtioFS::into_spec(allowed_roots)` validates scope (same
+  `validate_scope` logic as before) and produces the spec. Verified with a real
+  ad-hoc-codesigned test binary (the `com.apple.security.virtualization` entitlement a
+  plain `cargo test` binary doesn't have): a VM configured with a real, validly-scoped
+  VirtioFS share passes `VZVirtualMachineConfiguration.validate()` and
+  `VZVirtualMachine(configuration:)` construction. See `ROADMAP_HONEST.md` for full detail.
 - `EnvironmentManager::up()` (`tinybridge launch`'s real code path) called
   `VmManager::create_vm` with no way to pass an initrd or cloud-init seed
   image, so it could never use the same config the only proven-working

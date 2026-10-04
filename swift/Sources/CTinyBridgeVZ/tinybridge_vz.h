@@ -23,6 +23,12 @@ typedef void (*TBVMStateCallback)(
 );
 
 typedef struct {
+    const char *host_path;
+    const char *mount_tag;
+    bool read_only;
+} TBVirtioFSConfig;
+
+typedef struct {
     const char *kernel_path;
     const char *initrd_path;
     const char *cmdline;
@@ -55,13 +61,17 @@ typedef struct {
     // `console=hvc0` kernel cmdline argument, which otherwise points to a
     // device that was never attached). NULL means no console attached.
     const char *serial_log_path;
+    // Optional: real VirtioFS host<->guest directory shares, configured at
+    // VM-creation time. Virtualization.framework has no API to hot-add a
+    // share to an already-created VM (VZVirtioFileSystemDeviceConfiguration
+    // must be in VZVirtualMachineConfiguration.directorySharingDevices
+    // *before* VZVirtualMachine is constructed) -- that's why this lives
+    // here rather than as a separate tb_vm_add_virtiofs-style call (see
+    // that function's comment below for why it can't work). NULL +
+    // count 0 means no shares.
+    const TBVirtioFSConfig *virtiofs_shares;
+    size_t virtiofs_share_count;
 } TBVMConfig;
-
-typedef struct {
-    const char *host_path;
-    const char *mount_tag;
-    bool read_only;
-} TBVirtioFSConfig;
 
 typedef struct {
     TBVMState state;
@@ -77,6 +87,10 @@ int tb_vm_stop(TBVirtualMachine *vm);
 int tb_vm_force_stop(TBVirtualMachine *vm);
 void tb_vm_destroy(TBVirtualMachine *vm);
 
+// Kept for ABI stability; always returns -2 ("not implemented"). Hot-adding a
+// directory share to an already-created VM has no real Virtualization.framework
+// API -- shares must be configured at VM-creation time via
+// TBVMConfig.virtiofs_shares above instead.
 int tb_vm_add_virtiofs(TBVirtualMachine *vm, const TBVirtioFSConfig *config);
 
 int tb_vm_get_status(TBVirtualMachine *vm, TBVMStatus *out_status);

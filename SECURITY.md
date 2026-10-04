@@ -78,16 +78,22 @@ recipe in the `justfile`.
 ## VirtioFS Host Path Sharing
 
 Directory sharing between host and guest (`crates/tinybridge-vz/src/virtiofs.rs`) is
-**not wired to a real FFI call yet** - Virtualization.framework requires directory shares
-to be configured at VM-creation time, and `tb_vm_create`/`VmConfig` don't yet accept a
-share list, so `VirtioFS::attach()` returns an explicit error rather than silently
-succeeding (it previously returned `Ok(())` with no FFI call - i.e. it looked like it
-worked but shared nothing). Ahead of that being wired up, host-path scoping is already
-implemented and tested: `VirtioFS::validate_scope()` canonicalizes the requested host
+**wired to a real FFI call as of 2026-10-04**. Virtualization.framework requires
+directory shares to be configured at VM-creation time (no hot-add API for an
+already-created VM), so `VirtioFS::attach(&self, vm: &VirtualMachine)` -- which operates
+on an existing VM -- still correctly returns an explicit error rather than silently
+succeeding (it previously returned `Ok(())` with no FFI call at all - i.e. it looked like
+it worked but shared nothing). The real, working path is `tb_vm_create`/`VmConfig`
+accepting a share list at VM-creation time instead: `VirtioFS::into_spec(allowed_roots)`
+validates scope and produces a spec, `VmConfig::with_virtiofs_share(spec)` attaches it,
+and `tb_vm_create` builds a real `VZVirtioFileSystemDeviceConfiguration`/
+`VZSharedDirectory` from it before the VM is constructed. Host-path scoping is unchanged
+and still real and tested: `VirtioFS::validate_scope()` canonicalizes the requested host
 path (resolving symlinks and `..` components) and requires it to fall inside an explicit
-allowlist of roots, and shares default to **read-only**. Any future implementation of
-`attach()` must call `validate_scope()` (or `validate_host_path_scope()`) before wiring a
-share into a VM's configuration.
+allowlist of roots, and shares default to **read-only**. `into_spec()` already enforces
+this -- it calls `validate_scope()` internally and refuses to produce a spec for an
+out-of-allowlist path, so there's no way to reach `VmConfig::with_virtiofs_share` with an
+unvalidated path.
 
 ## Vulnerability Disclosure
 

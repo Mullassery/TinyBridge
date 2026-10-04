@@ -1,5 +1,16 @@
 use tinybridge_core::Resources;
 
+/// A validated VirtioFS host<->guest directory share, ready to pass to
+/// `VmConfig::with_virtiofs_share`. Build one via
+/// `crate::virtiofs::VirtioFS::into_spec` (which real-validates `host_path`
+/// against an allowlist first) rather than constructing this directly.
+#[derive(Clone)]
+pub struct VirtioFsShareSpec {
+    pub host_path: String,
+    pub mount_tag: String,
+    pub read_only: bool,
+}
+
 #[derive(Clone)]
 pub struct VmConfig {
     pub cpu_count: u32,
@@ -17,6 +28,9 @@ pub struct VmConfig {
     pub gpu_enabled: bool,
     pub gpu_memory_gb: Option<u32>,
     pub serial_log_path: Option<String>,
+    /// Real VirtioFS host<->guest directory shares, configured at
+    /// VM-creation time (see `VirtioFsShareSpec`'s doc comment for why).
+    pub virtiofs_shares: Vec<VirtioFsShareSpec>,
 }
 
 impl VmConfig {
@@ -41,6 +55,7 @@ impl VmConfig {
             gpu_enabled,
             gpu_memory_gb,
             serial_log_path: None,
+            virtiofs_shares: Vec::new(),
         }
     }
 
@@ -76,6 +91,16 @@ impl VmConfig {
 
     pub fn with_serial_log_path(mut self, path: String) -> Self {
         self.serial_log_path = Some(path);
+        self
+    }
+
+    /// Adds a real VirtioFS host<->guest directory share, applied at
+    /// VM-creation time. Build `spec` via
+    /// `crate::virtiofs::VirtioFS::into_spec` (which validates `host_path`
+    /// against an allowlist first) rather than constructing a
+    /// `VirtioFsShareSpec` directly.
+    pub fn with_virtiofs_share(mut self, spec: VirtioFsShareSpec) -> Self {
+        self.virtiofs_shares.push(spec);
         self
     }
 }

@@ -1,23 +1,32 @@
+use crate::config::VirtioFsShareSpec;
 use crate::error::{Result, VzError};
 use crate::vm::VirtualMachine;
 use std::path::{Path, PathBuf};
 
 /// A requested host<->guest directory share.
 ///
-/// **Not wired to the real VZ FFI yet.** Apple's Virtualization.framework only lets you
-/// configure directory sharing devices (`VZVirtioFileSystemDeviceConfiguration` /
-/// `VZSharedDirectory`) *before* `VZVirtualMachine` is constructed - there is no API to
-/// hot-add a share to an already-created VM. `tb_vm_add_virtiofs` in the C ABI
-/// (swift/Sources/CTinyBridgeVZ/tinybridge_vz.h) reflects that: it's declared for forward
-/// compatibility but the Swift implementation returns "not implemented" today, because
-/// `TBVMConfig`/`VmConfig` don't yet carry a share list to pass at creation time. See
-/// `attach()` below.
+/// **Real, as of this pass -- via `into_spec()`, not `attach()` below.**
+/// Apple's Virtualization.framework only lets you configure directory sharing
+/// devices (`VZVirtioFileSystemDeviceConfiguration` / `VZSharedDirectory`)
+/// *before* `VZVirtualMachine` is constructed -- there is no API to hot-add a
+/// share to an already-created VM, so `attach(&self, vm: &VirtualMachine)`
+/// below can never work no matter how it's implemented, and deliberately
+/// keeps returning a real, honest error rather than pretending otherwise.
+/// The real, working path is: validate this share with `into_spec()`, then
+/// pass the resulting `VirtioFsShareSpec` to `VmConfig::with_virtiofs_share`
+/// *before* calling `VirtualMachine::new()` -- see
+/// `crates/tinybridge-vz/src/vm.rs` (which marshals it into
+/// `TBVMConfig.virtiofs_shares`) and
+/// `swift/Sources/TinyBridgeVZBridge/TinyBridgeVZ.swift` (which builds the
+/// real `VZVirtioFileSystemDeviceConfiguration`/`VZSharedDirectory` objects
+/// from it).
 ///
-/// What *is* real and enforced now is host-path scoping: `validate_scope` canonicalizes
-/// the requested path (resolving symlinks and `..` components) and requires it to fall
-/// inside an explicit allowlist of roots, so that once `attach()` is wired up it cannot be
-/// used to expose arbitrary host paths (e.g. `/etc`, `/`, or an escape via `../../..`) to a
-/// guest. Shares also default to read-only.
+/// What's always been real and enforced is host-path scoping: `validate_scope`
+/// canonicalizes the requested path (resolving symlinks and `..` components)
+/// and requires it to fall inside an explicit allowlist of roots, so a share
+/// cannot be used to expose arbitrary host paths (e.g. `/etc`, `/`, or an
+/// escape via `../../..`) to a guest. Shares also default to read-only.
+/// `into_spec()` runs this same validation before producing a spec.
 pub struct VirtioFS {
     host_path: String,
     mount_tag: String,
@@ -73,13 +82,29 @@ impl VirtioFS {
         Err(VzError::InvalidConfig)
     }
 
+    /// Always fails -- Virtualization.framework has no API to attach a
+    /// directory share to a VM that already exists (see the module doc
+    /// comment). Use `into_spec()` + `VmConfig::with_virtiofs_share` before
+    /// `VirtualMachine::new()` instead, which is the real, working path.
+    /// Rather than pretend this works (the historical behavior here was
+    /// `Ok(())` with no FFI call at all), this fails loudly and
+    /// unambiguously so callers don't believe a share is active when it
+    /// isn't.
     pub fn attach(&self, _vm: &VirtualMachine) -> Result<()> {
-        // See the module doc comment above: Virtualization.framework requires directory
-        // shares to be configured at VM-creation time, not attached to a running VM. Rather
-        // than pretend this works (the historical behavior here was `Ok(())` with no FFI
-        // call at all), fail loudly and unambiguously so callers don't believe a share is
-        // active when it isn't.
         Err(VzError::VirtioFSMountFailed)
+    }
+
+    /// Validates this share's scope against `allowed_roots` (see
+    /// `validate_scope`) and converts it into a `VirtioFsShareSpec` ready to
+    /// pass to `VmConfig::with_virtiofs_share` -- the real, working path for
+    /// VirtioFS sharing, applied at VM-creation time.
+    pub fn into_spec(self, allowed_roots: &[PathBuf]) -> Result<VirtioFsShareSpec> {
+        let canonical = self.validate_scope(allowed_roots)?;
+        Ok(VirtioFsShareSpec {
+            host_path: canonical.to_string_lossy().into_owned(),
+            mount_tag: self.mount_tag,
+            read_only: self.read_only,
+        })
     }
 
     pub fn host_path(&self) -> &str {
@@ -182,6 +207,38 @@ mod tests {
         assert!(rejects_traversal("../etc/passwd"));
         assert!(rejects_traversal("shared/../../etc"));
         assert!(!rejects_traversal("shared/data"));
+    }
+
+    #[test]
+    fn test_into_spec_succeeds_for_a_validly_scoped_share() {
+        let tmp = tempfile::tempdir().unwrap();
+        let shared = tmp.path().join("shared");
+        std::fs::create_dir(&shared).unwrap();
+
+        let fs = VirtioFS::new(shared.to_string_lossy().to_string(), "data".to_string())
+            .read_only(false);
+        let spec = fs.into_spec(&[tmp.path().to_path_buf()]).unwrap();
+
+        assert_eq!(spec.mount_tag, "data");
+        assert!(!spec.read_only);
+        // Real canonicalized path, not the original possibly-relative string.
+        assert_eq!(
+            std::fs::canonicalize(&spec.host_path).unwrap(),
+            std::fs::canonicalize(&shared).unwrap()
+        );
+    }
+
+    #[test]
+    fn test_into_spec_rejects_a_share_outside_the_allowlist() {
+        let tmp = tempfile::tempdir().unwrap();
+        let allowed_root = tmp.path().join("allowed");
+        let outside = tmp.path().join("outside");
+        std::fs::create_dir(&allowed_root).unwrap();
+        std::fs::create_dir(&outside).unwrap();
+
+        let fs = VirtioFS::new(outside.to_string_lossy().to_string(), "tag".to_string());
+        let result = fs.into_spec(&[allowed_root]);
+        assert!(matches!(result, Err(VzError::InvalidConfig)));
     }
 
     #[test]
