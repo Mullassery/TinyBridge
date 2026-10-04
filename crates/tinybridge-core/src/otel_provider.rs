@@ -50,28 +50,20 @@ pub struct OtelProvider {
 impl OtelProvider {
     /// Initialize OTel provider with configuration
     pub fn init(config: OtelConfig) -> Result<Self, Box<dyn std::error::Error>> {
-        // Trace provider initialization (would use opentelemetry crate in production)
-        if config.enable_tracing {
-            #[cfg(feature = "otel")]
-            {
-                use opentelemetry::global;
-                use opentelemetry_jaeger as jaeger;
+        // Trace provider initialization: not implemented. The `otel` feature is
+        // declared in Cargo.toml as a no-op on purpose (see that file's comment) --
+        // this crate does not depend on `opentelemetry`/`opentelemetry_jaeger`, so
+        // there is deliberately no `#[cfg(feature = "otel")]` block here that would
+        // reference them. A real implementation needs those crates added as
+        // dependencies first; until then, enabling `otel` must keep compiling and
+        // keep doing nothing, matching `OtelProvider::has_tracing()`'s contract of
+        // reflecting only what `config.enable_tracing` was set to, not real tracer
+        // installation.
+        let _ = config.enable_tracing;
 
-                let tracer = jaeger::new_agent_pipeline()
-                    .install_simple()
-                    .map_err(|e| Box::new(e) as Box<dyn std::error::Error>)?;
-
-                global::set_tracer_provider(tracer);
-            }
-        }
-
-        // Metrics initialization (would use prometheus crate in production)
-        if config.enable_metrics {
-            #[cfg(feature = "metrics")]
-            {
-                // Prometheus setup would go here
-            }
-        }
+        // Metrics initialization: not implemented, for the same reason (no real
+        // `metrics`/`prometheus` dependency exists yet). See above.
+        let _ = config.enable_metrics;
 
         Ok(OtelProvider {
             service_name: config.service_name,
@@ -158,6 +150,29 @@ mod tests {
         assert_eq!(provider.service_name, "tinybridge");
         assert!(!provider.has_tracing());
         assert!(!provider.has_metrics());
+    }
+
+    /// Regression test: `OtelConfig::default()` sets `enable_tracing`/`enable_metrics`
+    /// to `true`, and `init()` must still succeed without panicking or requiring any
+    /// real `opentelemetry`/`opentelemetry_jaeger`/`prometheus` dependency -- those
+    /// crates are deliberately not wired up yet (see `init()`'s doc comment and the
+    /// `otel`/`metrics` feature comments in Cargo.toml). This is the exact case that
+    /// previously only compiled with the `otel` feature *disabled*; building with
+    /// `--features otel` (or `--all-features`) failed with unresolved imports because
+    /// the feature-gated block referenced crates that were never added as
+    /// dependencies, even though enabling `otel` is documented as a no-op.
+    #[test]
+    fn test_otel_provider_init_with_tracing_and_metrics_enabled_does_not_panic() {
+        let config = OtelConfig::default();
+        assert!(config.enable_tracing);
+        assert!(config.enable_metrics);
+
+        let provider = OtelProvider::init(config).unwrap();
+        assert_eq!(provider.service_name, "tinybridge");
+        // No real tracer/metrics backend exists yet, so these just reflect the
+        // config flags that were passed in, not a real installed provider.
+        assert!(provider.has_tracing());
+        assert!(provider.has_metrics());
     }
 
     #[test]
