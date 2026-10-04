@@ -12,13 +12,16 @@ this repo as of this pass):
   `HOMEBREW.md`, `HOMEBREW_TAP_SETUP.md`, `MACOS_BUILD_GUIDE.md`, `MACOS_MENU_BAR_GUIDE.md`,
   `MACOS_UX_RESEARCH.md`** — describe a `TinyBridge.app` SwiftUI menu-bar application,
   `.dmg` installer with Apple notarization, and `brew install --cask tinybridge` /
-  `uv tool install tinybridge` installation flows. None of this exists as a working product:
-  there is a menu-bar app *prototype* at `crates/tinybridge-macos/` (Swift, `main.swift`,
-  757 lines), but it is not a Cargo crate (no `Cargo.toml`), is not listed in the workspace
-  `Cargo.toml`, is not built by CI, and talks to the daemon over a hardcoded TCP port 7890 —
-  the real daemon uses a Unix-socket JSON-RPC protocol (see root README's Architecture
-  section), so this prototype cannot currently connect to the real daemon even if built by
-  hand. `ARCHITECTURE.md` additionally still contains unfilled placeholder text
+  `uv tool install tinybridge` installation flows. None of this exists as a working product.
+  A menu-bar app *prototype* at `crates/tinybridge-macos/` (Swift, `main.swift`, 757 lines)
+  did exist when this was first archived, but it was not a Cargo crate (no `Cargo.toml`),
+  was not listed in the workspace `Cargo.toml`, was not built by CI, and talked to the
+  daemon over a hardcoded TCP port 7890 — the real daemon uses a Unix-socket JSON-RPC
+  protocol (see root README's Architecture section), so it could not have connected to the
+  real daemon even if built by hand. **Deleted (2026-10-04)** — see `ROADMAP_HONEST.md`
+  section 3 for why (would have needed a real rebuild to fix, not a quick patch; a real
+  menu-bar companion app remains a legitimate future feature, as a fresh build).
+  `ARCHITECTURE.md` additionally still contains unfilled placeholder text
   (`GitHub: github.com/yourusername/tinybridge (private)`) and a claim of a `tinybridge`
   crates.io crate that was never published.
 - **`DEVICE_POLICY_GOVERNANCE.md`** — claims `Security Level: Enterprise-Grade` /

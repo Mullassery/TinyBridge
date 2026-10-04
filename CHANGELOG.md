@@ -11,6 +11,17 @@ history of each version.
 
 ## [Unreleased]
 
+### Removed
+- **`crates/tinybridge-macos/`** (757-line SwiftUI menu-bar app prototype). It was not a
+  Cargo crate, not a workspace member, not built by CI, and talked to the daemon over a
+  hardcoded TCP port while the real daemon speaks Unix-socket JSON-RPC -- it could not have
+  connected to the real daemon even if built by hand. The nine docs describing it (or the
+  `.dmg`/Homebrew-cask distribution around it) as shipping were already archived in an
+  earlier pass. Finishing it for real would have meant a genuine rebuild (new transport,
+  real workspace/CI/distribution integration), not a quick patch; deleted rather than
+  carrying unbuilt, disconnected, misleadingly-placed code indefinitely. See
+  `ROADMAP_HONEST.md` section 3.
+
 ### Fixed
 - **VirtioFS host-directory sharing is now wired to the real FFI.** Virtualization.framework
   has no API to hot-add a directory share to an already-created VM --

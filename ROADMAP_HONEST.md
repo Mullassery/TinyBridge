@@ -88,19 +88,20 @@ These were found by cross-checking every doc under `docs/` against `grep`-verifi
 the actual crates. All of the docs below have been moved to `docs/archive/` (with specifics
 in `docs/archive/README.md`) rather than left as if current:
 
-- **`crates/tinybridge-macos/`** — a SwiftUI menu-bar app prototype (757-line `main.swift`,
-  its own `Package.swift`). It is **not a Cargo crate** despite living under `crates/` (no
-  `Cargo.toml`), **not a workspace member**, **not built by CI**, and talks to the daemon
-  over a hardcoded TCP port 7890 while the real daemon speaks Unix-socket JSON-RPC — it
-  could not connect to the real daemon even if built. Nine docs described this (or the
-  `.dmg`/notarized-installer/Homebrew-cask distribution built around it) as if it were
-  current or shipping: `ARCHITECTURE.md`, `GETTING_STARTED.md`, `USER_README.md`,
-  `DMG_PACKAGING.md`, `HOMEBREW.md`, `HOMEBREW_TAP_SETUP.md`, `MACOS_BUILD_GUIDE.md`,
-  `MACOS_MENU_BAR_GUIDE.md`, `MACOS_UX_RESEARCH.md`. **Follow-up decision needed:** either
-  finish and wire this prototype (real work: move it into the Cargo workspace or a
-  documented separate build step, fix the transport mismatch, add it to CI) or delete it —
-  leaving it as unbuilt, unlisted, disconnected code invites exactly the confusion this pass
-  found.
+- **`crates/tinybridge-macos/`** — **DELETED (2026-10-04).** Was a SwiftUI menu-bar app
+  prototype (757-line `main.swift`, its own `Package.swift`), not a Cargo crate despite
+  living under `crates/` (no `Cargo.toml`), not a workspace member, not built by CI, and
+  talked to the daemon over a hardcoded TCP port 7890 while the real daemon speaks
+  Unix-socket JSON-RPC — it could not have connected to the real daemon even if built.
+  The nine docs that described this (or the `.dmg`/notarized-installer/Homebrew-cask
+  distribution built around it) as if it were current or shipping were already archived in
+  an earlier pass (see `docs/archive/README.md`). Resolving the "finish it or delete it"
+  follow-up this section used to flag: finishing it for real would have meant a genuinely
+  large rebuild (porting the client off TCP onto the real Unix-socket protocol, real
+  workspace/CI/distribution integration) — deleted rather than carrying unbuilt,
+  disconnected, misleadingly-placed code indefinitely. A real macOS menu-bar companion app
+  remains a legitimate future feature; it would be a fresh build, not a resurrection of
+  this prototype.
 - **`crates/tinybridge-devices`** — a real, compiling workspace member (~1,300 lines,
   `cargo build --workspace` includes it) implementing hardware-passthrough policy. It is
   **never referenced by the daemon or CLI** (`grep -r tinybridge_devices crates/` outside
