@@ -11,6 +11,20 @@ history of each version.
 
 ## [Unreleased]
 
+### Fixed (from the SHER org-wide Ubuntu/Linux-Rust compatibility audit, 2026-10-04)
+- **`cargo fmt --check` drift in `crates/tinybridge-cli/tests/cli_args.rs`.** Two
+  `assert!` call sites had fallen out of rustfmt formatting (whitespace-only).
+  Restored `cargo fmt --check` to exit 0, matching the root README's lint claim
+  and the `justfile`'s lint recipe.
+- **`otel` feature broke `--all-features` builds.** The feature's own doc comment
+  says enabling it "does nothing yet," but `otel_provider.rs`'s
+  `#[cfg(feature = "otel")]` block referenced `opentelemetry`/`opentelemetry_jaeger`
+  crates that were never declared as dependencies — `cargo clippy --all-targets
+  --all-features` and `cargo build --features otel` failed with `E0432 unresolved
+  import`. Removed the broken block so the feature is a true no-op as documented;
+  added a regression test covering `enable_tracing`/`enable_metrics = true` config,
+  which previously only compiled with the feature disabled.
+
 ### Removed
 - **`crates/tinybridge-macos/`** (757-line SwiftUI menu-bar app prototype). It was not a
   Cargo crate, not a workspace member, not built by CI, and talked to the daemon over a
