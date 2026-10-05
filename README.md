@@ -1,8 +1,19 @@
 # TinyBridge
 
-A macOS-native Linux VM runtime, built on Apple's Virtualization.framework. Boots a real
-Linux virtual machine via a genuine Rust -> C ABI -> Swift -> Virtualization.framework call
-chain - not a mock.
+[![CI](https://github.com/Mullassery/TinyBridge/actions/workflows/ci.yml/badge.svg)](https://github.com/Mullassery/TinyBridge/actions/workflows/ci.yml)
+[![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+[![Platform: macOS](https://img.shields.io/badge/platform-macOS-lightgrey.svg)](#platform-support)
+
+A macOS-native Linux VM runtime built on Apple's Virtualization.framework: a real Linux
+virtual machine, booted via a genuine Rust → C ABI → Swift → Virtualization.framework call
+chain, not a mock.
+
+**Contents:** [Honest status](#honest-status-read-this-first) · [Use cases](#use-cases) ·
+[What's actually been verified](#whats-actually-been-verified) ·
+[Platform support](#platform-support) · [Requirements](#requirements-macos) ·
+[Installing](#installing) · [Building from source](#building-from-source) · [CLI](#cli) ·
+[Architecture](#architecture) · [Security](#security) · [vs Lima](#vs-lima) ·
+[Known debt](#known-debt--deliberately-deferred)
 
 ## Honest status (read this first)
 
@@ -66,13 +77,15 @@ to work:
 5. Ad-hoc codesigning with the virtualization entitlement (no paid Apple Developer account
    required) was confirmed sufficient for local use - see `justfile`'s `sign-vmhost` recipe.
 
-**RESOLVED 2026-08-28: guest boot to a real login prompt, with real credentials, now works.**
-The root cause of every prior failure below was never an unfixable Apple regression - it was
-using the wrong kernel. Kept the failed attempts below for a complete record, then see "The
-actual fix" underneath for what resolved it.
+> **RESOLVED 2026-08-28: guest boot to a real login prompt, with real credentials, now
+> works.** The root cause of every prior failure below was never an unfixable Apple
+> regression — it was using the wrong kernel. The failed attempts below are kept for a
+> complete record; see [The actual fix](#the-actual-fix-2026-08-28-same-macos-2652-machine)
+> for what resolved it.
 
-**Prior failed attempts** (kept for a complete record - a real guest disk image was used
-throughout, not a placeholder):
+### Prior failed attempts
+
+Kept for a complete record — a real guest disk image was used throughout, not a placeholder:
 
 - A real Ubuntu 24.04 ARM64 cloud image was downloaded, checksum-verified, and converted from
   QCOW2 to the raw format `VZDiskImageStorageDeviceAttachment` requires (`qemu-img convert -O
@@ -99,8 +112,9 @@ throughout, not a placeholder):
   currently no known app-level workaround. Re-verification is blocked on either an Apple OS
   update or testing on a macOS build that doesn't have this regression.
 
-**Re-verified 2026-08-28 on macOS 26.5.2 (Apple Silicon): a different failure mode, not the
-one above.** Repeated the same real-asset setup (Ubuntu 24.04 ARM64 cloud image, checksum
+### Re-verified 2026-08-28 on macOS 26.5.2 (Apple Silicon): a different failure mode
+
+Repeated the same real-asset setup (Ubuntu 24.04 ARM64 cloud image, checksum
 verified, `qemu-img convert -O raw`, confirmed `EFI PART` GPT signature at offset 512; kernel
 from Firecracker's CI bucket, `vmlinux-5.10.223`, confirmed `file`-identified as a real ARM64
 boot Image — the cloud-hypervisor and firecracker-microvm release URLs `BUILD_ASSETS_GUIDE.md`
@@ -347,8 +361,9 @@ see `crates/tinybridge-vz/src/virtiofs.rs`).
 Lima (also Virtualization.framework-based, CLI-driven) is the closest OSS
 comparison. Ran both for real on this machine (Apple Silicon, macOS 26).
 
-**`tinybridge launch bench-test --template ubuntu` fails today, and here's
-exactly why:** the daemon's `up()` (`crates/tinybridge-daemon/src/manager.rs`)
+### `tinybridge launch bench-test --template ubuntu` fails today — here's exactly why
+
+The daemon's `up()` (`crates/tinybridge-daemon/src/manager.rs`)
 still calls `vm_manager.create_vm(...)` with a fixed
 `assets_dir.join("vmlinux")` / `assets_dir.join("rootfs.img")` pair that
 doesn't exist on a fresh install — real error, reproduced live: `VM failed
@@ -365,8 +380,8 @@ benchmark — `scripts/build-rootfs-multi-tier.sh` itself admits (step 2) it
 only "creates config structure" for CI, not a real image, so this isn't
 something a quick fix resolves.
 
-**Two real bugs found and fixed while reproducing the above, unrelated to
-the asset gap itself:**
+### Two real bugs found and fixed while reproducing the above (unrelated to the asset gap)
+
 1. `tinybridge images`, `tinybridge templates`, and `tinybridge repair`
    each declared their own local `verbose: bool` arg, colliding with the
    root `Cli` struct's `global = true` `-v`/`--verbose` count flag (same
@@ -386,17 +401,18 @@ the asset gap itself:**
    skipped when `force=true` (which is what `destroy` always passes) so a
    broken environment in any state can actually be cleaned up.
 
-**For contrast, Lima's real numbers** (`limactl start template:default`,
-2 CPUs/4GB, same machine): ~39s from VZ start to SSH-ready + full
-cloud-init (a live, real Ubuntu 26.04 boot, not a cached image on this
-run), plus a one-time ~2m16s image download/conversion not counted as
-boot time. Lima's install-and-boot path works today, unmodified, because
-its guest-image acquisition (download the real cloud image, boot it
-directly with its own kernel) is actually wired end-to-end — the exact
-gap on the TinyBridge side documented above.
+### For contrast, Lima's real numbers
 
-**RESOLVED 2026-09-27: `manager.rs::up()` is now wired to the same config
-API the verified 2026-08-28 boot used.** `VmManager::create_vm` and
+`limactl start template:default` (2 CPUs/4GB, same machine): ~39s from VZ start to
+SSH-ready + full cloud-init (a live, real Ubuntu 26.04 boot, not a cached image on this
+run), plus a one-time ~2m16s image download/conversion not counted as boot time. Lima's
+install-and-boot path works today, unmodified, because its guest-image acquisition
+(download the real cloud image, boot it directly with its own kernel) is actually wired
+end-to-end — the exact gap on the TinyBridge side documented above.
+
+### RESOLVED 2026-09-27: `up()` now wired to the same config API as the verified boot
+
+`VmManager::create_vm` and
 `tinybridge-vmhost` (`TINYBRIDGE_INITRD_PATH`/`TINYBRIDGE_SEED_IMAGE_PATH`
 env vars) now accept optional `initrd`/`seed.iso` paths and thread them
 into `VmConfig::with_initrd`/`with_seed_image`, exactly like
@@ -505,6 +521,19 @@ four files under `dirs::cache_dir()/TinyBridge/assets/` by hand first.
   actually been verified" above for what *has* been measured). Treat any boot-time number
   you see elsewhere in this repo's history/docs as unverified until re-measured against a
   real guest image.
+
+## Related projects
+
+TinyBridge is a separate project by the same author — it has no code or dependency
+relationship with any of these, and isn't part of them. Listed here only for
+discoverability if you're looking at the author's other OS/kernel-adjacent Rust work:
+
+- [SHER-KERNEL](https://github.com/Mullassery/SHER-KERNEL) — userspace prototype of OS-kernel object-model/scheduling/memory concepts
+- [SHER-Process-Explorer](https://github.com/Mullassery/SHER-Process-Explorer) — evidence-based Linux process investigation tool
+- [SHER-INPUT](https://github.com/Mullassery/SHER-INPUT) — canonical input-event normalization layer
+- [SHER-Graphics](https://github.com/Mullassery/SHER-Graphics) — native GPU abstraction + Vulkan backend
+- [SHER-Display](https://github.com/Mullassery/SHER-Display) — compositor/window-management subsystem
+- [SHER-Aurora](https://github.com/Mullassery/SHER-Aurora) — GTK4 design system
 
 ## License
 
