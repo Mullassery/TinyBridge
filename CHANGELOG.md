@@ -37,6 +37,23 @@ history of each version.
   `ROADMAP_HONEST.md` section 3.
 
 ### Fixed
+- **The daemon health report's memory and disk checks were fake.** `check_disk()`
+  hardcoded `available_gb: 50` and always returned Healthy regardless of the real
+  filesystem (that value was literal JSON, not a measurement), and `check_memory()` on
+  macOS used a broken `sysctl` call whose "available" page count was always `0` (so memory
+  was *always* reported Degraded), while every non-macOS platform was hardcoded Healthy
+  with "Memory check not implemented". Both are now real, measured per check:
+  - `check_memory()`: free+inactive+speculative pages via `host_statistics64` on macOS
+    (plus real total via `sysctl(HW_MEMSIZE)`, fixing the prior broken call) and
+    `MemAvailable`/`MemTotal` from `/proc/meminfo` on Linux. Unsupported platforms report
+    Degraded with an explicit "not supported" message instead of a silent healthy.
+  - `check_disk()`: real `statfs` (macOS) / `statvfs` (Linux) on the filesystem holding
+    `TinyBridgeConfig::data_dir()` (walking up to the nearest existing ancestor since the
+    dir is created lazily); new `available_gb`/`total_gb` details and a real
+    `>= 10 GB` threshold.
+  - New `test_memory_check_is_real` / `test_disk_check_is_real` assert the reported
+    numbers are genuine host measurements (e.g. `total_mb > 0`,
+    `available <= total`).
 - **VirtioFS host-directory sharing is now wired to the real FFI.** Virtualization.framework
   has no API to hot-add a directory share to an already-created VM --
   `VZVirtioFileSystemDeviceConfiguration`/`VZSharedDirectory` must be set on
