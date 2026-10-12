@@ -55,3 +55,5 @@ tmp/
 
 # Release build output (scripts/release.sh) - uploaded to GitHub Releases, not committed
 /release/
+
+graphify-out/

@@ -1,0 +1,39 @@
+name: Graphify (optional)
+
+# Graphify is an optional analysis backend. This workflow is manual
+# (workflow_dispatch) by default so it can never block normal CI. To run it on
+# every change, uncomment the push / pull_request triggers below.
+
+on:
+  workflow_dispatch:
+  # push:
+  #   branches: [main, master, develop]
+  # pull_request:
+  #   branches: [main, master, develop]
+
+jobs:
+  graphify:
+    name: Graphify analysis (optional)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Graphify (graphifyy)
+        run: python -m pip install --disable-pip-version-check graphifyy
+
+      - name: Build code knowledge graph
+        run: python tools/graphify/graphify_adapter.py build --root . --out graphify-out
+
+      - name: Upload graph artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: graphify-out
+          path: graphify-out
+          if-no-files-found: ignore
+          retention-days: 7

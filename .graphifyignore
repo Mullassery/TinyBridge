@@ -1,0 +1,31 @@
+# Graphify ignore file - https://docs.graphify.com/reference/configuration
+# Keep the scan (and therefore the agent's graph) focused on real source.
+.git/
+.github/
+graphify-out/
+
+# Build output / artifacts
+target/
+dist/
+build/
+*.egg-info/
+node_modules/
+.venv/
+venv/
+env/
+
+# Caches
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+.coverage
+htmlcov/
+
+# Vendored / generated
+*.min.js
+*.min.css
+*.lock

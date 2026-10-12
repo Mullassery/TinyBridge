@@ -1,6 +1,6 @@
 # TinyBridge
 
-[![Grapify](https://img.shields.io/badge/Grapify-Code%20Scan-purple)](https://grapify.ai)
+[![Graphify](https://img.shields.io/badge/Graphify-knowledge%20graph-blue)](https://github.com/Graphify-Labs/graphify)
 
 [![CI](https://github.com/Mullassery/TinyBridge/actions/workflows/ci.yml/badge.svg)](https://github.com/Mullassery/TinyBridge/actions/workflows/ci.yml)
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
