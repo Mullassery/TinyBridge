@@ -17,16 +17,25 @@ test, or run the project.
 | `.github/workflows/graphify.yml` | Optional CI job. Manual (`workflow_dispatch`) and non-blocking by default. |
 | `graphify-out/` | Generated graph + report + HTML. Git-ignored; never committed. |
 
-## Install (per developer, optional)
+## Install (per developer, opt-in)
+
+Graphify is never required and is not wired into the build. Developers who want
+the assistant integration install it themselves:
 
 ```bash
 uv tool install graphifyy      # recommended
 pipx install graphifyy         # alternative
 
-# register the assistant skill (choose your client)
-graphify install --platform opencode --project
-graphify install --platform claude --project
+# register the assistant skill for your client (this is your choice, not the repo's)
+graphify install --platform opencode
+graphify install --platform claude
 ```
+
+Registering the skill writes assistant config (e.g. `~/.config/opencode/skills`,
+`~/.claude/skills`) and/or project files such as `.opencode/`, `.claude/`,
+`AGENTS.md`, `CLAUDE.md`. Those files are **intentionally not committed here** —
+each developer decides whether to opt in and whether to keep them local or
+version them. Add `--project` to scope the install to this working copy.
 
 ## Use
 
