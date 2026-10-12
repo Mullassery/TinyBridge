@@ -1,0 +1,17 @@
+name: Grapify
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+    branches: [main, master, develop]
+
+jobs:
+  grapify:
+    name: Grapify scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: grapify-ai/grapify-action@v1
+        with:
+          config: .grapify.yml

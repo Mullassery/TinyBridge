@@ -1,5 +1,7 @@
 # TinyBridge
 
+[![Grapify](https://img.shields.io/badge/Grapify-Code%20Scan-purple)](https://grapify.ai)
+
 [![CI](https://github.com/Mullassery/TinyBridge/actions/workflows/ci.yml/badge.svg)](https://github.com/Mullassery/TinyBridge/actions/workflows/ci.yml)
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Platform: macOS](https://img.shields.io/badge/platform-macOS-lightgrey.svg)](#platform-support)
