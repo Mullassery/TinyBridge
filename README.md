@@ -1,258 +1,54 @@
 # TinyBridge
 
-[![Graphify](https://img.shields.io/badge/Graphify-knowledge%20graph-blue)](https://github.com/Graphify-Labs/graphify)
+A macOS-native Linux VM runtime built on Apple's Virtualization.framework.
 
 [![CI](https://github.com/Mullassery/TinyBridge/actions/workflows/ci.yml/badge.svg)](https://github.com/Mullassery/TinyBridge/actions/workflows/ci.yml)
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
-[![Platform: macOS](https://img.shields.io/badge/platform-macOS-lightgrey.svg)](#platform-support)
+[![Platform: macOS](https://img.shields.io/badge/platform-macOS-lightgrey.svg)](#project-status)
 
-A macOS-native Linux VM runtime built on Apple's Virtualization.framework: a real Linux
-virtual machine, booted via a genuine Rust → C ABI → Swift → Virtualization.framework call
-chain, not a mock.
+## What it is
 
-**Contents:** [Honest status](#honest-status-read-this-first) · [Use cases](#use-cases) ·
-[What's actually been verified](#whats-actually-been-verified) ·
-[Platform support](#platform-support) · [Requirements](#requirements-macos) ·
-[Installing](#installing) · [Building from source](#building-from-source) · [CLI](#cli) ·
-[Architecture](#architecture) · [Security](#security) · [vs Lima](#vs-lima) ·
-[Known debt](#known-debt--deliberately-deferred)
+TinyBridge is a real Linux virtual machine runtime for macOS: a genuine Rust → C ABI → Swift call chain drives Apple's Virtualization.framework to boot an ARM64 Linux guest, provisioned via cloud-init, without a paid Apple Developer account. VMs run in their own codesigned `tinybridge-vmhost` process, supervised by a `tinybridged` daemon over Unix-socket JSON-RPC, with a CLI on top. It is a young, honest, single-maintainer project — the status notes below reflect what is actually built and verified.
 
-## Honest status (read this first)
+## Features / Highlights
 
-This project was previously documented and committed as "production-grade" and
-"cross-platform (Windows/macOS/Linux)." That was not accurate. Here is the real state:
+- **Real Virtualization.framework integration** — a Swift bridge (`swift/Sources/TinyBridgeVZBridge`), `bindgen`-generated FFI (`tinybridge-vz-sys`), and a per-VM `tinybridge-vmhost` process codesigned with the `com.apple.security.virtualization` entitlement. Verified end-to-end on Apple Silicon to boot a complete Ubuntu guest to a `login: ` prompt with working cloud-init credentials (2026-08-28).
+- **Real guest networking** — guest IP is resolved from bootpd's actual DHCP lease file (`/var/db/dhcpd_leases`), never a hardcoded placeholder.
+- **Cloud-init seed support** — `initrd` and `seed.iso` (NoCloud) inputs give a reproducible, credential-provisioned login.
+- **MacOS-host directory sharing** — VirtioFS host-path scoping (canonicalize + allowlist, reject `..` escapes, read-only default) wired to the real `VZVirtioFileSystemDeviceConfiguration` FFI at VM-creation time.
+- **Full VM lifecycle CLI** — `launch`, `shell`, `ssh`, `suspend`/`resume`, `snapshot`, `dds`, `doctor`, and more over a `0600`-permissioned Unix-socket daemon protocol.
+- **Operational hardening** — orphaned-process detection (`PidLock`), runtime hypervisor checks in `tinybridge doctor` (`kern.hv_support`), fail-fast asset validation, and honest error handling.
 
-- **macOS is the only platform with a working hypervisor backend.** `crates/tinybridge-vz`
-  calls Apple's Virtualization.framework through a Swift bridge
-  (`swift/Sources/TinyBridgeVZBridge`), and it is wired end-to-end through
-  `crates/tinybridge-vmhost`'s `VmController` and `crates/tinybridge-daemon`. This has been
-  verified to actually boot a real ARM64 Linux kernel under `VZVirtualMachine` on real Apple
-  Silicon hardware (state transitions `Stopped -> Running`, with a NAT guest IP detected) -
-  see "What's actually been verified" below.
-- **Windows (Hyper-V) and Linux (KVM/QEMU) have no real hypervisor backend.**
-  `crates/tinybridge-core/src/windows_adapter.rs` and `linux_adapter.rs` only mutate an
-  in-memory `HashMap` - there is no Hyper-V or KVM API call anywhere in either file, and
-  neither is wired into the daemon, CLI, or any RPC path (dead code, kept as clearly-labeled
-  scaffolding for a genuine future implementation). Building and testing real Windows/Linux
-  hypervisor backends isn't possible from a macOS development environment, so this is
-  correctly deferred rather than faked further.
-- The CLI's own `--help` text already says it plainly: `tinybridge --help` describes this as
-  a **"macOS Linux development substrate."**
+## Who it's for / Use cases
 
-If you're evaluating this project: treat it as a real, working macOS-only VM runtime with
-a genuine (if young) Virtualization.framework integration, not a finished cross-platform
-product.
+- Developers on **Apple Silicon or Intel Macs (macOS 13+)** who want a real, local Linux VM without a GUI hypervisor app.
+- People evaluating an early-stage, code-first substrate for automating Linux VMs (boot, provision, snapshot, share host directories).
+- Those happy to **build from source** and place guest assets (`kernel`, `initrd`, `disk.raw`, optional `seed.iso`) by hand — there is no automated image pipeline yet.
 
-## Use cases
+## What it is not
 
-- **Running a real Linux VM on Apple Silicon/Intel Mac via
-  Virtualization.framework**, verified to boot a real kernel with a real
-  NAT guest IP — see "What's actually been verified" below for the exact
-  chain.
-- **Not yet a good fit for:** Windows or Linux hosts (both hypervisor
-  backends are unimplemented scaffolding); a turnkey guest image out of
-  the box (the automated build pipeline for a bundled kernel+rootfs isn't
-  verified yet — see "Known debt" below).
+- **Not cross-platform.** macOS is the only working hypervisor backend. `crates/tinybridge-core/src/windows_adapter.rs` and `linux_adapter.rs` are unimplemented scaffolding (Hyper-V/KVM are never called). Building those backends isn't possible from a macOS dev machine, so they are deferred rather than faked.
+- **Not installable via Homebrew today.** The `mullassery/tinybridge` tap is still private ([#1](https://github.com/Mullassery/TinyBridge/issues/1), [#2](https://github.com/Mullassery/TinyBridge/issues/2)), so `brew install` fails for anyone outside the project. Building from source is the supported path.
+- **No turnkey guest images.** No automated download/build pipeline produces a bundled, bootable kernel+rootfs yet; you must acquire and place assets yourself (see `docs/BUILD_ASSETS_GUIDE.md`).
+- **No published crates.** Nothing is on crates.io; the workspace is consumed from source.
+- **Host→guest SSH not yet working out of the box.** On the machine where it was verified, SSH/TCP to the guest's confirmed IP is blocked by a macOS "Local Network" privacy consent, not by a code path issue — a one-time System Settings grant should resolve it.
+- **Early stage.** No end-to-end boot-to-shell benchmarks, no independent security review, no Windows/Linux backends. Treat evaluation claims as what they are: verified on one Apple Silicon machine running macOS 26.
 
-## What's actually been verified
+## Project status
 
-Directly observed on Apple Silicon (M-series, macOS 26), not just implemented and assumed
-to work:
+`v0.6.1` (workspace), active and honest: CI is green (`cargo build --workspace`, `cargo fmt --check`, `cargo clippy --workspace --all-targets -- -D warnings`); `cargo test --workspace --exclude tinybridge-daemon` passes 408/408 and `cargo test -p tinybridge-daemon` passes 194/194. The macOS backend has been verified to boot a real guest to a working cloud-init login; see `ROADMAP_HONEST.md` and the root-level status notes in [docs/README.md](docs/README.md) for the full, unfiltered picture. No backward-compatibility or API-stability guarantees yet — it is a single-maintainer substrate, not a released platform.
 
-1. The Swift bridge (`swift/Sources/TinyBridgeVZBridge`) builds cleanly against
-   Virtualization.framework (`swift build -c release`) and exports the real C ABI symbols
-   (`tb_vm_create`, `tb_vm_start`, `tb_vm_stop`, `tb_vm_get_status`, ...).
-2. `tinybridge-vz-sys`'s `bindgen`-generated Rust bindings compile and link against that
-   dylib for real.
-3. `tinybridge-vmhost`'s real production binary - codesigned with the
-   `com.apple.security.virtualization` entitlement
-   (`crates/tinybridge-vmhost/tinybridge-vmhost.entitlements`) - was started, and driven over
-   its actual Unix-socket JSON-RPC protocol (`vmhost.start`/`vmhost.status`/`vmhost.stop`)
-   with a real ARM64 Linux kernel image. Observed status transitions:
-   `Stopped` → (`vmhost.start`) → `Running` (with a detected NAT guest IP,
-   `192.168.105.2`) → (`vmhost.stop`) → `Stopped`.
-4. A non-obvious platform requirement was found and fixed in the process:
-   Virtualization.framework dispatches its callbacks onto the process's main GCD queue, so a
-   plain `#[tokio::main]` process silently hangs forever on every VM lifecycle call. Fixed by
-   running the async server on a background thread and dedicating the real process main
-   thread to `dispatch_main()` (see `crates/tinybridge-vmhost/src/main.rs`).
-5. Ad-hoc codesigning with the virtualization entitlement (no paid Apple Developer account
-   required) was confirmed sufficient for local use - see `justfile`'s `sign-vmhost` recipe.
+## Installation
 
-> **RESOLVED 2026-08-28: guest boot to a real login prompt, with real credentials, now
-> works.** The root cause of every prior failure below was never an unfixable Apple
-> regression — it was using the wrong kernel. The failed attempts below are kept for a
-> complete record; see [The actual fix](#the-actual-fix-2026-08-28-same-macos-2652-machine)
-> for what resolved it.
-
-### Prior failed attempts
-
-Kept for a complete record — a real guest disk image was used throughout, not a placeholder:
-
-- A real Ubuntu 24.04 ARM64 cloud image was downloaded, checksum-verified, and converted from
-  QCOW2 to the raw format `VZDiskImageStorageDeviceAttachment` requires (`qemu-img convert -O
-  raw`), then confirmed GPT-partitioned with a Linux root filesystem as the first partition,
-  matching the default `root=/dev/vda1` kernel cmdline.
-- A real serial console was wired up end-to-end (`serial_log_path` on `TBVMConfig` ->
-  `VZVirtioConsoleDeviceSerialPortConfiguration` + `VZFileHandleSerialPortAttachment` in
-  `TinyBridgeVZ.swift` -> `VmConfig::with_serial_log_path()` in `crates/tinybridge-vz`), since
-  previously `console=hvc0` in the kernel cmdline pointed at a device that was never attached
-  and there was no way to observe boot output at all.
-- The VirtIO graphics device was made conditional on a non-zero display size
-  (`crates/tinybridge-vz/examples/vz_boot_test.rs` requests `0x0`, i.e. headless), because
-  attaching it unconditionally opens a real WindowServer/SkyLight session that macOS gates
-  behind Screen Recording TCC consent for the calling process - unnecessary for a serial-only
-  boot check.
-- With all of the above real and wired, `vm.start()` on this real kernel + real disk still
-  fails with `Error Domain=VZErrorDomain Code=1 "The virtual machine failed to start."` before
-  any guest code runs (confirmed via `Console.app`/`log show`, with and without the graphics
-  device, with and without an app-bundle wrapper, with and without a real vs. placeholder
-  disk - same failure every time). This is not a TinyBridge bug: it matches a
-  [known macOS 26.x ARM64 Virtualization.framework regression](https://github.com/apple/container/issues/1254)
-  that also breaks Apple's own `container` CLI and Podman on the same OS/architecture
-  combination, per an Apple-affiliated maintainer's confirmation on that issue - there is
-  currently no known app-level workaround. Re-verification is blocked on either an Apple OS
-  update or testing on a macOS build that doesn't have this regression.
-
-### Re-verified 2026-08-28 on macOS 26.5.2 (Apple Silicon): a different failure mode
-
-Repeated the same real-asset setup (Ubuntu 24.04 ARM64 cloud image, checksum
-verified, `qemu-img convert -O raw`, confirmed `EFI PART` GPT signature at offset 512; kernel
-from Firecracker's CI bucket, `vmlinux-5.10.223`, confirmed `file`-identified as a real ARM64
-boot Image — the cloud-hypervisor and firecracker-microvm release URLs `BUILD_ASSETS_GUIDE.md`
-documents both now 404, a separate doc-rot issue worth fixing) and ran `vz_boot_test` end to
-end:
-
-- `vm.start()` returned `Ok(())` (no `VZErrorDomain` error at all this time), and the VM
-  reached `state: Running` with a real NAT-assigned guest IP (`192.168.105.2`) within 5.5s —
-  further than the documented Code=1 immediate failure.
-- Despite that, the serial console log (`console=hvc0`, wired to a real
-  `VZFileHandleSerialPortAttachment`) stayed completely empty (0 bytes) for the full 60-second
-  observation window. A kernel that actually executed even one instruction past early boot
-  would have written something to `hvc0`; zero bytes after 60s means the guest CPU almost
-  certainly never ran real code, despite the hypervisor-level state machine saying `Running`.
-- `log show` around VM creation shows a concrete, reproducible AMFI rejection of the Swift
-  bridge's dylib that doesn't appear anywhere in the previous investigation:
-  `amfid: .../libTinyBridgeVZBridge.dylib not valid: Error Domain=AppleMobileFileIntegrityError
-  Code=-423 "The file is adhoc signed or signed by an unknown certificate chain"`. `syspolicyd`
-  still ultimately allows the library to load (`GK evaluateScanResult` succeeds, "allowed,
-  cache" in the kernel log), so this isn't an outright load failure — but it's a real, distinct
-  signal worth investigating as a possible contributor to the silent-no-boot symptom, since
-  Virtualization.framework may degrade privileged operations (like serial port wiring) when the
-  calling code's identity isn't AMFI-trusted, even with the `com.apple.security.virtualization`
-  entitlement present on the outer process. Explicitly re-codesigning the dylib itself
-  (`codesign --force --sign - --entitlements ... libTinyBridgeVZBridge.dylib`) did not change
-  the outcome — same AMFI complaint, same empty console.
-- Net effect: guest boot is still not achievable on this exact machine/OS build, but the
-  concrete symptom has changed from "immediate explicit error" to "silent hang with a
-  misleadingly optimistic `Running`+IP status," and there's now a specific, logged AMFI
-  signature error to chase (Error -423) that wasn't part of the prior investigation. Getting a
-  full Developer ID signature (not just ad-hoc) to test whether that resolves the AMFI
-  complaint would require a paid Apple Developer account, which the project has otherwise
-  avoided needing — worth a decision call before investing in that path.
-
-### The actual fix (2026-08-28, same macOS 26.5.2 machine)
-
-The AMFI signature theory above was a red herring. The real root cause: **the Firecracker CI
-kernel used in every attempt above (`vmlinux-5.10.223`) is built for Firecracker's own minimal
-microVM hardware model (virtio-mmio transport, no PCI), not Apple's Virtualization.framework
-hardware model (which needs virtio-pci)** - so the kernel could never have found its root
-disk or console regardless of any code-signing issue. Confirmed by extracting the *same
-cloud image's own* matching kernel and initrd (loop-mounting `disk.raw`'s `/boot` partition -
-partition 16 in this GPT layout, not partition 1, in a privileged Linux container since macOS
-can't mount ext4 natively) and booting with those instead:
-
-- `vmlinuz-6.8.0-138-generic` (gzip-wrapped; `gunzip -c` first to get the real
-  `Linux kernel ARM64 boot executable Image` `VZLinuxBootLoader` needs) + its matching
-  `initrd.img-6.8.0-138-generic`, both pulled straight out of the cloud image's own `/boot` -
-  guaranteed to match (unlike guessing a kernel from an unrelated project's release).
-- With this kernel+initrd (`VmConfig::with_initrd`, already present in the API but never
-  exercised by `vz_boot_test` until now - the example only accepted 3 args, not 4), the
-  console log fills with real boot output: `virtio_blk virtio2: [vda] ... vda: vda1 vda15
-  vda16` (the disk is found, GPT partitions correctly enumerated), then a full systemd boot
-  (dbus, rsyslog, polkit, snapd, ModemManager, cloud-init, ...) all the way to
-  `Ubuntu 24.04.4 LTS ubuntu hvc0 / ubuntu login:` - a real, complete guest boot.
-- A raw cloud image with no datasource boots but has no usable login (no password, no SSH
-  key - cloud-init has nothing to configure). Added second-disk support
-  (`seed_image_path`/`VmConfig::with_seed_image`, threaded through the C header, Swift
-  bridge, and Rust FFI) to attach a cloud-init NoCloud seed ISO (`user-data`/`meta-data`,
-  volume label `cidata`, built with `hdiutil makehybrid -iso -joliet
-  -default-volume-name cidata`) as a second, read-only `VZVirtioBlockDeviceConfiguration`.
-  Confirmed in the console log: `Datasource DataSourceNoCloud [seed=/dev/vdb]`, password set,
-  SSH host keys generated - a real, working login now exists.
-- **Also found and fixed a real, separate bug while validating this**: `tb_vm_get_status`'s
-  `ip_address` was **hardcoded** to the literal string `"192.168.105.2"`
-  (`self?.ipAddress = self?.ipAddress ?? "192.168.105.2"`, with an honest `// TODO: probe
-  guest-side ... once we have a real guest image to test against` comment above it - not
-  hidden, but never actually revisited until this session had a real guest to test against).
-  Every prior "verified ... with a detected NAT guest IP" claim in this file (including
-  earlier in this same investigation) was reading that constant, not a real value. Fixed
-  with a real mechanism: `/var/db/dhcpd_leases` (bootpd's real DHCP lease file for
-  vmnet-based NAT networking) has one entry per client with a `name=` field taken from the
-  guest's own DHCP host-name option. `TBVMConfig` gained a `vm_name` field (the same name
-  string already passed to `VirtualMachine::new`); the boot monitor now parses that lease
-  file and returns the `ip_address` of the entry whose `name=` matches, or `nil` - never a
-  guess - if there's no match yet. Confirmed against the real lease file: `name=tinybridge-vm
-  / ip_address=192.168.64.3`, and `vm.status()` now reports exactly that real, resolved
-  address instead of the old placeholder. Requires the guest's hostname (e.g. cloud-init's
-  `hostname:` seed field) to match the VM's `name` - documented on the header field.
-
-**Remaining known gap**: SSH/TCP/ICMP from the *host* to the guest's real, confirmed IP
-(`192.168.64.3`) doesn't get a response, even though the DHCP lease proves the guest is up
-and networked (`bridge100`'s ARP table shows the address as unresolved/incomplete). This
-looks like macOS's "Local Network" privacy permission gating the *calling* process
-(Terminal.app, in this investigation) rather than a TinyBridge bug - `tccutil`/`TCC.db` shows
-no local-network grant recorded for it, and that permission can only be granted through a
-real System Settings prompt, not scripted. Whoever picks this up next should grant Local
-Network access to whatever terminal/app is being used, then retry SSH to the guest's real IP
-(read from `vm.status()` or `/var/db/dhcpd_leases`) before assuming there's a code bug here.
-
-## Platform Support
-
-| Platform | Hypervisor | Status |
-|---|---|---|
-| macOS (Apple Silicon / Intel, macOS 13+) | Apple Virtualization.framework | **Real, wired, verified to boot a complete real guest to a login prompt with working cloud-init credentials** (2026-08-28 - see "The actual fix" above). Host-to-guest SSH is blocked on a local, one-time macOS "Local Network" permission grant, not a code issue. |
-| Windows | Hyper-V / WHPX | Not implemented. `windows_adapter.rs` is unimplemented scaffolding, not wired to anything. |
-| Linux | KVM/QEMU | Not implemented. `linux_adapter.rs` is unimplemented scaffolding, not wired to anything. |
-
-## Requirements (macOS)
-
-- macOS 13.0+ on Apple Silicon or Intel (Virtualization.framework requirement)
-- Rust (see `rust-toolchain.toml`) and Swift (Xcode Command Line Tools are sufficient)
-- `just` (optional, for the `justfile` recipes) - or run the equivalent `cargo`/`swift`/
-  `codesign` commands directly
-
-## Installing
-
-`brew install mullassery/tinybridge/tinybridge` does not currently work for anyone outside
-this project: the tap repository (`mullassery/homebrew-tinybridge`) is **still private**, so
-`brew tap`/`brew install` fails with a git authentication error for external users (tracked
-in [issue #1](https://github.com/Mullassery/TinyBridge/issues/1) and
-[issue #2](https://github.com/Mullassery/TinyBridge/issues/2)). That remains the actual
-blocker. The rest of issue #2 has since been fixed and this section is updated to match: the
-tap's `tinybridge.rb`/`tinybridged.rb` formulas now point at `v0.5.0` (the latest release,
-matching this repo's current `Cargo.toml` version), and the `v0.5.0` GitHub Release asset
-(`tinybridge-0.5.0-aarch64-apple-darwin.tar.gz`) now bundles `libTinyBridgeVZBridge.dylib`
-and a `SHA256SUMS` file (verified directly - both are present in the downloaded tarball).
-`tinybridge-vmhost` inside that tarball still has no `LC_RPATH` (confirmed with `otool -l`:
-one `LC_LOAD_DYLIB` for `@rpath/libTinyBridgeVZBridge.dylib`, zero `LC_RPATH` commands, so it
-aborts with a dyld error if run standalone) - the bundled `INSTALL.txt` documents the
-workaround (set `DYLD_LIBRARY_PATH` to wherever you place the dylib), and the `tinybridged`
-formula automates that same workaround via `write_env_script`. So: a manual download of the
-release tarball now works if you follow `INSTALL.txt`, but the tap itself still isn't
-installable by anyone outside this project until it's made public. Building from source
-remains the simplest path for external users today.
-
-## Building from source
+Building from source is the only currently working install path:
 
 ```bash
 git clone https://github.com/Mullassery/TinyBridge.git
 cd TinyBridge
 
-# Builds the Swift Virtualization.framework bridge, copies the dylib where Cargo's linker
-# expects it, builds the whole Rust workspace, and codesigns tinybridge-vmhost with the
-# com.apple.security.virtualization entitlement (ad-hoc signing - no paid Apple Developer
-# account needed).
+# Builds the Swift bridge, copies the dylib where Cargo expects it, builds the
+# workspace, and ad-hoc codesigns tinybridge-vmhost with the virtualization
+# entitlement (no paid Apple Developer account needed).
 just build
 
 # Or, without `just`:
@@ -265,282 +61,76 @@ codesign --force --sign - \
   target/debug/tinybridge-vmhost
 ```
 
-`cargo test --workspace` requires `DYLD_LIBRARY_PATH=target/swift-libs` so the test
-binaries for `tinybridge-vz` can find the real dylib at runtime; see `.github/workflows/ci.yml`
-for the exact invocation this project's CI uses.
+### Requirements (macOS)
 
-## CLI
+- macOS 13.0+ on Apple Silicon or Intel (Virtualization.framework requirement)
+- Rust (see `rust-toolchain.toml`) and Swift (Xcode Command Line Tools are sufficient)
+- `just` for the `justfile` recipes, optional
 
-The real command surface (from `crates/tinybridge-cli/src/main.rs`), not an aspirational
-one:
+### Guest assets
 
-```
-tinybridge launch      Launch a new environment
-tinybridge up          Start an environment (legacy alias for launch)
-tinybridge down        Stop an environment
-tinybridge gui         Attach a display window to a running environment
-tinybridge headless    Detach the display window (VM keeps running)
-tinybridge suspend     Suspend an environment (pause, preserving state)
-tinybridge resume      Resume a suspended environment
-tinybridge shutdown    Gracefully shut down an environment
-tinybridge restart     Restart an environment
-tinybridge repair      Re-provision SSH/DDS config for a running environment
-tinybridge destroy     Destroy an environment
-tinybridge status      Show environment status
-tinybridge list        List all environments
-tinybridge shell       Open an interactive shell in an environment
-tinybridge ssh         SSH into an environment
-tinybridge logs        Show environment logs
-tinybridge update      Manage environment resources
-tinybridge snapshot     Manage environment snapshots
-tinybridge doctor      Run system diagnostics
-tinybridge templates   List available templates
-tinybridge images      List available images
-tinybridge dds         Manage DDS networking
+You must place `kernel`, `initrd`, `disk.raw` (and optionally a cloud-init `seed.iso`) under `dirs::cache_dir()/TinyBridge/assets/`. See [docs/BUILD_ASSETS_GUIDE.md](docs/BUILD_ASSETS_GUIDE.md) for building these; the verified path extracts the matching kernel+initrd from a real Ubuntu cloud image's own `/boot`. `cargo test --workspace` needs `DYLD_LIBRARY_PATH=target/swift-libs` (absolute path) so the `tinybridge-vz` test binaries find the Swift dylib — see `ci.yml` for the exact CI invocation.
+
+## Quick start
+
+```bash
+just build
+
+# Start the daemon, launch an environment, shell in:
+tinybridged &
+tinybridge launch myenv --template ubuntu
+tinybridge status myenv
+tinybridge shell myenv
 ```
 
-Run `tinybridge --help` or `tinybridge <command> --help` for full, current usage - that's
-the source of truth, not this file.
+If assets are missing, `launch` fails fast with an actionable error naming the missing file(s).
 
-## Architecture
+## Usage
+
+The real command surface (from `crates/tinybridge-cli/src/main.rs`):
 
 ```
-tinybridge-cli  ──(Unix socket JSON-RPC)──>  tinybridged (daemon)
-                                                   │
-                                          tinybridge-daemon::VmManager
-                                          (spawns one child process per VM)
-                                                   │
-                                     tinybridge-vmhost (per-VM child process)
-                                          tinybridge-vmhost::VmController
-                                                   │
-                                            tinybridge-vz::VirtualMachine
-                                                   │
-                                          tinybridge-vz-sys (bindgen FFI)
-                                                   │
-                                   swift/Sources/TinyBridgeVZBridge (Swift, @_cdecl)
-                                                   │
-                                      Apple Virtualization.framework
+tinybridge launch      Launch a new environment        tinybridge snapshot   Manage snapshots
+tinybridge down        Stop an environment              tinybridge doctor     Run system diagnostics
+tinybridge gui         Attach a display window          tinybridge templates  List templates
+tinybridge headless    Detach display (VM keeps running)  tinybridge images   List images
+tinybridge suspend     Suspend (pause, preserving state) tinybridge dds      Manage DDS networking
+tinybridge resume      Resume a suspended environment   tinybridge status    Show environment status
+tinybridge shutdown    Gracefully shut down             tinybridge list      List environments
+tinybridge restart     Restart an environment           tinybridge shell     Interactive shell
+tinybridge repair      Re-provision SSH/DDS config      tinybridge ssh       SSH into an environment
+tinybridge destroy     Destroy an environment           tinybridge logs      Show environment logs
+tinybridge up          Start (legacy alias for launch)  tinybridge update    Manage environment resources
 ```
 
-Each running VM gets its own `tinybridge-vmhost` process (codesigned with the
-virtualization entitlement), which owns exactly one real `VZVirtualMachine` and exposes
-`start`/`stop`/`force_stop`/`status` over a `0600`-permissioned Unix socket. The daemon
-(`tinybridged`) spawns and talks to these per-VM processes; it never touches
-Virtualization.framework directly.
+Run `tinybridge --help` or `tinybridge <command> --help` for current usage — that is the source of truth.
 
-There is no separate, accurate architecture deep-dive doc beyond the diagram above yet: the
-old `docs/ARCHITECTURE.md` predated this project's honesty pass and described a SwiftUI
-menu-bar app, `.dmg`/notarized installer, and crates.io package that don't exist as a
-working product, so it has been moved to `docs/archive/` rather than kept as if current —
-see `docs/archive/README.md` for specifics. See `docs/README.md` for what documentation is
-current.
+## Documentation
 
-## Security
+- [docs/README.md](docs/README.md) — documentation index with per-doc accuracy notes
+- [docs/BUILD_ASSETS_GUIDE.md](docs/BUILD_ASSETS_GUIDE.md) — building guest kernel/rootfs assets
+- [docs/CLIPBOARD.md](docs/CLIPBOARD.md) — macOS↔Linux clipboard bridge (unverified end-to-end until host→guest SSH works)
+- [docs/DDS_CLI_REFERENCE.md](docs/DDS_CLI_REFERENCE.md) — `tinybridge dds` command reference
+- [docs/SWIFT_VZ_BUILD.md](docs/SWIFT_VZ_BUILD.md) — building the Swift Virtualization.framework bridge
+- [ROADMAP_HONEST.md](ROADMAP_HONEST.md) — what's built, verified, broken, or deferred
+- [SECURITY.md](SECURITY.md) — security posture and reporting
 
-See [SECURITY.md](SECURITY.md) for the current, accurate security posture: guest network
-mode (NAT-only by default), guest image checksum verification, VM control socket
-permissions, the virtualization entitlement requirement, and VirtioFS host-path scoping
-(implemented, tested, and -- as of 2026-10-04 -- wired into the real
-`VZVirtioFileSystemDeviceConfiguration`/`VZSharedDirectory` FFI call at VM-creation time;
-see `crates/tinybridge-vz/src/virtiofs.rs`).
+## Contributing
 
-## Recent fixes (v0.6.0)
-
-- **Orphaned-process detection**: the daemon and `tinybridge-vmhost` used to blindly delete
-  a leftover control socket on startup with no check for whether the process that created
-  it was still running. `tinybridge-core::pid_lock::PidLock` now writes a `<socket>.pid`
-  file and checks whether that PID is actually alive (via `ps -p`) before touching
-  anything: a live instance's socket is left alone (startup errors out instead), a dead
-  instance's stale socket+lock is cleaned up automatically.
-- **`tinybridge doctor` virtualization check is now a runtime check, not just an
-  architecture check**: it now also reads `sysctl kern.hv_support` (the same signal
-  Hypervisor.framework/Virtualization.framework consult internally), so it correctly fails
-  when hardware virtualization is unavailable even on Apple Silicon - e.g. running nested
-  inside another VM without virtualization passthrough, or disabled by an MDM profile.
-
-## vs Lima
-
-Lima (also Virtualization.framework-based, CLI-driven) is the closest OSS
-comparison. Ran both for real on this machine (Apple Silicon, macOS 26).
-
-### `tinybridge launch bench-test --template ubuntu` fails today — here's exactly why
-
-The daemon's `up()` (`crates/tinybridge-daemon/src/manager.rs`)
-still calls `vm_manager.create_vm(...)` with a fixed
-`assets_dir.join("vmlinux")` / `assets_dir.join("rootfs.img")` pair that
-doesn't exist on a fresh install — real error, reproduced live: `VM failed
-to start: ... VM creation failed`. This isn't the same gap as "Windows/Linux
-backends are unimplemented" above — the macOS hypervisor path is real and
-was directly verified to boot to a working Ubuntu login on 2026-08-28 (see
-"The actual fix" above) — but that verified boot used a *different* config
-API (`VmConfig::with_initrd` + a cloud-init seed ISO, kernel+initrd pulled
-from the cloud image's own `/boot`) than what `manager.rs::up()` actually
-calls. The real, working boot path and the CLI's `launch` command were
-never wired together. Building a truly bootable kernel+rootfs from scratch
-to force a live boot-time number through anyway was out of scope for this
-benchmark — `scripts/build-rootfs-multi-tier.sh` itself admits (step 2) it
-only "creates config structure" for CI, not a real image, so this isn't
-something a quick fix resolves.
-
-### Two real bugs found and fixed while reproducing the above (unrelated to the asset gap)
-
-1. `tinybridge images`, `tinybridge templates`, and `tinybridge repair`
-   each declared their own local `verbose: bool` arg, colliding with the
-   root `Cli` struct's `global = true` `-v`/`--verbose` count flag (same
-   clap arg id, different type). Clap panicked (`Mismatch between
-   definition and access of 'verbose'`) on every invocation of these three
-   commands, even with no flags at all — not an edge case, the base
-   command was broken. Fixed by renaming the local fields to `details`.
-2. A launch whose VM failed to start (exactly the scenario above) left the
-   environment permanently stuck in `Starting { progress_pct: 0 }` forever
-   — not `Running` (so `down`/`destroy` refused it: "Environment not
-   running"), and not `Stopped`/`Error` either (the only two states
-   `down`/`destroy` will touch), so there was no way to ever remove or
-   relaunch a failed environment short of restarting the whole daemon.
-   Fixed in two places: the early `start_vm` failure path in `up()` now
-   transitions to `Error` (mirroring the handling already correct a few
-   lines later in the same function), and `down()`'s running-check is now
-   skipped when `force=true` (which is what `destroy` always passes) so a
-   broken environment in any state can actually be cleaned up.
-
-### For contrast, Lima's real numbers
-
-`limactl start template:default` (2 CPUs/4GB, same machine): ~39s from VZ start to
-SSH-ready + full cloud-init (a live, real Ubuntu 26.04 boot, not a cached image on this
-run), plus a one-time ~2m16s image download/conversion not counted as boot time. Lima's
-install-and-boot path works today, unmodified, because its guest-image acquisition
-(download the real cloud image, boot it directly with its own kernel) is actually wired
-end-to-end — the exact gap on the TinyBridge side documented above.
-
-### RESOLVED 2026-09-27: `up()` now wired to the same config API as the verified boot
-
-`VmManager::create_vm` and
-`tinybridge-vmhost` (`TINYBRIDGE_INITRD_PATH`/`TINYBRIDGE_SEED_IMAGE_PATH`
-env vars) now accept optional `initrd`/`seed.iso` paths and thread them
-into `VmConfig::with_initrd`/`with_seed_image`, exactly like
-`vz_boot_test` already proved works. `up()` also now fails fast with an
-actionable error naming the missing file(s) if `kernel`/`disk.raw` aren't
-present under the assets directory, instead of spawning `tinybridge-vmhost`
-with paths that don't exist and getting an opaque `VZErrorDomain` failure
-several layers deeper.
-
-**Real, live re-verification of the fixed code path** (not just the
-standalone example this time): populated the real assets directory
-(`kernel`, `initrd`, `disk.raw` — the same files extracted from the cloud
-image's own `/boot` per "The actual fix" above; no `seed.iso` in this
-specific run) and called the actual `EnvironmentManager::up()` used by
-`tinybridge launch`. Result: `Ok`, hypervisor state `Running`, in ~1s.
-`down(force=true)` cleanly tore it down afterward with no orphaned
-process. This is a real
-`#[ignore]`-gated regression test —
-`tinybridge-daemon/src/manager.rs::tests::up_drives_a_real_vm_to_running_state_via_the_daemon_code_path`
-— run manually with a codesigned `tinybridge-vmhost` on `PATH` and real
-assets in place; it can't run in CI (no Virtualization.framework there).
-**Not re-verified in this pass**: the `seed.iso`-equipped, full
-cloud-init-to-login-prompt path specifically through `up()` (only the
-hypervisor-reaches-Running layer was live-tested here) — the underlying
-API is unchanged from the already-proven-working `vz_boot_test` path, but
-nobody has exercised `up()` with all four files present in the same run
-yet.
-
-**Also found and fixed while doing this**: `up()`'s SSH config generation
-had a second, separate hardcoded-IP bug of the same shape as the
-`tb_vm_get_status` one already fixed above — every environment's
-`~/.ssh/config` entry wrote `hostname: "192.168.105.2"` unconditionally,
-regardless of `real_ip_address` (the actual resolved guest IP computed a
-few lines earlier in the same function). This silently pointed SSH at the
-wrong host whenever the real IP differed, with no error — a real
-correctness/security concern (connecting to a stale or unrelated VM that
-happens to hold that address), not just a cosmetic one. Fixed: the SSH
-entry is only written once a real IP is known
-(`EnvironmentManager::build_ssh_entry`, unit-tested); if the guest hasn't
-been assigned one yet within the boot-status poll window, no entry is
-written rather than one known to be wrong.
-
-**Still not built**: an automated asset-acquisition pipeline. Producing
-`kernel`/`initrd`/`disk.raw`/`seed.iso` from a fresh Ubuntu cloud image is
-still the fully-manual process documented in "The actual fix" (download,
-`qemu-img convert`, loop-mount in a privileged Linux container to extract
-`/boot`, `hdiutil` for the seed ISO) — `up()` now correctly *uses* these
-files once they exist, but nothing in the codebase produces them yet. A
-real user running `tinybridge launch` today still needs to place these
-four files under `dirs::cache_dir()/TinyBridge/assets/` by hand first.
-
-## Known debt / deliberately deferred
-
-- **Distribution is still broken for external users, though partially fixed**: the Homebrew
-  tap is private ([#1](https://github.com/Mullassery/TinyBridge/issues/1)) - that part is
-  unresolved and is the actual blocker. The `v0.5.0` darwin release tarball now bundles the
-  required dylib and a `SHA256SUMS` file (re-verified directly), but the `tinybridge-vmhost`
-  binary inside it still has no `LC_RPATH`, so it needs `DYLD_LIBRARY_PATH` set manually per
-  the bundled `INSTALL.txt` ([#2](https://github.com/Mullassery/TinyBridge/issues/2)). The
-  older `v0.3.1` tag still ships assets internally named `0.3.0` (unchanged, low-priority
-  since `v0.5.0` is current). See "Installing" above. Building from source is the only
-  install path that doesn't require a manual `DYLD_LIBRARY_PATH` workaround.
-- **CI is now green.** It had been red on every push since the `v0.5.0` release because
-  `cargo fmt --check` failed on the first gate in `.github/workflows/ci.yml`, before clippy
-  or the test suite ever ran. Fixing the formatting surfaced ~50 real clippy warnings across
-  `tinybridge-core`, `tinybridge-cli`, and `tinybridge-daemon` that clippy had also never
-  actually gotten a chance to check (same cascading-hidden-failure shape) - all fixed for
-  real (not suppressed), confirmed via a real, watched CI run. Re-verified directly during
-  the 2026-09-21 OSS-standardization pass: with `DYLD_LIBRARY_PATH` set to an *absolute*
-  path pointing at `target/swift-libs` (a relative path silently fails to load the dylib -
-  `cargo build`/`cargo fmt`/`cargo clippy` all pass regardless, but `cargo test` needs the
-  absolute form), `cargo build --workspace`, `cargo fmt --check`, and
-  `cargo clippy --workspace --all-targets -- -D warnings` all pass clean;
-  `cargo test --workspace --exclude tinybridge-daemon` passes 408/408 (this number has grown
-  from the previously-recorded 396/396 as tests were added since); `cargo test -p
-  tinybridge-daemon` now passes 194/194 (0 failed) - the 9 previously-skipped failures
-  mentioned in an earlier version of this section are gone from both the code and
-  `.github/workflows/ci.yml`, which no longer excludes or skips any daemon tests.
-- Two `TODO`s left in the CLI: `crates/tinybridge-cli/src/commands/logs.rs` (log retrieval
-  from the daemon is not yet implemented) and `crates/tinybridge-cli/src/commands/launch.rs`
-  (system detection is not yet implemented).
-- **Windows/Linux hypervisor backends**: not implemented (see "Honest status" above).
-- **Guest image pipeline**: no bundled/auto-downloaded kernel+rootfs pair verified to boot
-  to a login prompt yet. `scripts/build-rootfs-multi-tier.sh` now verifies its Ubuntu cloud
-  image download against upstream `SHA256SUMS` before use, but building a full, tested,
-  bootable rootfs image end-to-end is still open work. A real, complete boot attempt was made
-  (see "What's actually been verified" above) and is currently blocked by an external macOS
-  26.x ARM64 Virtualization.framework bug, not by anything in this pipeline.
-- **FIXED (2026-10-04): VirtioFS host-directory sharing is wired to the real FFI.**
-  Virtualization.framework requires directory shares to be configured at VM-creation time
-  (no hot-add API), so `VirtioFS::attach(&self, vm: &VirtualMachine)` -- which operates on
-  an already-created VM -- still correctly returns an honest error; the real path is
-  `VirtioFS::into_spec(allowed_roots)` + `VmConfig::with_virtiofs_share(spec)` *before*
-  `VirtualMachine::new()`. Host-path scoping (canonicalize + allowlist, reject `..` escapes,
-  default read-only) is unchanged, still real and unit-tested. Verified end-to-end with a
-  real ad-hoc-codesigned test binary: a VM configured with a real VirtioFS share passes
-  `VZVirtualMachineConfiguration.validate()` and `VZVirtualMachine(configuration:)`
-  construction. See `ROADMAP_HONEST.md` for full detail, including why the committed
-  regression test gracefully skips under a normal (unsigned) `cargo test` run.
-- **`objc` 0.2 / `block` 0.1.6`** (used by `tinybridge-clipboard`'s macOS pasteboard
-  integration) are unmaintained; `block` already triggers a Rust future-incompatibility
-  warning. `objc2` is the maintained successor but migrating is a real API rewrite,
-  deliberately not bundled into this pass - see the comment in
-  `crates/tinybridge-clipboard/Cargo.toml`.
-- **Performance**: no end-to-end guest-boot-to-shell benchmarks exist yet (see "What's
-  actually been verified" above for what *has* been measured). Treat any boot-time number
-  you see elsewhere in this repo's history/docs as unverified until re-measured against a
-  real guest image.
+See [CONTRIBUTING.md](CONTRIBUTING.md) (dev setup, test/lint commands) and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md). Security issues: report via [SECURITY.md](SECURITY.md), not public issues. Behavior changes are tracked in [CHANGELOG.md](CHANGELOG.md).
 
 ## Related projects
 
-TinyBridge is a separate project by the same author — it has no code or dependency
-relationship with any of these, and isn't part of them. Listed here only for
-discoverability if you're looking at the author's other OS/kernel-adjacent Rust work:
-
+- [MudFish](https://github.com/Mullassery/MudFish) — Rust-native web crawling and intelligence engine with Python bindings
+- [MessageBirds](https://github.com/Mullassery/MessageBirds) — open-source, event-driven Customer Data & Engagement Platform (Rust + TypeScript)
+- [PrismNote](https://github.com/Mullassery/prismnote) — Jupyter-compatible data-science notebook with a Rust backend
 - [SHER-KERNEL](https://github.com/Mullassery/SHER-KERNEL) — userspace prototype of OS-kernel object-model/scheduling/memory concepts
-- [SHER-Process-Explorer](https://github.com/Mullassery/SHER-Process-Explorer) — evidence-based Linux process investigation tool
-- [SHER-INPUT](https://github.com/Mullassery/SHER-INPUT) — canonical input-event normalization layer
-- [SHER-Graphics](https://github.com/Mullassery/SHER-Graphics) — native GPU abstraction + Vulkan backend
-- [SHER-Display](https://github.com/Mullassery/SHER-Display) — compositor/window-management subsystem
-- [SHER-Aurora](https://github.com/Mullassery/SHER-Aurora) — GTK4 design system
+- [PyAPICheck](https://github.com/Mullassery/PyAPICheck) — transparent API security discovery with a Rust core and Python CLI/SDK
+
+[Browse all projects →](https://github.com/Mullassery?tab=repositories)
 
 ## License
 
-This project is licensed under the [Apache License 2.0](LICENSE).
+Licensed under the [Apache License 2.0](LICENSE).
 
-## Contact
-
-mullassery@gmail.com — see [SECURITY.md](SECURITY.md) for security-specific reporting.
+Contact: mullassery@gmail.com — see [SECURITY.md](SECURITY.md) for security-specific reporting.
