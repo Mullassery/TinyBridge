@@ -481,11 +481,16 @@ mod tests {
         let checker = HealthChecker::new();
         let memory = checker.check_memory();
         let details = memory.details.expect("memory check should have details");
-        let available_mb = details["available_mb"].as_u64().expect("available_mb present");
+        let available_mb = details["available_mb"]
+            .as_u64()
+            .expect("available_mb present");
         let total_mb = details["total_mb"].as_u64().expect("total_mb present");
         // Real measurement of the running host: non-trivial amounts, and
         // available can never exceed total.
-        assert!(available_mb > 0, "available_mb should be real, got {available_mb}");
+        assert!(
+            available_mb > 0,
+            "available_mb should be real, got {available_mb}"
+        );
         assert!(total_mb > 0, "total_mb should be real, got {total_mb}");
         assert!(available_mb <= total_mb);
     }
@@ -496,7 +501,9 @@ mod tests {
         let checker = HealthChecker::new();
         let disk = checker.check_disk();
         let details = disk.details.expect("disk check should have details");
-        let available_gb = details["available_gb"].as_u64().expect("available_gb present");
+        let available_gb = details["available_gb"]
+            .as_u64()
+            .expect("available_gb present");
         let total_gb = details["total_gb"].as_u64().expect("total_gb present");
         // No more hardcoded "50 GB free, always healthy": report the actual
         // host numbers.
