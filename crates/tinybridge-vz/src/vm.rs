@@ -403,7 +403,7 @@ mod tests {
             "tbshare".to_string(),
         )
         .read_only(false);
-        let share_spec = share.into_spec(&[share_dir.clone()]).unwrap();
+        let share_spec = share.into_spec(std::slice::from_ref(&share_dir)).unwrap();
 
         let config =
             VmConfig::new(kernel_path, disk_path, resources).with_virtiofs_share(share_spec);
