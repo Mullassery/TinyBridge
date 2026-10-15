@@ -55,7 +55,7 @@ lru                = "0.12"
 tempfile           = "3.8"
 ssh-key            = { version = "0.6", features = ["ed25519", "encryption"] }
 regex              = "1.10"
-handlebars         = "5.0"
+handlebars         = "6.4"
 sha2               = "0.10"
 hex                = "0.4"
 parking_lot        = "0.12"
