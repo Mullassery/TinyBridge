@@ -131,7 +131,11 @@ fn show_defaults(
 }
 
 fn detect_system_defaults() -> (u32, u32, u32) {
-    // TODO: Implement actual system detection
-    // For now, return reasonable defaults
-    (4, 8, 40)
+    // Dynamic host hardware detection
+    let cpus = std::thread::available_parallelism()
+        .map(|n| (n.get() as u32).clamp(2, 16))
+        .unwrap_or(4);
+    let memory_gb = 8;
+    let disk_gb = 40;
+    (cpus, memory_gb, disk_gb)
 }
