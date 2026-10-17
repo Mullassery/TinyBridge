@@ -70,9 +70,9 @@ jobs:
           mkdir -p assets
           cd /tmp
           sudo tar -czf ubuntu-24.04-rootfs.tar.gz -C ubuntu-build .
-          sudo chown $USER ubuntu-24.04-rootfs.tar.gz
-          mv ubuntu-24.04-rootfs.tar.gz $GITHUB_WORKSPACE/assets/
-          ls -lh $GITHUB_WORKSPACE/assets/ubuntu-24.04-rootfs.tar.gz
+          sudo chown "$USER" ubuntu-24.04-rootfs.tar.gz
+          mv ubuntu-24.04-rootfs.tar.gz "$GITHUB_WORKSPACE/assets/"
+          ls -lh "$GITHUB_WORKSPACE/assets/ubuntu-24.04-rootfs.tar.gz"
 
       - name: Verify rootfs structure
         run: |
