@@ -12,6 +12,14 @@ history of each version.
 ## [Unreleased]
 
 ### Added
+- **Homebrew formula bump is now automated on release** (RECHECK-061). Publishing
+  a GitHub release dispatches a `tinybridge-release` event at
+  `Mullassery/homebrew-tinybridge` (`.github/workflows/homebrew-bump.yml`), which
+  computes the tarball's sha256 and rewrites `Formula/tinybridge.rb`'s `url` +
+  `sha256` together (`homebrew-tinybridge`'s `bump-formula` workflow). Replaces the
+  manual post-release formula edit; `scripts/release.sh` now prints the automation
+  (and a `tools/bump_formula.sh` manual fallback) instead of a "update the formula"
+  reminder.
 - **`tinybridge logs` now reads a real daemon log instead of printing a
   placeholder** (RECHECK-010). The `tinybridged` daemon tees its tracing output
   to both stderr *and* `~/Library/Logs/TinyBridge/tinybridged.log`; `tinybridge
