@@ -264,12 +264,18 @@ impl PlatformAdapter for LinuxKVMAdapter {
             return Err(format!("Host path does not exist: {:?}", mount.host_path).into());
         }
 
-        // In a real implementation:
-        // Add 9p filesystem to libvirt domain XML
-        // virsh edit domain to add: <filesystem type='mount'>...</filesystem>
+        // NOTE: the libvirt domain XML is *not* modified here -- shared
+        // folders are recorded in metadata only and will not appear in the
+        // guest. This is a known stub (see RECHECK-062), so warn loudly
+        // rather than implying the share is live.
         eprintln!(
-            "Linux: Mounting '{:?}' to '{:?}' via 9p (read_only: {})",
-            mount.host_path, mount.vm_path, mount.read_only
+            "WARNING: Linux 9p shared folders are not implemented -- \
+             '{}' -> '{}' (read_only: {}) is recorded in metadata only and \
+             will NOT be mounted in the guest until the libvirt domain XML \
+             is modified. See RECHECK-062 / docs/FILE_IO_BENCHMARK.md.",
+            mount.host_path.display(),
+            mount.vm_path.display(),
+            mount.read_only
         );
 
         metadata.shared_folders.push(mount.clone());

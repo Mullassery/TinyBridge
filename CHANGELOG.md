@@ -9,7 +9,7 @@ lists are fabricated for the historical tags. See `git log <tag>..<tag>` or
 [GitHub Releases](https://github.com/Mullassery/TinyBridge/releases) for the real commit
 history of each version.
 
-## [Unreleased]
+## [0.6.3] - 2026-10-19
 
 ### Added
 - **Homebrew formula bump is now automated on release** (RECHECK-061). Publishing
@@ -20,6 +20,21 @@ history of each version.
   manual post-release formula edit; `scripts/release.sh` now prints the automation
   (and a `tools/bump_formula.sh` manual fallback) instead of a "update the formula"
   reminder.
+- **File-sharing throughput harness** (RECHECK-062). `scripts/bench-fileio.sh`
+  measures write/read throughput of the shared folder inside the guest against the
+  guest's own disk as a control, and writes JSON to `benchmark-results/`.
+  `docs/FILE_IO_BENCHMARK.md` documents the method and states plainly that the
+  "~90% native file I/O" and "1.5s boot" figures are unverified targets.
+
+### Fixed
+- **Linux 9p shared folders no longer silently pretend to mount** (RECHECK-062).
+  `mount_storage` records the share in metadata but does not modify the libvirt
+  domain XML, so the folder never appears in the guest. It now emits an explicit
+  `WARNING:` instead of a "Mounting … via 9p" line that read as success.
+
+## [Unreleased]
+
+### Added
 - **`tinybridge logs` now reads a real daemon log instead of printing a
   placeholder** (RECHECK-010). The `tinybridged` daemon tees its tracing output
   to both stderr *and* `~/Library/Logs/TinyBridge/tinybridged.log`; `tinybridge
