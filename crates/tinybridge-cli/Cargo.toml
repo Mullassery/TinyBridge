@@ -27,3 +27,4 @@ crossterm          = { workspace = true }
 indicatif          = { workspace = true }
 console            = { workspace = true }
 futures            = { workspace = true }
+sha2.workspace = true

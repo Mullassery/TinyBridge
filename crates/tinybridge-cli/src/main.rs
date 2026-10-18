@@ -98,6 +98,9 @@ enum Commands {
 
     /// Manage DDS networking
     Dds(commands::dds::DdsArgs),
+
+    /// Download and verify guest assets
+    Assets(commands::AssetsArgs),
 }
 
 #[tokio::main]
@@ -146,6 +149,7 @@ async fn main() {
             Ok(mut client) => commands::dds::execute(args, &mut client).await,
             Err(e) => Err(e),
         },
+        Some(Commands::Assets(args)) => commands::assets::execute(args).await,
         None => {
             println!("No subcommand specified. Use 'tinybridge --help' for usage information.");
             Ok(())

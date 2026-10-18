@@ -1,3 +1,4 @@
+pub mod assets;
 pub mod dds;
 pub mod destroy;
 pub mod doctor;
@@ -100,6 +101,7 @@ pub struct ShellArgs {
 }
 
 // Re-export new command args for main.rs
+pub use assets::AssetsArgs;
 pub use destroy::DestroyArgs;
 pub use doctor::DoctorArgs;
 pub use forward::ForwardArgs;

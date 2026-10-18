@@ -9,6 +9,15 @@ lists are fabricated for the historical tags. See `git log <tag>..<tag>` or
 [GitHub Releases](https://github.com/Mullassery/TinyBridge/releases) for the real commit
 history of each version.
 
+## [0.8.0] - 2026-10-19
+
+### Added
+- `tinybridge assets fetch --manifest assets.json [--dest DIR]`: downloads guest
+  assets via curl and verifies each SHA-256 before moving it into place. Existing
+  verified files are skipped; mismatches fail closed. Asset names are confined
+  to the destination directory.
+- Unit tests cover manifest parsing and path/checksum validation.
+
 ## [0.7.0] - 2026-10-19
 
 ### Added

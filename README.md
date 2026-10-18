@@ -21,6 +21,8 @@ TinyBridge is a real Linux virtual machine runtime for macOS: a genuine Rust →
 - **Local port forwarding** — `tinybridge forward <env> --remote-port 80` opens
   an SSH local forward (`-L`) using TinyBridge's managed key; the guest must be
   reachable over SSH.
+- **Asset fetching** — `tinybridge assets fetch --manifest assets.json` downloads
+  a manifest of guest files (kernel/rootfs/seed) with SHA-256 verification.
 
 ## Who it's for / Use cases
 
@@ -41,7 +43,7 @@ TinyBridge is a real Linux virtual machine runtime for macOS: a genuine Rust →
 
 ## Project status
 
-`v0.7.0` (workspace), active and honest: CI is green (`cargo build --workspace`, `cargo fmt --check`, `cargo clippy --workspace --all-targets -- -D warnings`); `cargo test --workspace --exclude tinybridge-daemon` passes 408/408 and `cargo test -p tinybridge-daemon` passes 194/194. The macOS backend has been verified to boot a real guest to a working cloud-init login; see `ROADMAP_HONEST.md` and the root-level status notes in [docs/README.md](docs/README.md) for the full, unfiltered picture. No backward-compatibility or API-stability guarantees yet — it is a single-maintainer substrate, not a released platform.
+`v0.8.0` (workspace), active and honest: CI is green (`cargo build --workspace`, `cargo fmt --check`, `cargo clippy --workspace --all-targets -- -D warnings`); `cargo test --workspace --exclude tinybridge-daemon` passes 408/408 and `cargo test -p tinybridge-daemon` passes 194/194. The macOS backend has been verified to boot a real guest to a working cloud-init login; see `ROADMAP_HONEST.md` and the root-level status notes in [docs/README.md](docs/README.md) for the full, unfiltered picture. No backward-compatibility or API-stability guarantees yet — it is a single-maintainer substrate, not a released platform.
 
 ## Installation
 
