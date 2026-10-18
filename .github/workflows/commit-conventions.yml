@@ -1,0 +1,33 @@
+name: Commit conventions
+
+# Enforces Conventional Commits (.commitlintrc.json) and smoke-tests the
+# git-cliff changelog config (cliff.toml) on every pull request. Together
+# these keep release notes derivable from the commit history.
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  commitlint:
+    name: Conventional commit lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: wagoid/commitlint-github-action@v6
+
+  changelog:
+    name: Changelog renders (git-cliff)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Render changelog (config smoke test)
+        uses: orhun/git-cliff-action@v4
+        with:
+          config: cliff.toml
+          args: --verbose
