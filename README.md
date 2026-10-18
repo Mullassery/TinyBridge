@@ -22,7 +22,9 @@ TinyBridge is a real Linux virtual machine runtime for macOS: a genuine Rust →
   an SSH local forward (`-L`) using TinyBridge's managed key; the guest must be
   reachable over SSH.
 - **Asset fetching** — `tinybridge assets fetch --manifest assets.json` downloads
-  a manifest of guest files (kernel/rootfs/seed) with SHA-256 verification.
+  a manifest of guest files (kernel/rootfs/seed) with SHA-256 verification. A
+  pinned arm64 kernel manifest ships in `assets/ubuntu-24.04-arm64.json`; see
+  [`docs/ASSETS.md`](docs/ASSETS.md).
 
 ## Who it's for / Use cases
 

@@ -1,0 +1,9 @@
+{
+  "assets": [
+    {
+      "name": "vmlinux",
+      "url": "https://s3.amazonaws.com/spec.ccfc.min/firecracker-ci/v1.10/aarch64/vmlinux-5.10.223",
+      "sha256": "eb5d95ac8a67f7a86acf0cb35625633713ad5170b56de8617808d0e18bb832ec"
+    }
+  ]
+}

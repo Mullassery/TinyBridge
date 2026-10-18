@@ -54,10 +54,11 @@ Added local SSH port forwarding in this pass:
 - `tinybridge forward <env> --local-port 8080 --remote-port 80` builds an
   `ssh -N -L` command using the managed key; foreground, Ctrl-C to stop.
 - `tinybridge assets fetch --manifest` downloads SHA-256-verified guest assets
-  (kernel/rootfs/seed) into the assets directory.
+  (kernel/rootfs/seed) into the assets directory; a pinned arm64 kernel
+  manifest ships in `assets/ubuntu-24.04-arm64.json`.
 - Unit tests cover SSH args and manifest/path/checksum validation.
 - README now reflects the public Homebrew tap and workspace version `0.8.0`.
 
-Still open: a built-in pinned manifest and automatic disk/rootfs conversion;
+Still open: automatic disk/rootfs conversion;
 host→guest SSH requires the macOS Local Network permission on the verification
 machine.
