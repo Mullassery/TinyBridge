@@ -9,6 +9,14 @@ lists are fabricated for the historical tags. See `git log <tag>..<tag>` or
 [GitHub Releases](https://github.com/Mullassery/TinyBridge/releases) for the real commit
 history of each version.
 
+## [0.7.0] - 2026-10-19
+
+### Added
+- `tinybridge forward <env> --remote-port <port>` opens a local SSH `-L`
+  forward (default local port 8080, guest host localhost) using TinyBridge's
+  managed SSH key. Foreground process; Ctrl-C stops it. Requires guest SSH to
+  be reachable. Unit tests cover the argument builder and extra SSH options.
+
 ## [0.6.3] - 2026-10-19
 
 ### Added

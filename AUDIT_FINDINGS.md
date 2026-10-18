@@ -49,4 +49,12 @@ Invest; it is a flagship, but the install experience must match the engineering.
 
 ## Implementation status
 
-No code changes in this pass.
+Added local SSH port forwarding in this pass:
+
+- `tinybridge forward <env> --local-port 8080 --remote-port 80` builds an
+  `ssh -N -L` command using the managed key; foreground, Ctrl-C to stop.
+- Unit tests cover the argument builder and extra SSH options.
+- README now reflects the public Homebrew tap and workspace version `0.7.0`.
+
+Still open: automatic guest image/asset provisioning, and host→guest SSH
+requires the macOS Local Network permission on the verification machine.

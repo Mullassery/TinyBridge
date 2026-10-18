@@ -18,6 +18,9 @@ TinyBridge is a real Linux virtual machine runtime for macOS: a genuine Rust →
 - **MacOS-host directory sharing** — VirtioFS host-path scoping (canonicalize + allowlist, reject `..` escapes, read-only default) wired to the real `VZVirtioFileSystemDeviceConfiguration` FFI at VM-creation time.
 - **Full VM lifecycle CLI** — `launch`, `shell`, `ssh`, `suspend`/`resume`, `snapshot`, `dds`, `doctor`, and more over a `0600`-permissioned Unix-socket daemon protocol.
 - **Operational hardening** — orphaned-process detection (`PidLock`), runtime hypervisor checks in `tinybridge doctor` (`kern.hv_support`), fail-fast asset validation, and honest error handling.
+- **Local port forwarding** — `tinybridge forward <env> --remote-port 80` opens
+  an SSH local forward (`-L`) using TinyBridge's managed key; the guest must be
+  reachable over SSH.
 
 ## Who it's for / Use cases
 
@@ -28,7 +31,9 @@ TinyBridge is a real Linux virtual machine runtime for macOS: a genuine Rust →
 ## What it is not
 
 - **Not cross-platform.** macOS is the only working hypervisor backend. `crates/tinybridge-core/src/windows_adapter.rs` and `linux_adapter.rs` are unimplemented scaffolding (Hyper-V/KVM are never called). Building those backends isn't possible from a macOS dev machine, so they are deferred rather than faked.
-- **Not installable via Homebrew today.** The `mullassery/tinybridge` tap is still private ([#1](https://github.com/Mullassery/TinyBridge/issues/1), [#2](https://github.com/Mullassery/TinyBridge/issues/2)), so `brew install` fails for anyone outside the project. Building from source is the supported path.
+- **Homebrew install is public, but formula skew is possible.** The tap is
+  public (`brew install mullassery/tinybridge/tinybridge`), and the CLI formula
+  tracks the latest release. Guest assets are still manual.
 - **No turnkey guest images.** No automated download/build pipeline produces a bundled, bootable kernel+rootfs yet; you must acquire and place assets yourself (see `docs/BUILD_ASSETS_GUIDE.md`).
 - **No published crates.** Nothing is on crates.io; the workspace is consumed from source.
 - **Host→guest SSH not yet working out of the box.** On the machine where it was verified, SSH/TCP to the guest's confirmed IP is blocked by a macOS "Local Network" privacy consent, not by a code path issue — a one-time System Settings grant should resolve it.
@@ -36,7 +41,7 @@ TinyBridge is a real Linux virtual machine runtime for macOS: a genuine Rust →
 
 ## Project status
 
-`v0.6.1` (workspace), active and honest: CI is green (`cargo build --workspace`, `cargo fmt --check`, `cargo clippy --workspace --all-targets -- -D warnings`); `cargo test --workspace --exclude tinybridge-daemon` passes 408/408 and `cargo test -p tinybridge-daemon` passes 194/194. The macOS backend has been verified to boot a real guest to a working cloud-init login; see `ROADMAP_HONEST.md` and the root-level status notes in [docs/README.md](docs/README.md) for the full, unfiltered picture. No backward-compatibility or API-stability guarantees yet — it is a single-maintainer substrate, not a released platform.
+`v0.7.0` (workspace), active and honest: CI is green (`cargo build --workspace`, `cargo fmt --check`, `cargo clippy --workspace --all-targets -- -D warnings`); `cargo test --workspace --exclude tinybridge-daemon` passes 408/408 and `cargo test -p tinybridge-daemon` passes 194/194. The macOS backend has been verified to boot a real guest to a working cloud-init login; see `ROADMAP_HONEST.md` and the root-level status notes in [docs/README.md](docs/README.md) for the full, unfiltered picture. No backward-compatibility or API-stability guarantees yet — it is a single-maintainer substrate, not a released platform.
 
 ## Installation
 
@@ -99,6 +104,7 @@ tinybridge resume      Resume a suspended environment   tinybridge status    Sho
 tinybridge shutdown    Gracefully shut down             tinybridge list      List environments
 tinybridge restart     Restart an environment           tinybridge shell     Interactive shell
 tinybridge repair      Re-provision SSH/DDS config      tinybridge ssh       SSH into an environment
+tinybridge forward     Forward a local TCP port into    tinybridge forward app --local-port 8080 --remote-port 80
 tinybridge destroy     Destroy an environment           tinybridge logs      Tail the daemon log
 tinybridge up          Start (legacy alias for launch)  tinybridge update    Manage environment resources
 ```

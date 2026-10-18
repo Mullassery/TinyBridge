@@ -2,6 +2,7 @@ pub mod dds;
 pub mod destroy;
 pub mod doctor;
 pub mod down;
+pub mod forward;
 pub mod gui;
 pub mod headless;
 pub mod images;
@@ -101,6 +102,7 @@ pub struct ShellArgs {
 // Re-export new command args for main.rs
 pub use destroy::DestroyArgs;
 pub use doctor::DoctorArgs;
+pub use forward::ForwardArgs;
 pub use images::ImagesArgs;
 pub use launch::LaunchArgs;
 pub use logs::LogsArgs;

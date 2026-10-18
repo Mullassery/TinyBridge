@@ -75,6 +75,9 @@ enum Commands {
     /// SSH into environment
     Ssh(commands::ssh::SshArgs),
 
+    /// Forward a local TCP port to a port inside an environment
+    Forward(commands::ForwardArgs),
+
     /// Show logs
     Logs(commands::LogsArgs),
 
@@ -132,6 +135,7 @@ async fn main() {
         Some(Commands::List(args)) => commands::list::execute(args, socket).await,
         Some(Commands::Shell(args)) => commands::shell::execute(args, socket).await,
         Some(Commands::Ssh(args)) => commands::ssh::execute(args, socket).await,
+        Some(Commands::Forward(args)) => commands::forward::execute(args, socket).await,
         Some(Commands::Logs(args)) => commands::logs::execute(args, socket).await,
         Some(Commands::Update(args)) => commands::update::execute(args, socket).await,
         Some(Commands::Snapshot(args)) => commands::snapshot::execute(args, socket).await,
