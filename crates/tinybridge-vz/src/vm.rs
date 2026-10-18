@@ -53,9 +53,35 @@ pub struct VirtualMachine {
     name: String,
 }
 
-// Safe to send across threads - the C FFI handles thread safety
+// SAFETY (Send + Sync): `VirtualMachine` holds an opaque
+// `*mut TBVirtualMachine` handle across the C ABI. Raw pointers are neither
+// `Send` nor `Sync` by default, so both impls are asserted here. The claim is
+// not a guess — it is a contract the Swift bridge upholds and that must be
+// preserved:
+//
+//   * Every `tb_vm_*` entry point in
+//     `swift/Sources/TinyBridgeVZBridge/TinyBridgeVZ.swift` marshals its work
+//     onto the main actor (`DispatchQueue.main.async` / `Task { @MainActor }`),
+//     because `VZVirtualMachine(configuration:)` is documented by Apple to be
+//     main-queue-bound for its lifetime. Calling the FFI from any thread is
+//     therefore safe: the call is serialized by the bridge.
+//   * The one shared mutable map on the Swift side (`vmInstances`) is guarded
+//     by `vmLock` (NSLock), so lookup/registration is thread-safe.
+//
+// If that bridge ever stops funneling calls through the main actor or drops the
+// lock, these impls become unsound and must be revisited. The assertion below
+// pins the intent so a future change that removes `Send`/`Sync` is deliberate.
+//
+// The register item (RECHECK-004) flagged these impls as "justified only by
+// comment"; this expands the justification to name the concrete mechanism and
+// the file that must keep holding it.
 unsafe impl Send for VirtualMachine {}
 unsafe impl Sync for VirtualMachine {}
+
+const _: fn() = || {
+    fn assert_send_sync<T: Send + Sync>() {}
+    assert_send_sync::<VirtualMachine>();
+};
 
 impl VirtualMachine {
     pub fn new(name: String, config: VmConfig) -> Result<Self> {

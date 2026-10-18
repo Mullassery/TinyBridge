@@ -11,6 +11,16 @@ history of each version.
 
 ## [Unreleased]
 
+### Added
+- **`tinybridge logs` now reads a real daemon log instead of printing a
+  placeholder** (RECHECK-010). The `tinybridged` daemon tees its tracing output
+  to both stderr *and* `~/Library/Logs/TinyBridge/tinybridged.log`; `tinybridge
+  logs` tails that file with `--tail N`, `--errors`, `--warnings` and
+  `--follow` (poll-based, `tail -f`-style), and `--file` / `TINYBRIDGE_LOG_FILE`
+  can point it elsewhere. When the file is absent it now says so and explains
+  how to produce one, rather than printing `[Log output would appear here]`.
+  Unit-tested (`read_tail`, level/name filtering).
+
 ### Fixed (from the SHER org-wide Ubuntu/Linux-Rust compatibility audit, 2026-10-04)
 - **`cargo fmt --check` drift in `crates/tinybridge-cli/tests/cli_args.rs`.** Two
   `assert!` call sites had fallen out of rustfmt formatting (whitespace-only).
@@ -37,6 +47,14 @@ history of each version.
   `ROADMAP_HONEST.md` section 3.
 
 ### Fixed
+- **The `unsafe impl Send`/`Sync` for `tinybridge_vz::VirtualMachine` was
+  justified only by the one-line comment "the C FFI handles thread safety"**
+  (RECHECK-004). The impls are sound, but the reasoning is now written down
+  against the concrete mechanism that makes them sound: every `tb_vm_*` entry
+  point in `TinyBridgeVZ.swift` is marshalled onto the main actor (because
+  `VZVirtualMachine(configuration:)` is main-queue-bound) and the shared
+  `vmInstances` map is guarded by `vmLock`. A `const _: fn()` assertion pins
+  `VirtualMachine: Send + Sync` so the guarantee can't be dropped silently.
 - **The daemon health report's memory and disk checks were fake.** `check_disk()`
   hardcoded `available_gb: 50` and always returned Healthy regardless of the real
   filesystem (that value was literal JSON, not a measurement), and `check_memory()` on

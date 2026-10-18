@@ -99,11 +99,15 @@ tinybridge resume      Resume a suspended environment   tinybridge status    Sho
 tinybridge shutdown    Gracefully shut down             tinybridge list      List environments
 tinybridge restart     Restart an environment           tinybridge shell     Interactive shell
 tinybridge repair      Re-provision SSH/DDS config      tinybridge ssh       SSH into an environment
-tinybridge destroy     Destroy an environment           tinybridge logs      Show environment logs
+tinybridge destroy     Destroy an environment           tinybridge logs      Tail the daemon log
 tinybridge up          Start (legacy alias for launch)  tinybridge update    Manage environment resources
 ```
 
 Run `tinybridge --help` or `tinybridge <command> --help` for current usage — that is the source of truth.
+
+`tinybridge logs` tails the daemon log at `~/Library/Logs/TinyBridge/tinybridged.log`
+(written by `tinybridged`), with `--tail N` / `--errors` / `--warnings` / `--follow`; use
+`--file` or `TINYBRIDGE_LOG_FILE` to point at a different log.
 
 ## Documentation
 
