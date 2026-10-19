@@ -129,6 +129,19 @@ Run `tinybridge --help` or `tinybridge <command> --help` for current usage — t
 - [ROADMAP_HONEST.md](ROADMAP_HONEST.md) — what's built, verified, broken, or deferred
 - [SECURITY.md](SECURITY.md) — security posture and reporting
 
+## Known issues and deferred work
+
+**Blocked / failed:**
+- Automatic rootfs/disk conversion requires Linux mkfs/mount tooling; macOS cannot create ext4.
+- Intel x86_64 build/artifact.
+- Guest SSH depends on the macOS Local Network permission on the test machine.
+
+**Rejected / deferred:**
+- GUI and Docker Desktop parity — Lima/OrbStack own those workflows.
+- Windows/Linux hypervisor backends now — cannot be developed/verified on the macOS host.
+
+Full shipped/blocked/rejected detail: [`QUEUE_STATUS.md`](QUEUE_STATUS.md).
+
 ## Queue status
 
 Shipped, blocked/failed, and rejected work for this repository is documented in
