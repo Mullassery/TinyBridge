@@ -129,6 +129,11 @@ Run `tinybridge --help` or `tinybridge <command> --help` for current usage — t
 - [ROADMAP_HONEST.md](ROADMAP_HONEST.md) — what's built, verified, broken, or deferred
 - [SECURITY.md](SECURITY.md) — security posture and reporting
 
+## Queue status
+
+Shipped, blocked/failed, and rejected work for this repository is documented in
+[`QUEUE_STATUS.md`](QUEUE_STATUS.md).
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) (dev setup, test/lint commands) and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md). Security issues: report via [SECURITY.md](SECURITY.md), not public issues. Behavior changes are tracked in [CHANGELOG.md](CHANGELOG.md).
