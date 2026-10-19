@@ -1,5 +1,6 @@
 mod client;
 mod commands;
+mod image_catalog;
 mod interactive;
 mod keyboard;
 mod output;

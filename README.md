@@ -156,6 +156,51 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) (dev setup, test/lint commands) and [CODE
 
 [Browse all projects →](https://github.com/Mullassery?tab=repositories)
 
+## Cloud-init templates
+
+Render a built-in environment template as a NoCloud `#cloud-config` seed:
+
+```bash
+tinybridge templates --cloud-init rust
+tinybridge templates --cloud-init python > user-data
+```
+
+The renderer emits `package_update`, `packages`, `runcmd` (from the template's
+post-install script), and a port manifest under `/etc/tinybridge/ports`. It
+composes with the existing asset/image flows; no external template service is
+required.
+
+## Verified image catalogs
+
+`tinybridge images` keeps the bundled metadata list for discoverability, and
+now accepts a Lima-compatible JSON catalog for real, checksum-verified pulls:
+
+```json
+{
+  "images": [
+    {
+      "name": "ubuntu-24.04",
+      "version": "24.04",
+      "arch": "arm64",
+      "format": "qcow2",
+      "size_mb": 2048,
+      "url": "https://example.invalid/ubuntu-24.04.qcow2",
+      "sha256": "<64 hex chars>",
+      "cloud_init_template": "ubuntu"
+    }
+  ]
+}
+```
+
+```bash
+tinybridge images --catalog ~/.tinybridge/images.json
+tinybridge images ubuntu-24.04 --catalog ~/.tinybridge/images.json --pull
+```
+
+Pulls use the same partial-file download + SHA-256 verification path as
+`tinybridge assets fetch`. A catalog entry without a URL/hash is list-only;
+`--pull` refuses it rather than downloading something unverified.
+
 ## License
 
 Licensed under the [Apache License 2.0](LICENSE).

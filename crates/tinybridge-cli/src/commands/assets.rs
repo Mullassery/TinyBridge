@@ -80,7 +80,51 @@ pub fn sha256_hex(path: &Path) -> Result<String> {
         .collect())
 }
 
-fn default_dest() -> PathBuf {
+/// Download a single asset to `dest` and verify its SHA-256.
+///
+/// This is shared by `assets fetch` and `images pull` so checksum and
+/// partial-file handling cannot diverge between the two entry points.
+pub fn download_verified(name: &str, url: &str, sha256: &str, dest: &Path) -> Result<PathBuf> {
+    fs::create_dir_all(dest)?;
+    let target = dest.join(name);
+    if target.is_file() && sha256_hex(&target)?.eq_ignore_ascii_case(sha256) {
+        output::print_info(&format!("{} already verified", name));
+        return Ok(target);
+    }
+    if target.is_file() {
+        output::print_warning(&format!("{} checksum mismatch; re-downloading", name));
+        fs::remove_file(&target)?;
+    }
+
+    let tmp = dest.join(format!(".{}.part", name));
+    output::print_info(&format!("downloading {}", name));
+    let status = Command::new("curl")
+        .arg("-fL")
+        .arg("--output")
+        .arg(&tmp)
+        .arg(url)
+        .status()
+        .context("failed to run curl")?;
+    if !status.success() {
+        let _ = fs::remove_file(&tmp);
+        bail!("download failed for {}", name);
+    }
+    let actual = sha256_hex(&tmp)?;
+    if !actual.eq_ignore_ascii_case(sha256) {
+        let _ = fs::remove_file(&tmp);
+        bail!(
+            "checksum mismatch for {}: expected {}, got {}",
+            name,
+            sha256,
+            actual
+        );
+    }
+    fs::rename(&tmp, &target)?;
+    output::print_success(&format!("{} -> {}", name, target.display()));
+    Ok(target)
+}
+
+pub fn default_dest() -> PathBuf {
     let home = std::env::var("HOME").unwrap_or_else(|_| ".".to_string());
     PathBuf::from(home).join(".tinybridge").join("assets")
 }
@@ -95,44 +139,7 @@ pub async fn execute(args: AssetsArgs) -> Result<()> {
             fs::create_dir_all(&dest)?;
 
             for asset in manifest.assets {
-                let target = dest.join(&asset.name);
-                if target.is_file() {
-                    if sha256_hex(&target)?.eq_ignore_ascii_case(&asset.sha256) {
-                        output::print_info(&format!("{} already verified", asset.name));
-                        continue;
-                    }
-                    output::print_warning(&format!(
-                        "{} checksum mismatch; re-downloading",
-                        asset.name
-                    ));
-                    fs::remove_file(&target)?;
-                }
-
-                let tmp = dest.join(format!(".{}.part", asset.name));
-                output::print_info(&format!("downloading {}", asset.name));
-                let status = Command::new("curl")
-                    .arg("-fL")
-                    .arg("--output")
-                    .arg(&tmp)
-                    .arg(&asset.url)
-                    .status()
-                    .context("failed to run curl")?;
-                if !status.success() {
-                    let _ = fs::remove_file(&tmp);
-                    bail!("download failed for {}", asset.name);
-                }
-                let actual = sha256_hex(&tmp)?;
-                if !actual.eq_ignore_ascii_case(&asset.sha256) {
-                    let _ = fs::remove_file(&tmp);
-                    bail!(
-                        "checksum mismatch for {}: expected {}, got {}",
-                        asset.name,
-                        asset.sha256,
-                        actual
-                    );
-                }
-                fs::rename(&tmp, &target)?;
-                output::print_success(&format!("{} -> {}", asset.name, target.display()));
+                download_verified(&asset.name, &asset.url, &asset.sha256, &dest)?;
             }
         }
     }
