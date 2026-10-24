@@ -7,7 +7,7 @@ best-effort.
 ## Before you start
 
 Read the root [README.md](README.md), specifically the "Honest status" and "Known debt"
-sections, and [ROADMAP_HONEST.md](ROADMAP_HONEST.md). This project is deliberately blunt
+sections, and [docs/internal/ROADMAP_HONEST.md](docs/internal/ROADMAP_HONEST.md). This project is deliberately blunt
 about what is and isn't built/working — please keep that standard in any PR that touches
 documentation or status claims. Do not describe untested code as working, and do not use
 hedge language ("planned", "may be added") for things that are simply broken or missing —
@@ -46,7 +46,7 @@ Swift dylib — a relative path silently fails at test-binary load time even tho
 - If you're fixing a real bug or filling in a `TODO`, link to the specific line(s) in the
   PR description.
 - If you're touching a crate under `crates/` that isn't wired into the daemon/CLI (see
-  `ROADMAP_HONEST.md` §3 for the current list of dead/orphaned code), say so explicitly in
+  `docs/internal/ROADMAP_HONEST.md` §3 for the current list of dead/orphaned code), say so explicitly in
   the PR — either you're wiring it in for real, or the PR should explain why it should stay
   as-is.
 - Windows/Linux hypervisor backends are unimplemented scaffolding and can't realistically be

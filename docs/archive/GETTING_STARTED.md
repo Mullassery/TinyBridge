@@ -431,9 +431,9 @@ substrate:
 
 ### 4. Learn More
 
-- **[Product Vision](PRODUCT_VISION.md)** — Why TinyBridge exists
+- **[Product Vision](../../PRODUCT_VISION.md)** — Why TinyBridge exists
 - **[User Documentation](USER_README.md)** — Complete reference
-- **[Architecture](docs/ARCHITECTURE.md)** — How it works under the hood
+- **[Architecture](ARCHITECTURE.md)** — How it works under the hood
 
 ---
 

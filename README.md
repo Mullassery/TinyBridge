@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/assets/tinybridge-banner.svg" alt="TinyBridge — Linux VMs on Apple's Virtualization.framework" width="100%" />
+</p>
+
 # TinyBridge
 
 A macOS-native Linux VM runtime built on Apple's Virtualization.framework.
@@ -45,7 +49,7 @@ TinyBridge is a real Linux virtual machine runtime for macOS: a genuine Rust →
 
 ## Project status
 
-`v0.8.0` (workspace), active and honest: CI is green (`cargo build --workspace`, `cargo fmt --check`, `cargo clippy --workspace --all-targets -- -D warnings`); `cargo test --workspace --exclude tinybridge-daemon` passes 408/408 and `cargo test -p tinybridge-daemon` passes 194/194. The macOS backend has been verified to boot a real guest to a working cloud-init login; see `ROADMAP_HONEST.md` and the root-level status notes in [docs/README.md](docs/README.md) for the full, unfiltered picture. No backward-compatibility or API-stability guarantees yet — it is a single-maintainer substrate, not a released platform.
+`v0.8.0` (workspace), active and honest: CI is green (`cargo build --workspace`, `cargo fmt --check`, `cargo clippy --workspace --all-targets -- -D warnings`); `cargo test --workspace --exclude tinybridge-daemon` passes 408/408 and `cargo test -p tinybridge-daemon` passes 194/194. The macOS backend has been verified to boot a real guest to a working cloud-init login; see `docs/internal/ROADMAP_HONEST.md` and the root-level status notes in [docs/README.md](docs/README.md) for the full, unfiltered picture. No backward-compatibility or API-stability guarantees yet — it is a single-maintainer substrate, not a released platform.
 
 ## Installation
 
@@ -126,7 +130,7 @@ Run `tinybridge --help` or `tinybridge <command> --help` for current usage — t
 - [docs/CLIPBOARD.md](docs/CLIPBOARD.md) — macOS↔Linux clipboard bridge (unverified end-to-end until host→guest SSH works)
 - [docs/DDS_CLI_REFERENCE.md](docs/DDS_CLI_REFERENCE.md) — `tinybridge dds` command reference
 - [docs/SWIFT_VZ_BUILD.md](docs/SWIFT_VZ_BUILD.md) — building the Swift Virtualization.framework bridge
-- [ROADMAP_HONEST.md](ROADMAP_HONEST.md) — what's built, verified, broken, or deferred
+- [docs/internal/ROADMAP_HONEST.md](docs/internal/ROADMAP_HONEST.md) — what's built, verified, broken, or deferred
 - [SECURITY.md](SECURITY.md) — security posture and reporting
 
 ## Known issues and deferred work
@@ -140,7 +144,7 @@ Run `tinybridge --help` or `tinybridge <command> --help` for current usage — t
 - GUI and Docker Desktop parity — Lima/OrbStack own those workflows.
 - Windows/Linux hypervisor backends now — cannot be developed/verified on the macOS host.
 
-Full shipped/blocked/rejected detail: [`QUEUE_STATUS.md`](QUEUE_STATUS.md).
+Full shipped/blocked/rejected detail: [`docs/internal/QUEUE_STATUS.md`](docs/internal/QUEUE_STATUS.md).
 
 ## Contributing
 
@@ -206,3 +210,7 @@ Pulls use the same partial-file download + SHA-256 verification path as
 Licensed under the [Apache License 2.0](LICENSE).
 
 Contact: mullassery@gmail.com — see [SECURITY.md](SECURITY.md) for security-specific reporting.
+
+---
+
+If TinyBridge is useful to you, a star helps other macOS developers find it.

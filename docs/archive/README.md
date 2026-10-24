@@ -18,7 +18,7 @@ this repo as of this pass):
   was not listed in the workspace `Cargo.toml`, was not built by CI, and talked to the
   daemon over a hardcoded TCP port 7890 — the real daemon uses a Unix-socket JSON-RPC
   protocol (see root README's Architecture section), so it could not have connected to the
-  real daemon even if built by hand. **Deleted (2026-10-04)** — see `ROADMAP_HONEST.md`
+  real daemon even if built by hand. **Deleted (2026-10-04)** — see `../internal/ROADMAP_HONEST.md`
   section 3 for why (would have needed a real rebuild to fix, not a quick patch; a real
   menu-bar companion app remains a legitimate future feature, as a fresh build).
   `ARCHITECTURE.md` additionally still contains unfilled placeholder text

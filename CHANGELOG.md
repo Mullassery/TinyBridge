@@ -84,7 +84,7 @@ history of each version.
   earlier pass. Finishing it for real would have meant a genuine rebuild (new transport,
   real workspace/CI/distribution integration), not a quick patch; deleted rather than
   carrying unbuilt, disconnected, misleadingly-placed code indefinitely. See
-  `ROADMAP_HONEST.md` section 3.
+  `docs/internal/ROADMAP_HONEST.md` section 3.
 
 ### Fixed
 - **The `unsafe impl Send`/`Sync` for `tinybridge_vz::VirtualMachine` was
@@ -127,7 +127,7 @@ history of each version.
   ad-hoc-codesigned test binary (the `com.apple.security.virtualization` entitlement a
   plain `cargo test` binary doesn't have): a VM configured with a real, validly-scoped
   VirtioFS share passes `VZVirtualMachineConfiguration.validate()` and
-  `VZVirtualMachine(configuration:)` construction. See `ROADMAP_HONEST.md` for full detail.
+  `VZVirtualMachine(configuration:)` construction. See `docs/internal/ROADMAP_HONEST.md` for full detail.
 - `EnvironmentManager::up()` (`tinybridge launch`'s real code path) called
   `VmManager::create_vm` with no way to pass an initrd or cloud-init seed
   image, so it could never use the same config the only proven-working
@@ -152,8 +152,8 @@ history of each version.
 ### Added
 - `.github/dependabot.yml` (cargo, swift, github-actions ecosystems).
 - `security-audit` CI job running `cargo audit` (advisory-only for now — see
-  `ROADMAP_HONEST.md` §4 for why it isn't a hard gate yet).
-- `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `ROADMAP_HONEST.md`, this `CHANGELOG.md`,
+  `docs/internal/ROADMAP_HONEST.md` §4 for why it isn't a hard gate yet).
+- `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `docs/internal/ROADMAP_HONEST.md`, this `CHANGELOG.md`,
   `.github/ISSUE_TEMPLATE/`, `.github/pull_request_template.md`, `docs/README.md` index.
 
 ### Changed
@@ -178,7 +178,7 @@ history of each version.
   underlying `HashMap` is never left torn by any operation on these types, so recovering a
   poisoned guard is safe. Added `test_survives_poisoned_lock` to each of the four files,
   proving a call after a simulated panic-while-holding-the-lock now succeeds instead of
-  panicking. (These modules are dead/unwired scaffolding per `ROADMAP_HONEST.md` §2-3 — not
+  panicking. (These modules are dead/unwired scaffolding per `docs/internal/ROADMAP_HONEST.md` §2-3 — not
   reachable from the daemon/CLI/RPC path — so this closes a real bug pattern without touching
   any live code path.)
 
@@ -195,7 +195,7 @@ history of each version.
 - ~34 dated planning/status/vision docs (phase reports, week-progress notes, session
   summaries, and docs describing an unbuilt macOS GUI app or fabricated compliance
   certifications) moved from `docs/` to `docs/archive/`, with specifics on what's wrong with
-  each in `docs/archive/README.md`. See `ROADMAP_HONEST.md` §3 for the full accounting.
+  each in `docs/archive/README.md`. See `docs/internal/ROADMAP_HONEST.md` §3 for the full accounting.
 
 ## [0.6.0] - 2026-08-30
 ## [0.5.1] - 2026-08-23

@@ -15,6 +15,6 @@
 
 - [ ] If this touches README/docs, no hedge language ("planned", "may be added") for
       things that are actually broken or missing — state it plainly instead.
-- [ ] If this wires previously-dead code into a real path (see `ROADMAP_HONEST.md` §3 for
+- [ ] If this wires previously-dead code into a real path (see `../docs/internal/ROADMAP_HONEST.md` §3 for
       the current list), the PR description says so explicitly.
 - [ ] No new `TODO`/`unimplemented!()` presented as if the feature works.

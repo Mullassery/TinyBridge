@@ -652,6 +652,6 @@ The result: Your entire development infrastructure, portable, reviewable, and ve
 
 ## Next Steps
 
-- **[Getting Started](../GETTING_STARTED.md)** — Boot your first environment
-- **[User Guide](../USER_README.md)** — Complete command reference
-- **[Architecture](./ARCHITECTURE.md)** — How it works under the hood
+- **[Getting Started](archive/GETTING_STARTED.md)** — Boot your first environment
+- **[User Guide](archive/USER_README.md)** — Complete command reference
+- **[Architecture](archive/ARCHITECTURE.md)** — How it works under the hood

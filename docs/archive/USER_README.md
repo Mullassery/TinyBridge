@@ -126,7 +126,7 @@ TinyBridge uses multi-tier lazy loading:
 
 You get SSH access at Tier 1 and start working immediately. Tiers 2-3 load in the background while you develop.
 
-> **Performance Note:** Actual boot times are being benchmarked in Phase 1. Target is Tier 1 SSH in <2s, Tier 2 in <5s. See [Testing Report](../TESTING_REPORT.md) for methodology and expected results vs. Lima.
+> **Performance Note:** Actual boot times are being benchmarked in Phase 1. Target is Tier 1 SSH in <2s, Tier 2 in <5s. See [Testing Report](TESTING_REPORT.md) for methodology and expected results vs. Lima.
 
 ### File Sharing
 
@@ -1359,7 +1359,7 @@ A: TinyBridge is Apache 2.0 open source. Contributions welcome at [GitHub](https
 
 - **Issues**: [GitHub Issues](https://github.com/Mullassery/tinybridge/issues)
 - **Documentation**: [Full Docs](./docs/)
-- **Roadmap**: [Development Roadmap](./PRODUCT_VISION.md)
+- **Roadmap**: [Development Roadmap](../../PRODUCT_VISION.md)
 
 ---
 

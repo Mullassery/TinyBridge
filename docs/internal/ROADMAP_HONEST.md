@@ -5,7 +5,7 @@ verified directly against the code and CI as of this pass (2026-09-21). It follo
 project's non-negotiable honesty rule: no "planned"/"may be added" hedging for things that
 are simply broken, unwired, or don't exist — those are named as such. For day-to-day status
 (platform support, install path, "what's actually been verified") see the root
-[README.md](README.md) — it is kept more current than this file for that. This file exists
+[README.md](../../README.md) — it is kept more current than this file for that. This file exists
 for the things README doesn't already cover in depth: dead code, dependency debt, and a
 concrete follow-up punch list.
 

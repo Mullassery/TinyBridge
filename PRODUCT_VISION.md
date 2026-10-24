@@ -10,7 +10,7 @@
 > resource-dashboard feature in the code, and none of the "seconds"/"1.5 second boot"
 > numbers below have been measured. Windows/Linux support, GPU routing, and ROS 2-native
 > multicast (Phases 2-5 below) do not exist in any form beyond the real, wired
-> `tinybridge dds` command described in README — see `ROADMAP_HONEST.md` for specifics.
+> `tinybridge dds` command described in README — see `docs/internal/ROADMAP_HONEST.md` for specifics.
 
 ---
 

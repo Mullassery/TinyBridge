@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 280" role="img" aria-labelledby="title desc">
+  <title id="title">TinyBridge — Linux VMs on Apple Virtualization.framework</title>
+  <desc id="desc">TinyBridge banner: a macOS-native Linux VM runtime.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a1220"/>
+      <stop offset="1" stop-color="#122238"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#38bdf8"/>
+      <stop offset="1" stop-color="#818cf8"/>
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" fill="none" stroke="#ffffff" stroke-opacity="0.05"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="280" rx="24" fill="url(#bg)"/>
+  <rect width="1200" height="280" rx="24" fill="url(#grid)"/>
+  <rect x="0" y="0" width="8" height="280" rx="4" fill="url(#accent)"/>
+  <g transform="translate(72 78)">
+    <rect x="0" y="0" width="124" height="124" rx="28" fill="#122238" stroke="#38bdf8" stroke-opacity="0.45" stroke-width="2"/>
+    <path d="M28 50h68v38H28z" fill="none" stroke="#818cf8" stroke-width="6" stroke-linejoin="round"/>
+    <path d="M52 88v14h20V88M44 102h36" stroke="#38bdf8" stroke-width="6" stroke-linecap="round"/>
+    <path d="M40 50c0-12 10-20 22-20s22 8 22 20" fill="none" stroke="url(#accent)" stroke-width="6" stroke-linecap="round"/>
+  </g>
+  <text x="232" y="122" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="58" font-weight="750" fill="#f0f9ff" letter-spacing="-1">TinyBridge</text>
+  <text x="234" y="170" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="25" fill="#bae6fd">Linux VMs on Apple's Virtualization.framework.</text>
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="16" fill="#a5b4fc">
+    <text x="234" y="216">macOS-native · Rust + Swift · real Ubuntu guest · local-first</text>
+  </g>
+</svg>
