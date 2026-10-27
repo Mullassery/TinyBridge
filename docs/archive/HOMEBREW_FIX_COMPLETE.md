@@ -13,7 +13,7 @@ brew install tinybridge  # ❌ Doesn't work - tap doesn't exist
 Changed to:
 ```bash
 # Option 1: Build from source (works now)
-git clone https://github.com/Mullassery/tinybridge
+git clone ../tinybridge
 cargo build --release
 
 # Option 2: Homebrew (coming soon)
@@ -76,7 +76,7 @@ Created `/tmp/homebrew-tinybridge` with complete tap setup:
 2. Initialize with empty README
 
 # Locally:
-git clone https://github.com/Mullassery/homebrew-tinybridge.git
+git clone ../homebrew-tinybridge
 cd homebrew-tinybridge
 cp -r /tmp/homebrew-tinybridge/* .
 git add -A
@@ -300,7 +300,7 @@ tinybridge status test-env
 ```bash
 # 1. Create GitHub repo
 # 2. Clone homebrew-tinybridge
-git clone https://github.com/Mullassery/homebrew-tinybridge.git
+git clone ../homebrew-tinybridge
 cd homebrew-tinybridge
 
 # 3. Copy files

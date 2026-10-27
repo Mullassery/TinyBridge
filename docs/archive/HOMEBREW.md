@@ -30,7 +30,7 @@ cask "tinybridge" do
   version "1.0.0"
   sha256 "abc123..."
 
-  url "https://github.com/Mullassery/tinybridge/releases/download/v#{version}/tinybridge.dmg"
+  url "../tinybridge/releases/download/v#{version}/tinybridge.dmg"
   name "TinyBridge"
   desc "Native macOS Linux development substrate"
   homepage "https://github.com/Mullassery/tinybridge"

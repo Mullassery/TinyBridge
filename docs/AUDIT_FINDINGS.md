@@ -1,6 +1,6 @@
 # Audit Report: tinybridge
 Date: 2026-10-26 | Type: Read-only systems design audit  
-Repo: https://github.com/Mullassery/tinybridge.git (local: /Users/georgimullassery/Desktop/Projects/tinybridge) | Branch: main | Status: clean
+Repo: ../tinybridge (local: /Users/georgimullassery/Desktop/Projects/tinybridge) | Branch: main | Status: clean
 
 ## Overview
 macOS-native Linux VM runtime built on Apple's Virtualization.framework. Rust workspace + C ABI + Swift bridge drives VZ, daemon over Unix socket JSON-RPC, CLI, per-VM vmhost process with codesigning/entitlements.

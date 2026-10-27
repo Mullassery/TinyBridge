@@ -45,7 +45,7 @@ homebrew-tinybridge/
 class Tinybridge < Formula
   desc "Run Linux environments on macOS with zero configuration"
   homepage "https://github.com/Mullassery/tinybridge"
-  url "https://github.com/Mullassery/tinybridge/releases/download/v0.4.0/tinybridge-0.4.0-x86_64-apple-darwin.tar.gz"
+  url "../tinybridge/releases/download/v0.4.0/tinybridge-0.4.0-x86_64-apple-darwin.tar.gz"
   sha256 "REPLACE_WITH_ACTUAL_SHA256"
   license "Apache-2.0"
   
@@ -79,7 +79,7 @@ end
 class Tinybridged < Formula
   desc "TinyBridge daemon - Linux environment manager"
   homepage "https://github.com/Mullassery/tinybridge"
-  url "https://github.com/Mullassery/tinybridge/releases/download/v0.4.0/tinybridged-0.4.0-x86_64-apple-darwin.tar.gz"
+  url "../tinybridge/releases/download/v0.4.0/tinybridged-0.4.0-x86_64-apple-darwin.tar.gz"
   sha256 "REPLACE_WITH_ACTUAL_SHA256"
   license "Apache-2.0"
   
@@ -124,7 +124,7 @@ end
 class TinybridgeApp < Formula
   desc "TinyBridge menu bar app for macOS"
   homepage "https://github.com/Mullassery/tinybridge"
-  url "https://github.com/Mullassery/tinybridge/releases/download/v0.4.0/TinyBridge-0.4.0.dmg"
+  url "../tinybridge/releases/download/v0.4.0/TinyBridge-0.4.0.dmg"
   sha256 "REPLACE_WITH_ACTUAL_SHA256"
   license "Apache-2.0"
   
@@ -256,7 +256,7 @@ brew install --build-from-source Mullassery/tinybridge/tinybridge
 
 ## Support
 
-Report issues at: https://github.com/Mullassery/tinybridge/issues
+Report issues at: ../tinybridge/issues
 ```
 
 ### Step 6: Push to GitHub
@@ -269,7 +269,7 @@ git add .
 git commit -m "Initial tap setup for TinyBridge"
 
 # Push to GitHub
-git remote add origin https://github.com/Mullassery/homebrew-tinybridge.git
+git remote add origin ../homebrew-tinybridge
 git push -u origin main
 ```
 
@@ -337,19 +337,19 @@ tinybridged --version
 ### Current: macOS only
 ```ruby
 # tinybridge.rb
-url "https://github.com/Mullassery/tinybridge/releases/download/v0.4.0/tinybridge-0.4.0-x86_64-apple-darwin.tar.gz"
+url "../tinybridge/releases/download/v0.4.0/tinybridge-0.4.0-x86_64-apple-darwin.tar.gz"
 ```
 
 ### Future: Linux support
 ```ruby
 # Once Linux binaries exist
 on_macos do
-  url "https://github.com/Mullassery/tinybridge/releases/download/v0.4.0/tinybridge-0.4.0-x86_64-apple-darwin.tar.gz"
+  url "../tinybridge/releases/download/v0.4.0/tinybridge-0.4.0-x86_64-apple-darwin.tar.gz"
   sha256 "..."
 end
 
 on_linux do
-  url "https://github.com/Mullassery/tinybridge/releases/download/v0.4.0/tinybridge-0.4.0-x86_64-linux-gnu.tar.gz"
+  url "../tinybridge/releases/download/v0.4.0/tinybridge-0.4.0-x86_64-linux-gnu.tar.gz"
   sha256 "..."
 end
 ```

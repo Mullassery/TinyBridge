@@ -29,7 +29,7 @@ uv tool install tinybridge
 ```
 
 **Manual download:**
-1. Go to [GitHub Releases](https://github.com/Mullassery/tinybridge/releases)
+1. Go to [GitHub Releases](../tinybridge/releases)
 2. Download the latest `.dmg`
 3. Drag TinyBridge to Applications
 
@@ -1351,13 +1351,13 @@ A: Phase 1 is stable for development. Not recommended for hosting services yet.
 A: Yes. Run `tinybridge up` in your CI pipeline. Each build gets a fresh environment.
 
 **Q: How do I contribute?**  
-A: TinyBridge is Apache 2.0 open source. Contributions welcome at [GitHub](https://github.com/Mullassery/tinybridge).
+A: TinyBridge is Apache 2.0 open source. Contributions welcome at [GitHub](../tinybridge).
 
 ---
 
 ## Get Help
 
-- **Issues**: [GitHub Issues](https://github.com/Mullassery/tinybridge/issues)
+- **Issues**: [GitHub Issues](../tinybridge/issues)
 - **Documentation**: [Full Docs](./docs/)
 - **Roadmap**: [Development Roadmap](../../PRODUCT_VISION.md)
 

@@ -298,7 +298,7 @@ Create `homebrew-cask/Casks/tinybridge.rb`:
 cask "tinybridge" do
   version "1.0.0"
   sha256 "abc123..."
-  url "https://github.com/Mullassery/tinybridge/releases/download/v#{version}/TinyBridge-#{version}.dmg"
+  url "../tinybridge/releases/download/v#{version}/TinyBridge-#{version}.dmg"
   
   name "TinyBridge"
   desc "Linux development substrate for macOS"

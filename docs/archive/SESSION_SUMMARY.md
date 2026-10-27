@@ -57,7 +57,7 @@ fdb4628  docs: Add intelligent port forwarding feature to README
 59c69bb  feat: Implement Phase 2 features - 5 remaining components
 ```
 
-**All commits pushed to:** https://github.com/Mullassery/tinybridge
+**All commits pushed to:** ../tinybridge
 
 ---
 
@@ -451,6 +451,6 @@ Today's work delivered:
 
 ---
 
-**Repository:** https://github.com/Mullassery/tinybridge  
+**Repository:** ../tinybridge  
 **Last Commit:** 283c449  
 **Status:** ✅ PRODUCTION READY FOR PHASE 2 | 🔄 PHASE 3 IN PROGRESS

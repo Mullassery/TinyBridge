@@ -6,7 +6,7 @@ All notable changes to this project are documented in this file. Format loosely 
 Entries below `[Unreleased]` are reconstructed only where confidently verifiable (git tag
 dates); this project did not keep a changelog before this pass, so no per-release feature
 lists are fabricated for the historical tags. See `git log <tag>..<tag>` or
-[GitHub Releases](https://github.com/Mullassery/TinyBridge/releases) for the real commit
+[GitHub Releases](../TinyBridge/releases) for the real commit
 history of each version.
 
 ## [0.8.0] - 2026-10-19

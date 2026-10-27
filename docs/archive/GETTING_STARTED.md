@@ -54,7 +54,7 @@ uv pip install tinybridge
 
 ### Option 3: Manual Download
 
-1. Go to [GitHub Releases](https://github.com/Mullassery/tinybridge/releases)
+1. Go to [GitHub Releases](../tinybridge/releases)
 2. Download the latest `.dmg` file
 3. Drag `TinyBridge.app` to Applications
 4. The CLI is automatically added to your PATH
@@ -476,7 +476,7 @@ A: Coming in Phase 3. For now, SSH tunneling works if you need it.
 A: Yes, optimized for Apple Silicon. Intel Macs also work (Linux runs via Rosetta 2).
 
 **Q: What if I have an issue?**  
-A: Open an issue on [GitHub](https://github.com/Mullassery/tinybridge/issues). Include output of:
+A: Open an issue on [GitHub](../tinybridge/issues). Include output of:
 ```bash
 tinybridge status <name> --json
 ```

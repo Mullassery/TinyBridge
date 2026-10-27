@@ -6,7 +6,7 @@
 
 A macOS-native Linux VM runtime built on Apple's Virtualization.framework.
 
-[![CI](https://github.com/Mullassery/TinyBridge/actions/workflows/ci.yml/badge.svg)](https://github.com/Mullassery/TinyBridge/actions/workflows/ci.yml)
+[![CI](../TinyBridge/actions/workflows/ci.yml/badge.svg)](../TinyBridge/actions/workflows/ci.yml)
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Platform: macOS](https://img.shields.io/badge/platform-macOS-lightgrey.svg)](#project-status)
 
@@ -56,7 +56,7 @@ TinyBridge is a real Linux virtual machine runtime for macOS: a genuine Rust →
 Building from source is the only currently working install path:
 
 ```bash
-git clone https://github.com/Mullassery/TinyBridge.git
+git clone ../TinyBridge
 cd TinyBridge
 
 # Builds the Swift bridge, copies the dylib where Cargo expects it, builds the
@@ -152,13 +152,13 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) (dev setup, test/lint commands) and [CODE
 
 ## Related projects
 
-- [MudFish](https://github.com/Mullassery/MudFish) — Rust-native web crawling and intelligence engine with Python bindings
-- [MessageBirds](https://github.com/Mullassery/MessageBirds) — open-source, event-driven Customer Data & Engagement Platform (Rust + TypeScript)
-- [PrismNote](https://github.com/Mullassery/prismnote) — Jupyter-compatible data-science notebook with a Rust backend
-- [SHER-KERNEL](https://github.com/Mullassery/SHER-KERNEL) — userspace prototype of OS-kernel object-model/scheduling/memory concepts
-- [PyAPICheck](https://github.com/Mullassery/PyAPICheck) — transparent API security discovery with a Rust core and Python CLI/SDK
+- [MudFish](../MudFish) — Rust-native web crawling and intelligence engine with Python bindings
+- [MessageBirds](../MessageBirds) — open-source, event-driven Customer Data & Engagement Platform (Rust + TypeScript)
+- [PrismNote](../prismnote) — Jupyter-compatible data-science notebook with a Rust backend
+- [SHER-KERNEL](../SHER-KERNEL) — userspace prototype of OS-kernel object-model/scheduling/memory concepts
+- [PyAPICheck](../PyAPICheck) — transparent API security discovery with a Rust core and Python CLI/SDK
 
-[Browse all projects →](https://github.com/Mullassery?tab=repositories)
+[Browse all projects →](../Mullassery-profile)
 
 ## Cloud-init templates
 

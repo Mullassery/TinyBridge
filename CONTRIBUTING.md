@@ -18,7 +18,7 @@ say so plainly.
 This is a Rust + Swift project targeting macOS only (see README's "Honest status" for why).
 
 ```bash
-git clone https://github.com/Mullassery/TinyBridge.git
+git clone ../TinyBridge
 cd TinyBridge
 just build   # or see README's "Building from source" for the equivalent manual steps
 ```

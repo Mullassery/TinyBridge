@@ -4,7 +4,7 @@
 
 ## Live Repository
 
-**URL**: https://github.com/Mullassery/homebrew-tinybridge
+**URL**: ../homebrew-tinybridge
 
 **Installation**:
 ```bash
@@ -51,7 +51,7 @@ brew install tinybridge
 
 ## Git History
 
-**Tap Repository**: https://github.com/Mullassery/homebrew-tinybridge
+**Tap Repository**: ../homebrew-tinybridge
 ```
 commit 25bc294: fix: Homebrew formula syntax error in daemon post_install
 commit cb62542: Initial tap setup
@@ -130,5 +130,5 @@ To make `brew install tinybridge` fully functional, we need:
 ---
 
 **Published**: 2026-07-25
-**URL**: https://github.com/Mullassery/homebrew-tinybridge
+**URL**: ../homebrew-tinybridge
 **Status**: LIVE ✅
