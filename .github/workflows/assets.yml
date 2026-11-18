@@ -19,7 +19,7 @@ jobs:
     if: github.event.inputs.asset_type == 'all' || github.event.inputs.asset_type == 'kernel'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Download cloud-hypervisor kernel
         run: |
@@ -45,7 +45,7 @@ jobs:
     if: github.event.inputs.asset_type == 'all' || github.event.inputs.asset_type == 'rootfs'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install debootstrap
         run: sudo apt-get update && sudo apt-get install -y debootstrap qemu-user-static binfmt-support
