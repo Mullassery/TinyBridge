@@ -51,7 +51,7 @@ chrono             = { version = "0.4", features = ["serde"] }
 futures            = "0.3"
 bindgen            = "0.70"
 goblin             = "0.8"
-lru                = "0.12"
+lru                = "0.16"
 tempfile           = "3.8"
 ssh-key            = { version = "0.6", features = ["ed25519", "encryption"] }
 regex              = "1.10"

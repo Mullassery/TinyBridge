@@ -20,7 +20,7 @@ tinybridge-core = { workspace = true }
 goblin = "0.8"
 
 # Caching
-lru = "0.12"
+lru = "0.16"
 
 [dev-dependencies]
 tempfile = "3.8"
