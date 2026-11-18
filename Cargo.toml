@@ -41,7 +41,7 @@ tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
 tokio-util         = { version = "0.7", features = ["codec"] }
 bytes              = "1.7"
 portable-pty       = "0.8"
-crossterm          = "0.28"
+crossterm          = "0.29"
 indicatif          = "0.17"
 console            = "0.15"
 dirs               = "5.0"
