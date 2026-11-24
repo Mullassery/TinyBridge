@@ -153,7 +153,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) (dev setup, test/lint commands) and [CODE
 ## Related projects
 
 - [MudFish](../MudFish) — Rust-native web crawling and intelligence engine with Python bindings
-- [MessageBirds](../MessageBirds) — open-source, event-driven Customer Data & Engagement Platform (Rust + TypeScript)
+- [PyCustomerHub](../PyCustomerHub) — open-source, event-driven Customer Data & Engagement Platform (Rust + TypeScript)
 - [PrismNote](../prismnote) — Jupyter-compatible data-science notebook with a Rust backend
 - [SHER-KERNEL](../SHER-KERNEL) — userspace prototype of OS-kernel object-model/scheduling/memory concepts
 - [PyAPICheck](../PyAPICheck) — transparent API security discovery with a Rust core and Python CLI/SDK
